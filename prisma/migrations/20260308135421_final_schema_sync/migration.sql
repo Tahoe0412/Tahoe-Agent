@@ -1,0 +1,8 @@
+-- RenameIndex
+ALTER INDEX "scene_classifications_project_id_human_type_motion_type_li_idx" RENAME TO "scene_classifications_project_id_human_type_motion_type_lip_idx";
+
+-- RenameIndex
+ALTER INDEX "scene_classifications_project_id_production_class_difficulty_sc" RENAME TO "scene_classifications_project_id_production_class_difficult_idx";
+
+-- RenameIndex
+ALTER INDEX "scene_classifications_script_scene_id_classification_version_ke" RENAME TO "scene_classifications_script_scene_id_classification_versio_key";

@@ -1,0 +1,116 @@
+export type PageState = "ready" | "loading" | "empty" | "error";
+
+export const dashboardMetrics = [
+  { label: "Active Trends", value: "12", caption: "跨三平台聚合后的高优先级主题" },
+  { label: "Scored Scenes", value: "24", caption: "已完成重构、分类与素材判断" },
+  { label: "Asset Readiness", value: "67%", caption: "关键镜头素材齐备率" },
+  { label: "Risk Alerts", value: "5", caption: "高难度或一致性风险镜头" },
+];
+
+export const trendRows = [
+  {
+    topic: "result_first_hook",
+    label: "结果先行 Hook",
+    total: 88,
+    reach: 86,
+    engagement: 81,
+    velocity: 79,
+    crossPlatform: 100,
+    producibility: 90,
+    brandFit: 83,
+    platforms: "YT / X / TT",
+    evidence: 6,
+    summary: "结果画面前置，配合强字幕和快节奏转场。",
+  },
+  {
+    topic: "ugc_workflow",
+    label: "UGC 工作流演绎",
+    total: 76,
+    reach: 72,
+    engagement: 75,
+    velocity: 64,
+    crossPlatform: 66,
+    producibility: 93,
+    brandFit: 84,
+    platforms: "YT / TT",
+    evidence: 5,
+    summary: "人设可信、低制作成本，适合快速验证。",
+  },
+  {
+    topic: "screen_proof",
+    label: "屏幕证据镜头",
+    total: 71,
+    reach: 68,
+    engagement: 62,
+    velocity: 59,
+    crossPlatform: 66,
+    producibility: 95,
+    brandFit: 77,
+    platforms: "X / YT",
+    evidence: 4,
+    summary: "录屏+数据叠层更适合承载可信证明。",
+  },
+];
+
+export const scriptLabRows = [
+  {
+    id: "scene-1",
+    sceneOrder: 1,
+    originalText: "我们先告诉用户，为什么同样的 AI 视频，有的能转化，有的没人看。",
+    rewritten: "人物正面近景开场，直接抛出对比结果，字幕强调“同样工具，不同转化”。",
+    labels: ["H1", "M0", "L1", "A"],
+    assets: ["CHARACTER_BASE", "VOICE", "SUBTITLE"],
+    continuityGroup: "intro_arc",
+  },
+  {
+    id: "scene-2",
+    sceneOrder: 2,
+    originalText: "再用趋势图和平台案例说明，真正拉开差距的是前期研究。",
+    rewritten: "切到录屏与趋势图叠层，展示平台热点案例和数据曲线，使用旁白解释差异来源。",
+    labels: ["H0", "M1", "L1", "D"],
+    assets: ["VOICE", "REFERENCE_IMAGE"],
+    continuityGroup: "proof_arc",
+  },
+  {
+    id: "scene-3",
+    sceneOrder: 3,
+    originalText: "最后给出镜头规划与素材依赖表，让用户直接进入生产。",
+    rewritten: "结构化表格镜头，按镜头编号展示分类标签和素材缺口，结尾落到行动号召。",
+    labels: ["H0", "M0", "L0", "T"],
+    assets: ["SCENE_BASE", "SUBTITLE"],
+    continuityGroup: "cta_arc",
+  },
+];
+
+export const scenePlannerRows = [
+  {
+    id: "planner-1",
+    sceneOrder: 1,
+    shotGoal: "建立高对比 Hook",
+    continuityGroup: "intro_arc",
+    productionClass: "A",
+    difficulty: 40,
+    assetReady: false,
+    missing: ["CHARACTER_BASE", "VOICE"],
+  },
+  {
+    id: "planner-2",
+    sceneOrder: 2,
+    shotGoal: "提供趋势证据",
+    continuityGroup: "proof_arc",
+    productionClass: "D",
+    difficulty: 48,
+    assetReady: true,
+    missing: [],
+  },
+  {
+    id: "planner-3",
+    sceneOrder: 3,
+    shotGoal: "展示生产清单",
+    continuityGroup: "cta_arc",
+    productionClass: "T",
+    difficulty: 24,
+    assetReady: true,
+    missing: [],
+  },
+];

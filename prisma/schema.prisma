@@ -1,0 +1,1383 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  YOUTUBE
+  X
+  TIKTOK
+}
+
+enum LlmProvider {
+  OPENAI
+  GEMINI
+  DEEPSEEK
+  QWEN
+}
+
+enum SearchProvider {
+  MOCK
+  TAVILY
+}
+
+enum BrandStage {
+  COLD_START
+  VALIDATION
+  SCALE
+}
+
+enum IndustryResearchStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CompetitorTier {
+  DIRECT
+  ASPIRATIONAL
+  CATEGORY_LEADER
+}
+
+enum ContentPillarType {
+  EDUCATION
+  BRAND_STORY
+  PRODUCT_VALUE
+  USE_CASE
+  TRUST_SIGNAL
+  FOUNDER_IP
+  USER_TESTIMONIAL
+  TREND_REACTION
+}
+
+enum PlatformSurface {
+  XIAOHONGSHU_POST
+  XIAOHONGSHU_VIDEO
+  DOUYIN_VIDEO
+  DOUYIN_TITLE
+  COMMENT_REPLY
+  COVER_COPY
+}
+
+enum AdaptationStatus {
+  DRAFT
+  READY
+  APPROVED
+  ARCHIVED
+}
+
+enum ComplianceCheckStatus {
+  PENDING
+  PASSED
+  NEEDS_REVIEW
+  BLOCKED
+}
+
+enum ComplianceIssueType {
+  SENSITIVE_WORD
+  EXAGGERATED_CLAIM
+  EFFECT_PROMISE
+  MEDICAL_RISK
+  FINANCE_RISK
+  MISSING_DISCLOSURE
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum StrategyTaskType {
+  RESEARCH
+  TOPIC_PLAN
+  SCRIPT
+  ADAPTATION
+  COMPLIANCE
+  REVIEW
+}
+
+enum StrategyTaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum BriefStatus {
+  DRAFT
+  ACTIVE
+  APPROVED
+  ARCHIVED
+}
+
+enum BriefObjective {
+  AWARENESS
+  CONSIDERATION
+  CONVERSION
+  RETENTION
+  LAUNCH
+}
+
+enum BriefTone {
+  PREMIUM
+  DIRECT
+  PLAYFUL
+  TECHNICAL
+  HUMAN
+  CINEMATIC
+}
+
+enum AudienceAwareness {
+  COLD
+  WARM
+  HOT
+}
+
+enum ConstraintType {
+  BRAND
+  PLATFORM
+  AUDIENCE
+  STYLE
+  LEGAL
+  DELIVERY
+}
+
+enum ApprovalStage {
+  BRIEF
+  RESEARCH
+  SCRIPT
+  STORYBOARD
+  ASSET_PLAN
+  RENDER
+  DELIVERY
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum StoryboardStatus {
+  DRAFT
+  ACTIVE
+  APPROVED
+  ARCHIVED
+}
+
+enum FrameStatus {
+  DRAFT
+  READY
+  LOCKED
+  OMITTED
+}
+
+enum FrameReferenceType {
+  STYLE
+  CHARACTER
+  PRODUCT
+  ENVIRONMENT
+  COMPOSITION
+  PROP
+  WARDROBE
+}
+
+enum ReviewTargetType {
+  BRIEF
+  SCRIPT
+  SCENE
+  STORYBOARD
+  FRAME
+  RENDER_JOB
+  REPORT
+}
+
+enum ReviewSeverity {
+  INFO
+  WARNING
+  BLOCKER
+}
+
+enum ReviewStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum RenderJobType {
+  IMAGE
+  VIDEO
+  VOICE
+  MUSIC
+  PACKAGE
+}
+
+enum RenderProvider {
+  COMFYUI
+  RUNWAY
+  KLING
+  LUMA
+  ELEVENLABS
+  CUSTOM
+}
+
+enum RenderJobStatus {
+  DRAFT
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum RenderAssetType {
+  IMAGE
+  VIDEO
+  AUDIO
+  SUBTITLE
+  ARCHIVE
+  PREVIEW
+}
+
+enum ProjectStatus {
+  DRAFT
+  RUNNING
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum TaskType {
+  TREND_RESEARCH
+  CREATOR_DISCOVERY
+  CONTENT_DISCOVERY
+  SCRIPT_REWRITE
+  SHOT_BREAKDOWN
+  REPORT_GENERATION
+}
+
+enum TaskStatus {
+  DRAFT
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum CreatorTier {
+  HEAD
+  GROWTH
+  EMERGING
+}
+
+enum ContentType {
+  SHORT_VIDEO
+  LONG_VIDEO
+  THREAD
+  POST
+  ARTICLE
+  LIVE_STREAM
+}
+
+enum TopicCategory {
+  CREATIVE_FORMAT
+  NARRATIVE_PATTERN
+  VISUAL_STYLE
+  AUDIENCE_SIGNAL
+  PLATFORM_SIGNAL
+  COMMERCIAL_ANGLE
+}
+
+enum TrendStage {
+  EMERGING
+  GROWING
+  PEAK
+  STABLE
+  DECLINING
+}
+
+enum EvidenceType {
+  CONTENT
+  CREATOR
+  SEARCH_RESULT
+  NEWS
+  PLATFORM_FEED
+}
+
+enum SignalMetric {
+  VIEW_COUNT
+  LIKE_COUNT
+  COMMENT_COUNT
+  SHARE_COUNT
+  ENGAGEMENT_RATE
+  GROWTH_RATE
+  SEARCH_VOLUME
+}
+
+enum ScriptSourceType {
+  USER_INPUT
+  AI_REWRITE
+  HUMAN_EDIT
+}
+
+enum ScriptStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum StoryStructure {
+  PROBLEM_SOLUTION
+  PAS
+  BEFORE_AFTER_BRIDGE
+  LISTICLE
+  CASE_STUDY
+}
+
+enum ShotType {
+  TALKING_HEAD
+  VOICEOVER_BROLL
+  SCREENCAST
+  DEMO
+  MOTION_GRAPHIC
+  CINEMATIC
+}
+
+enum ProductionClass {
+  UGC
+  STUDIO
+  SCREEN_CAPTURE
+  HYBRID
+  ANIMATION
+}
+
+enum SubjectPresence {
+  HUMAN
+  NON_HUMAN
+  NONE
+}
+
+enum MotionLevel {
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+}
+
+enum DialogueMode {
+  SPOKEN
+  ON_SCREEN_TEXT
+  VOICEOVER
+  NONE
+}
+
+enum CameraMode {
+  STATIC
+  PAN
+  TILT
+  TRACKING
+  ZOOM
+  SCREEN_CAPTURE
+}
+
+enum AssetType {
+  CHARACTER_BASE
+  SCENE_BASE
+  CHARACTER_SCENE_COMPOSITE
+  PRODUCT_UI
+  PROP
+  BROLL
+  VOICEOVER
+  MUSIC
+  SFX
+  SUBTITLE
+}
+
+enum AssetSource {
+  GENERATED
+  STOCK
+  SCREEN_CAPTURE
+  UPLOADED
+  SYNTHETIC
+}
+
+enum DependencyLevel {
+  REQUIRED
+  OPTIONAL
+}
+
+enum AssetStatus {
+  PLANNED
+  READY
+  BLOCKED
+}
+
+enum ReportType {
+  TREND_RESEARCH
+  SCRIPT_PLAN
+  SHOT_PLAN
+  FINAL_RESEARCH
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum HumanType {
+  H0
+  H1
+}
+
+enum MotionType {
+  M0
+  M1
+  M2
+}
+
+enum LipSyncType {
+  L0
+  L1
+}
+
+enum AssetDependencyType {
+  S0
+  S1
+  S2
+  S3
+  S4
+}
+
+enum SceneProductionClass {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  T
+}
+
+enum SceneClassificationVersion {
+  V1
+}
+
+enum RequiredAssetVersion {
+  V1
+}
+
+enum UploadedAssetType {
+  CHARACTER_BASE
+  SCENE_BASE
+  CHARACTER_SCENE_COMPOSITE
+  VOICE
+  REFERENCE_IMAGE
+}
+
+model Project {
+  id                      String                @id @default(cuid())
+  brand_profile_id        String?
+  industry_template_id    String?
+  title                   String
+  topic_query             String
+  primary_platform        Platform?
+  status                  ProjectStatus         @default(DRAFT)
+  source_language         String                @default("zh-CN")
+  raw_script_text         String?               @db.Text
+  metadata                Json?
+  created_at              DateTime              @default(now())
+  updated_at              DateTime              @updatedAt
+  research_tasks          ResearchTask[]
+  platform_creators       PlatformCreator[]
+  platform_contents       PlatformContent[]
+  trend_topics            TrendTopic[]
+  trend_evidences         TrendEvidence[]
+  scripts                 Script[]
+  script_scenes           ScriptScene[]
+  script_versions         ScriptVersion[]
+  creative_briefs         CreativeBrief[]
+  campaign_sprints        CampaignSprint[]
+  strategy_tasks          StrategyTask[]
+  platform_adaptations    PlatformAdaptation[]
+  compliance_checks       ComplianceCheck[]
+  optimization_reviews    OptimizationReview[]
+  brief_constraints       BriefConstraint[]
+  approval_gates          ApprovalGate[]
+  storyboards             Storyboard[]
+  storyboard_frames       StoryboardFrame[]
+  frame_references        FrameReference[]
+  review_notes            ReviewNote[]
+  render_jobs             RenderJob[]
+  render_assets           RenderAsset[]
+  shots                   Shot[]
+  shot_asset_dependencies ShotAssetDependency[]
+  scene_classifications   SceneClassification[]
+  required_assets         RequiredAsset[]
+  uploaded_assets         UploadedAsset[]
+  research_reports        ResearchReport[]
+  brand_profile           BrandProfile?         @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  industry_template       IndustryTemplate?     @relation(fields: [industry_template_id], references: [id], onDelete: SetNull)
+
+  @@index([status, created_at])
+  @@index([primary_platform, created_at])
+  @@index([brand_profile_id, created_at])
+  @@index([industry_template_id, created_at])
+}
+
+model AppSettings {
+  id                    String         @id @default("default")
+  llm_provider          LlmProvider    @default(OPENAI)
+  llm_model             String         @default("gpt-4.1-mini")
+  llm_mock_mode         Boolean        @default(true)
+  openai_api_key        String?
+  gemini_api_key        String?
+  deepseek_api_key      String?
+  qwen_api_key          String?
+  llm_routing_json      Json?
+  news_search_provider  SearchProvider @default(MOCK)
+  news_search_mock_mode Boolean        @default(true)
+  tavily_api_key        String?
+  app_base_url          String?
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+
+  @@map("app_settings")
+}
+
+model BrandProfile {
+  id                    String              @id @default(cuid())
+  brand_name            String
+  brand_positioning     String              @db.Text
+  core_belief           String?             @db.Text
+  product_lines_json    Json
+  target_personas_json  Json
+  platform_priority     Json
+  forbidden_phrases     Json
+  compliance_notes      String?             @db.Text
+  brand_voice           String?             @db.Text
+  brand_stage           BrandStage          @default(COLD_START)
+  metadata_json         Json?
+  created_at            DateTime            @default(now())
+  updated_at            DateTime            @updatedAt
+  projects              Project[]
+  content_pillars       ContentPillar[]
+  campaign_sprints      CampaignSprint[]
+  strategy_tasks        StrategyTask[]
+  platform_adaptations  PlatformAdaptation[]
+  compliance_checks     ComplianceCheck[]
+  optimization_reviews  OptimizationReview[]
+
+  @@index([brand_stage, created_at])
+  @@map("brand_profiles")
+}
+
+model IndustryTemplate {
+  id                              String                 @id @default(cuid())
+  industry_name                   String
+  industry_keywords               Json
+  competitor_keywords             Json
+  expression_boundaries           String?                @db.Text
+  forbidden_terms                 Json
+  platform_content_priorities     Json
+  common_pain_points              Json
+  common_questions                Json
+  recommended_content_pillars     Json
+  recommended_topic_directions    Json
+  template_notes                  String?                @db.Text
+  metadata_json                   Json?
+  created_at                      DateTime               @default(now())
+  updated_at                      DateTime               @updatedAt
+  projects                        Project[]
+  industry_research_snapshots     IndustryResearchSnapshot[]
+  competitor_profiles             CompetitorProfile[]
+
+  @@index([industry_name, created_at])
+  @@map("industry_templates")
+}
+
+model IndustryResearchSnapshot {
+  id                    String                 @id @default(cuid())
+  industry_template_id  String
+  snapshot_title        String
+  research_status       IndustryResearchStatus @default(DRAFT)
+  summary_text          String?                @db.Text
+  signal_json           Json
+  evidence_json         Json?
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  industry_template     IndustryTemplate       @relation(fields: [industry_template_id], references: [id], onDelete: Cascade)
+
+  @@index([industry_template_id, research_status, created_at])
+  @@map("industry_research_snapshots")
+}
+
+model CompetitorProfile {
+  id                    String           @id @default(cuid())
+  industry_template_id  String
+  competitor_name       String
+  competitor_tier       CompetitorTier
+  keywords_json         Json
+  primary_platforms     Json
+  messaging_angles_json Json
+  notes_text            String?          @db.Text
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
+  industry_template     IndustryTemplate @relation(fields: [industry_template_id], references: [id], onDelete: Cascade)
+
+  @@index([industry_template_id, competitor_tier])
+  @@map("competitor_profiles")
+}
+
+model ContentPillar {
+  id                  String            @id @default(cuid())
+  brand_profile_id    String
+  pillar_name         String
+  pillar_type         ContentPillarType
+  pillar_summary      String?           @db.Text
+  topic_directions    Json
+  platform_fit_json   Json?
+  priority_score      Int               @default(50)
+  active              Boolean           @default(true)
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  brand_profile       BrandProfile      @relation(fields: [brand_profile_id], references: [id], onDelete: Cascade)
+  strategy_tasks      StrategyTask[]
+  platform_adaptations PlatformAdaptation[]
+  optimization_reviews OptimizationReview[]
+
+  @@index([brand_profile_id, pillar_type, active])
+  @@map("content_pillars")
+}
+
+model CampaignSprint {
+  id                    String        @id @default(cuid())
+  project_id            String
+  brand_profile_id      String?
+  sprint_name           String
+  sprint_goal           String?       @db.Text
+  sprint_status         SprintStatus  @default(PLANNED)
+  start_date            DateTime?
+  end_date              DateTime?
+  objective_json        Json?
+  content_strategy_json Json?
+  created_at            DateTime      @default(now())
+  updated_at            DateTime      @updatedAt
+  project               Project       @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brand_profile         BrandProfile? @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  strategy_tasks        StrategyTask[]
+  platform_adaptations  PlatformAdaptation[]
+  compliance_checks     ComplianceCheck[]
+  optimization_reviews  OptimizationReview[]
+
+  @@index([project_id, sprint_status, created_at])
+  @@index([brand_profile_id, sprint_status])
+  @@map("campaign_sprints")
+}
+
+model StrategyTask {
+  id                    String             @id @default(cuid())
+  project_id            String
+  brand_profile_id      String?
+  campaign_sprint_id    String?
+  content_pillar_id     String?
+  task_type             StrategyTaskType
+  task_status           StrategyTaskStatus @default(TODO)
+  task_title            String
+  task_summary          String?            @db.Text
+  priority_score        Int                @default(50)
+  owner_label           String?
+  due_at                DateTime?
+  task_json             Json?
+  created_at            DateTime           @default(now())
+  updated_at            DateTime           @updatedAt
+  project               Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brand_profile         BrandProfile?      @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  campaign_sprint       CampaignSprint?    @relation(fields: [campaign_sprint_id], references: [id], onDelete: SetNull)
+  content_pillar        ContentPillar?     @relation(fields: [content_pillar_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id, task_type, task_status])
+  @@index([campaign_sprint_id, task_status])
+  @@index([brand_profile_id, priority_score])
+  @@map("strategy_tasks")
+}
+
+model PlatformAdaptation {
+  id                    String            @id @default(cuid())
+  project_id            String
+  brand_profile_id      String?
+  campaign_sprint_id    String?
+  content_pillar_id     String?
+  script_id             String?
+  script_scene_id       String?
+  source_message        String            @db.Text
+  platform_surface      PlatformSurface
+  adaptation_status     AdaptationStatus  @default(DRAFT)
+  title_text            String?
+  body_text             String            @db.Text
+  hook_text             String?
+  cover_copy            String?
+  interaction_prompt    String?
+  structured_output     Json
+  raw_payload           Json?
+  created_at            DateTime          @default(now())
+  updated_at            DateTime          @updatedAt
+  project               Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brand_profile         BrandProfile?     @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  campaign_sprint       CampaignSprint?   @relation(fields: [campaign_sprint_id], references: [id], onDelete: SetNull)
+  content_pillar        ContentPillar?    @relation(fields: [content_pillar_id], references: [id], onDelete: SetNull)
+  script                Script?           @relation(fields: [script_id], references: [id], onDelete: SetNull)
+  script_scene          ScriptScene?      @relation(fields: [script_scene_id], references: [id], onDelete: SetNull)
+  compliance_checks     ComplianceCheck[]
+
+  @@index([project_id, platform_surface, adaptation_status])
+  @@index([campaign_sprint_id, platform_surface])
+  @@index([script_scene_id, platform_surface])
+  @@map("platform_adaptations")
+}
+
+model ComplianceCheck {
+  id                    String                 @id @default(cuid())
+  project_id            String
+  brand_profile_id      String?
+  campaign_sprint_id    String?
+  platform_adaptation_id String?
+  target_type           String
+  target_id             String
+  check_status          ComplianceCheckStatus  @default(PENDING)
+  flagged_issues_json   Json
+  sensitive_hits_json   Json?
+  risk_summary          String?                @db.Text
+  needs_human_review    Boolean                @default(false)
+  raw_payload           Json?
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  project               Project                @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brand_profile         BrandProfile?          @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  campaign_sprint       CampaignSprint?        @relation(fields: [campaign_sprint_id], references: [id], onDelete: SetNull)
+  platform_adaptation   PlatformAdaptation?    @relation(fields: [platform_adaptation_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id, check_status, created_at])
+  @@index([platform_adaptation_id, check_status])
+  @@index([target_type, target_id])
+  @@map("compliance_checks")
+}
+
+model OptimizationReview {
+  id                    String         @id @default(cuid())
+  project_id            String
+  brand_profile_id      String?
+  campaign_sprint_id    String?
+  content_pillar_id     String?
+  review_title          String
+  content_theme         String
+  content_type          String
+  platform_surface      PlatformSurface
+  headline_text         String?
+  opening_style         String?
+  core_selling_points   Json
+  metric_json           Json
+  optimization_summary  String?        @db.Text
+  next_recommendations  Json
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+  project               Project        @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brand_profile         BrandProfile?  @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
+  campaign_sprint       CampaignSprint? @relation(fields: [campaign_sprint_id], references: [id], onDelete: SetNull)
+  content_pillar        ContentPillar? @relation(fields: [content_pillar_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id, platform_surface, created_at])
+  @@index([campaign_sprint_id, created_at])
+  @@map("optimization_reviews")
+}
+
+model ResearchTask {
+  id                String           @id @default(cuid())
+  project_id        String
+  task_type         TaskType
+  task_status       TaskStatus       @default(DRAFT)
+  platform          Platform?
+  query_text        String?
+  input_payload     Json?
+  raw_payload       Json?
+  error_code        String?
+  error_message     String?          @db.Text
+  started_at        DateTime?
+  finished_at       DateTime?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  project           Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  trend_topics      TrendTopic[]
+  rewritten_scripts Script[]
+  scripts           ScriptVersion[]
+  reports           ResearchReport[]
+
+  @@index([project_id, task_type, task_status])
+  @@index([platform, task_status])
+}
+
+model PlatformCreator {
+  id                      String            @id @default(cuid())
+  project_id              String
+  platform                Platform
+  external_creator_id     String
+  handle                  String
+  display_name            String
+  creator_tier            CreatorTier
+  follower_count          Int?
+  total_content_count     Int?
+  average_view_count      Int?
+  average_engagement_rate Float?
+  profile_url             String?
+  avatar_url              String?
+  country_code            String?
+  language_code           String?
+  raw_payload             Json?
+  created_at              DateTime          @default(now())
+  updated_at              DateTime          @updatedAt
+  project                 Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  platform_contents       PlatformContent[]
+  trend_evidences         TrendEvidence[]
+
+  @@unique([project_id, platform, external_creator_id])
+  @@index([project_id, platform, creator_tier])
+  @@index([platform, follower_count])
+}
+
+model PlatformContent {
+  id                  String           @id @default(cuid())
+  project_id          String
+  creator_id          String?
+  platform            Platform
+  external_content_id String
+  content_type        ContentType
+  title               String
+  normalized_title    String?
+  url                 String
+  published_at        DateTime?
+  duration_seconds    Int?
+  view_count          Int?
+  like_count          Int?
+  comment_count       Int?
+  share_count         Int?
+  save_count          Int?
+  language_code       String?
+  keyword_set         Json?
+  raw_payload         Json?
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+  project             Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  creator             PlatformCreator? @relation(fields: [creator_id], references: [id], onDelete: SetNull)
+  trend_evidences     TrendEvidence[]
+
+  @@unique([project_id, platform, external_content_id])
+  @@index([project_id, platform, published_at])
+  @@index([creator_id, published_at])
+  @@index([content_type, published_at])
+}
+
+model TrendTopic {
+  id                String           @id @default(cuid())
+  project_id        String
+  research_task_id  String?
+  topic_key         String
+  topic_label       String
+  topic_category    TopicCategory
+  trend_stage       TrendStage
+  production_class  ProductionClass?
+  platform_priority Platform?
+  momentum_score    Int
+  evidence_count    Int              @default(0)
+  keyword_set       Json?
+  summary_json      Json?
+  raw_payload       Json?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  project           Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  research_task     ResearchTask?    @relation(fields: [research_task_id], references: [id], onDelete: SetNull)
+  trend_evidences   TrendEvidence[]
+
+  @@unique([project_id, topic_key])
+  @@index([project_id, topic_category, trend_stage])
+  @@index([project_id, momentum_score])
+}
+
+model TrendEvidence {
+  id             String           @id @default(cuid())
+  project_id     String
+  trend_topic_id String
+  content_id     String?
+  creator_id     String?
+  platform       Platform
+  evidence_type  EvidenceType
+  signal_metric  SignalMetric
+  evidence_label String
+  signal_value   Float
+  signal_delta   Float?
+  source_url     String?
+  published_at   DateTime?
+  raw_payload    Json?
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  project        Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  trend_topic    TrendTopic       @relation(fields: [trend_topic_id], references: [id], onDelete: Cascade)
+  content        PlatformContent? @relation(fields: [content_id], references: [id], onDelete: SetNull)
+  creator        PlatformCreator? @relation(fields: [creator_id], references: [id], onDelete: SetNull)
+
+  @@index([trend_topic_id, evidence_type])
+  @@index([content_id])
+  @@index([creator_id])
+  @@index([platform, published_at])
+}
+
+model ScriptVersion {
+  id                 String           @id @default(cuid())
+  project_id         String
+  created_by_task_id String?
+  source_type        ScriptSourceType
+  script_status      ScriptStatus     @default(DRAFT)
+  version_number     Int
+  language_code      String           @default("zh-CN")
+  story_structure    StoryStructure?
+  content_text       String           @db.Text
+  structured_output  Json
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  project            Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  created_by_task    ResearchTask?    @relation(fields: [created_by_task_id], references: [id], onDelete: SetNull)
+  shots              Shot[]
+
+  @@unique([project_id, version_number])
+  @@index([project_id, script_status, source_type])
+}
+
+model Shot {
+  id                      String                @id @default(cuid())
+  project_id              String
+  script_version_id       String
+  shot_index              Int
+  shot_name               String
+  shot_type               ShotType
+  production_class        ProductionClass
+  subject_presence        SubjectPresence
+  motion_level            MotionLevel
+  dialogue_mode           DialogueMode
+  camera_mode             CameraMode
+  duration_seconds        Int
+  structured_output       Json
+  raw_payload             Json?
+  created_at              DateTime              @default(now())
+  updated_at              DateTime              @updatedAt
+  project                 Project               @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  script_version          ScriptVersion         @relation(fields: [script_version_id], references: [id], onDelete: Cascade)
+  shot_asset_dependencies ShotAssetDependency[]
+
+  @@unique([script_version_id, shot_index])
+  @@index([project_id, production_class, shot_type])
+  @@index([project_id, subject_presence, motion_level, dialogue_mode])
+}
+
+model ShotAssetDependency {
+  id               String          @id @default(cuid())
+  project_id       String
+  shot_id          String
+  asset_key        String
+  asset_type       AssetType
+  asset_source     AssetSource
+  dependency_level DependencyLevel
+  production_class ProductionClass
+  quantity         Int             @default(1)
+  status           AssetStatus     @default(PLANNED)
+  prompt_json      Json?
+  raw_payload      Json?
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+  project          Project         @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  shot             Shot            @relation(fields: [shot_id], references: [id], onDelete: Cascade)
+
+  @@unique([shot_id, asset_key])
+  @@index([project_id, asset_type, status])
+  @@index([shot_id, dependency_level])
+}
+
+model ResearchReport {
+  id                   String        @id @default(cuid())
+  project_id           String
+  generated_by_task_id String?
+  report_type          ReportType
+  report_status        ReportStatus  @default(DRAFT)
+  version_number       Int           @default(1)
+  input_snapshot       Json?
+  report_json          Json
+  raw_payload          Json?
+  generated_at         DateTime      @default(now())
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  project              Project       @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  generated_by_task    ResearchTask? @relation(fields: [generated_by_task_id], references: [id], onDelete: SetNull)
+
+  @@unique([project_id, report_type, version_number])
+  @@index([project_id, report_type, report_status])
+  @@index([generated_at])
+}
+
+model Script {
+  id                String           @id @default(cuid())
+  project_id        String
+  research_task_id  String?
+  source_type       ScriptSourceType
+  script_status     ScriptStatus     @default(DRAFT)
+  version_number    Int
+  title             String?
+  original_text     String           @db.Text
+  rewritten_text    String?          @db.Text
+  model_name        String?
+  structured_output Json
+  raw_payload       Json?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  project           Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  research_task     ResearchTask?    @relation(fields: [research_task_id], references: [id], onDelete: SetNull)
+  script_scenes     ScriptScene[]
+  storyboards       Storyboard[]
+  platform_adaptations PlatformAdaptation[]
+
+  @@unique([project_id, version_number])
+  @@index([project_id, source_type, script_status])
+  @@map("scripts")
+}
+
+model ScriptScene {
+  id                    String                @id @default(cuid())
+  project_id            String
+  script_id             String
+  scene_order           Int
+  original_text         String                @db.Text
+  rewritten_for_ai      String                @db.Text
+  shot_goal             String
+  duration_sec          Int
+  continuity_group      String
+  visual_priority       Json
+  avoid                 Json
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+  project               Project               @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  script                Script                @relation(fields: [script_id], references: [id], onDelete: Cascade)
+  scene_classifications SceneClassification[]
+  required_assets       RequiredAsset[]
+  storyboard_frames     StoryboardFrame[]
+  render_jobs           RenderJob[]
+  platform_adaptations  PlatformAdaptation[]
+
+  @@unique([script_id, scene_order])
+  @@index([project_id, scene_order])
+  @@index([project_id, continuity_group])
+  @@map("script_scenes")
+}
+
+model SceneClassification {
+  id                     String                     @id @default(cuid())
+  project_id             String
+  script_scene_id        String
+  classification_version SceneClassificationVersion @default(V1)
+  human_type             HumanType
+  motion_type            MotionType
+  lip_sync_type          LipSyncType
+  asset_dependency_type  AssetDependencyType
+  production_class       SceneProductionClass
+  difficulty_score       Int
+  risk_flags             Json
+  rule_based_output      Json?
+  llm_output             Json?
+  raw_payload            Json?
+  created_at             DateTime                   @default(now())
+  updated_at             DateTime                   @updatedAt
+  project                Project                    @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  script_scene           ScriptScene                @relation(fields: [script_scene_id], references: [id], onDelete: Cascade)
+
+  @@unique([script_scene_id, classification_version])
+  @@index([project_id, production_class, difficulty_score])
+  @@index([project_id, human_type, motion_type, lip_sync_type])
+  @@map("scene_classifications")
+}
+
+model RequiredAsset {
+  id                         String               @id @default(cuid())
+  project_id                 String
+  script_scene_id            String
+  asset_version              RequiredAssetVersion @default(V1)
+  needs_character_base       Boolean              @default(false)
+  needs_scene_base           Boolean              @default(false)
+  needs_character_scene_comp Boolean              @default(false)
+  needs_voice                Boolean              @default(false)
+  needs_reference_images     Boolean              @default(false)
+  missing_asset_hints        Json
+  required_assets_json       Json
+  is_asset_ready             Boolean              @default(false)
+  rule_based_output          Json?
+  llm_output                 Json?
+  raw_payload                Json?
+  created_at                 DateTime             @default(now())
+  updated_at                 DateTime             @updatedAt
+  project                    Project              @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  script_scene               ScriptScene          @relation(fields: [script_scene_id], references: [id], onDelete: Cascade)
+
+  @@unique([script_scene_id, asset_version])
+  @@index([project_id, is_asset_ready])
+  @@map("required_assets")
+}
+
+model UploadedAsset {
+  id               String            @id @default(cuid())
+  project_id       String
+  script_scene_id  String?
+  asset_type       UploadedAssetType
+  continuity_group String?
+  file_name        String
+  file_url         String?
+  mime_type        String?
+  metadata_json    Json?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  project          Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id, asset_type, continuity_group])
+  @@map("uploaded_assets")
+}
+
+model CreativeBrief {
+  id                  String             @id @default(cuid())
+  project_id          String
+  brief_status        BriefStatus        @default(DRAFT)
+  version_number      Int
+  title               String
+  campaign_name       String?
+  objective           BriefObjective
+  primary_tone        BriefTone
+  audience_awareness  AudienceAwareness?
+  target_platforms    Json
+  key_message         String             @db.Text
+  call_to_action      String?
+  target_audience     String?
+  duration_target_sec Int?
+  language_code       String             @default("zh-CN")
+  brief_json          Json
+  raw_payload         Json?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+  project             Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  constraints         BriefConstraint[]
+  storyboards         Storyboard[]
+
+  @@unique([project_id, version_number])
+  @@index([project_id, brief_status, objective])
+  @@map("creative_briefs")
+}
+
+model BriefConstraint {
+  id                 String         @id @default(cuid())
+  project_id         String
+  creative_brief_id  String
+  constraint_type    ConstraintType
+  constraint_code    String
+  constraint_label   String
+  constraint_value   String?
+  is_hard_constraint Boolean        @default(true)
+  metadata_json      Json?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+  project            Project        @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  creative_brief     CreativeBrief  @relation(fields: [creative_brief_id], references: [id], onDelete: Cascade)
+
+  @@unique([creative_brief_id, constraint_code])
+  @@index([project_id, constraint_type, is_hard_constraint])
+  @@map("brief_constraints")
+}
+
+model ApprovalGate {
+  id               String         @id @default(cuid())
+  project_id       String
+  stage            ApprovalStage
+  approval_status  ApprovalStatus @default(PENDING)
+  target_version   Int            @default(1)
+  reviewer_label   String?
+  decision_summary String?        @db.Text
+  decision_json    Json?
+  approved_at      DateTime?
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  project          Project        @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, stage, target_version])
+  @@index([project_id, stage, approval_status])
+  @@map("approval_gates")
+}
+
+model Storyboard {
+  id                String            @id @default(cuid())
+  project_id        String
+  source_brief_id   String?
+  script_id         String?
+  storyboard_status StoryboardStatus  @default(DRAFT)
+  version_number    Int
+  title             String
+  goal_summary      String?
+  style_direction   String?
+  aspect_ratio      String            @default("9:16")
+  frame_count       Int               @default(0)
+  structured_output Json
+  raw_payload       Json?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  project           Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  source_brief      CreativeBrief?    @relation(fields: [source_brief_id], references: [id], onDelete: SetNull)
+  script            Script?           @relation(fields: [script_id], references: [id], onDelete: SetNull)
+  frames            StoryboardFrame[]
+  renderJobs        RenderJob[]
+
+  @@unique([project_id, version_number])
+  @@index([project_id, storyboard_status, created_at])
+  @@index([source_brief_id])
+  @@index([script_id])
+  @@map("storyboards")
+}
+
+model StoryboardFrame {
+  id                 String                @id @default(cuid())
+  project_id         String
+  storyboard_id      String
+  script_scene_id    String?
+  frame_order        Int
+  frame_status       FrameStatus           @default(DRAFT)
+  continuity_group   String?
+  frame_title        String
+  composition_notes  String?               @db.Text
+  camera_plan        String?
+  motion_plan        String?
+  narration_text     String?               @db.Text
+  on_screen_text     String?               @db.Text
+  visual_prompt      String                @db.Text
+  negative_prompt    String?               @db.Text
+  reference_strategy Json?
+  duration_sec       Int?
+  production_class   SceneProductionClass?
+  raw_payload        Json?
+  created_at         DateTime              @default(now())
+  updated_at         DateTime              @updatedAt
+  project            Project               @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  storyboard         Storyboard            @relation(fields: [storyboard_id], references: [id], onDelete: Cascade)
+  script_scene       ScriptScene?          @relation(fields: [script_scene_id], references: [id], onDelete: SetNull)
+  references         FrameReference[]
+  render_jobs        RenderJob[]
+  render_assets      RenderAsset[]
+
+  @@unique([storyboard_id, frame_order])
+  @@index([project_id, frame_status, frame_order])
+  @@index([script_scene_id])
+  @@index([continuity_group])
+  @@map("storyboard_frames")
+}
+
+model FrameReference {
+  id                  String             @id @default(cuid())
+  project_id          String
+  storyboard_frame_id String
+  reference_type      FrameReferenceType
+  source_label        String?
+  file_name           String?
+  file_url            String?
+  metadata_json       Json?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+  project             Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  storyboard_frame    StoryboardFrame    @relation(fields: [storyboard_frame_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id, reference_type])
+  @@index([storyboard_frame_id, reference_type])
+  @@map("frame_references")
+}
+
+model ReviewNote {
+  id            String           @id @default(cuid())
+  project_id    String
+  target_type   ReviewTargetType
+  target_id     String
+  severity      ReviewSeverity   @default(INFO)
+  review_status ReviewStatus     @default(OPEN)
+  note_text     String           @db.Text
+  author_label  String?
+  metadata_json Json?
+  resolved_at   DateTime?
+  created_at    DateTime         @default(now())
+  updated_at    DateTime         @updatedAt
+  project       Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id, target_type, target_id])
+  @@index([project_id, review_status, severity])
+  @@map("review_notes")
+}
+
+model RenderJob {
+  id                  String           @id @default(cuid())
+  project_id          String
+  storyboard_id       String?
+  storyboard_frame_id String?
+  script_scene_id     String?
+  job_type            RenderJobType
+  job_status          RenderJobStatus  @default(DRAFT)
+  provider            RenderProvider
+  provider_model      String?
+  input_json          Json
+  output_json         Json?
+  error_message       String?          @db.Text
+  queued_at           DateTime?
+  started_at          DateTime?
+  finished_at         DateTime?
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+  project             Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  storyboard          Storyboard?      @relation(fields: [storyboard_id], references: [id], onDelete: SetNull)
+  storyboard_frame    StoryboardFrame? @relation(fields: [storyboard_frame_id], references: [id], onDelete: SetNull)
+  script_scene        ScriptScene?     @relation(fields: [script_scene_id], references: [id], onDelete: SetNull)
+  render_assets       RenderAsset[]
+
+  @@index([project_id, job_type, job_status])
+  @@index([storyboard_id])
+  @@index([storyboard_frame_id])
+  @@index([script_scene_id])
+  @@map("render_jobs")
+}
+
+model RenderAsset {
+  id                  String           @id @default(cuid())
+  project_id          String
+  render_job_id       String
+  storyboard_frame_id String?
+  asset_type          RenderAssetType
+  file_name           String
+  file_url            String?
+  mime_type           String?
+  width               Int?
+  height              Int?
+  duration_sec        Float?
+  metadata_json       Json?
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+  project             Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  render_job          RenderJob        @relation(fields: [render_job_id], references: [id], onDelete: Cascade)
+  storyboard_frame    StoryboardFrame? @relation(fields: [storyboard_frame_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id, asset_type, created_at])
+  @@index([render_job_id])
+  @@index([storyboard_frame_id])
+  @@map("render_assets")
+}
