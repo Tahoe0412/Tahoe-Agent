@@ -356,3 +356,4 @@ npm install
 2. 接入 LLM，并以 JSON Schema / function calling 方式稳定产出结构化结果
 3. 增加任务状态流转与队列
 4. 为项目详情页补充真实数据库读取和图表
+# Tahoe-Agent
