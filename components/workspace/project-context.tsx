@@ -351,11 +351,7 @@ export function ProjectContext({
                   <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{project.id}</div>
                   {modeLabel ? <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">{modeLabel}</span> : null}
                 </div>
-                {summaryLine ? (
-                  <div className={cn("mt-3 text-sm leading-7 text-[var(--text-2)]", density === "compact" ? "max-w-4xl line-clamp-2" : "max-w-5xl")}>
-                    {summaryLine}
-                  </div>
-                ) : null}
+                {summaryLine ? <div className="mt-3 max-w-5xl text-sm leading-7 text-[var(--text-2)]">{summaryLine}</div> : null}
                 {compactMeta.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {compactMeta.map((item) => (

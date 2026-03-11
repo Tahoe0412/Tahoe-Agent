@@ -7,13 +7,15 @@ import { cn } from "@/lib/utils";
 
 export function Disclosure({
   title,
+  summary,
   children,
   defaultOpen = false,
   className,
   summaryClassName,
   contentClassName,
 }: {
-  title: ReactNode;
+  title?: ReactNode;
+  summary?: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
   className?: string;
@@ -21,6 +23,7 @@ export function Disclosure({
   contentClassName?: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const label = title ?? summary;
 
   return (
     <div className={className}>
@@ -30,7 +33,7 @@ export function Disclosure({
         className={cn("flex w-full items-center justify-between gap-3 text-left", summaryClassName)}
         aria-expanded={open}
       >
-        <span>{title}</span>
+        <span>{label}</span>
         <ChevronDown className={cn("size-4 shrink-0 transition", open ? "rotate-180" : "")} />
       </button>
       {open ? <div className={contentClassName}>{children}</div> : null}
