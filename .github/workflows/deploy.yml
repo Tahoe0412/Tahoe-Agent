@@ -39,5 +39,5 @@ jobs:
           ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
             chmod +x /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
-            /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
+            SKIP_GIT_PULL=1 /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           '

@@ -5,8 +5,12 @@ APP_DIR="$HOME/Tahoe-Agent"
 
 cd "$APP_DIR"
 
-echo "[deploy] Pulling latest code from main..."
-git pull origin main
+if [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
+  echo "[deploy] Pulling latest code from main..."
+  git pull origin main
+else
+  echo "[deploy] Skipping git pull because code was uploaded by CI."
+fi
 
 echo "[deploy] Installing dependencies..."
 npm ci
