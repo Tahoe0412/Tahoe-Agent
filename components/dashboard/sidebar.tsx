@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname, useSearchParams } from "next/navigation";
-import { BarChart3, BookOpen, BriefcaseBusiness, ChevronRight, Clapperboard, Compass, FileStack, FolderKanban, LayoutDashboard, Settings, SwatchBook, Waypoints } from "lucide-react";
+import { BarChart3, BookOpen, BriefcaseBusiness, ChevronRight, Clapperboard, Compass, FileStack, FolderKanban, LayoutDashboard, Settings, Sparkles, SwatchBook, Waypoints } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
           { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "看趋势与证据", icon: Compass },
           { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: "改脚本、定镜头", icon: Clapperboard },
           { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "补素材与分镜", icon: BarChart3 },
+          { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint, icon: Sparkles },
         ]
       : [
           { href: "/" as Route, label: text.nav.dashboard, hint: "先看当前项目与下一步", icon: LayoutDashboard },
