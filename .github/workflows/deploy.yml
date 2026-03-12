@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -18,11 +21,23 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Upload project files
+        run: |
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='.env' \
+            -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+              mkdir -p /home/ubuntu/Tahoe-Agent
+              tar -xzf - -C /home/ubuntu/Tahoe-Agent
+            '
+
       - name: Deploy over SSH
         run: |
           ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
-            git pull origin main
             chmod +x /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
             /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           '
