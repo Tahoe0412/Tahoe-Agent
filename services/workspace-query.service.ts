@@ -516,7 +516,7 @@ export class WorkspaceQueryService {
           targetType: item.target_type,
           targetId: item.target_id,
           needsReview: item.needs_human_review,
-          issueCount: ((item.flagged_issues_json as string[] | null) ?? []).length,
+          issueCount: (Array.isArray(item.flagged_issues_json) ? item.flagged_issues_json : []).length,
           summary: item.risk_summary,
           flaggedIssues: item.flagged_issues_json,
           sensitiveHits: item.sensitive_hits_json,

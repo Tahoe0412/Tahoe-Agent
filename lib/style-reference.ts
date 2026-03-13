@@ -285,12 +285,12 @@ export async function analyzeStyleWithLLM(
 export function formatStyleReferenceInsight(insight: StyleReferenceInsight | null) {
   if (!insight) return "N/A";
   return [
-    `- 标题风格学习：${insight.titleStyleLines.join(" ")}`,
-    `- 开头风格学习：${insight.openingStyleLines.join(" ")}`,
-    `- 正文节奏学习：${insight.bodyRhythmLines.join(" ")}`,
-    `- 节奏特征：${insight.rhythmLabel}`,
-    `- 语气特征：${insight.toneLabels.join("、")}`,
-    `- 结构特征：${insight.structureLabels.join("、")}`,
-    `- 样稿规模：${insight.paragraphCount} 段 / ${insight.sentenceCount} 句`,
+    `- 标题风格学习：${(insight.titleStyleLines ?? []).join(" ")}`,
+    `- 开头风格学习：${(insight.openingStyleLines ?? []).join(" ")}`,
+    `- 正文节奏学习：${(insight.bodyRhythmLines ?? []).join(" ")}`,
+    `- 节奏特征：${insight.rhythmLabel ?? ""}`,
+    `- 语气特征：${(insight.toneLabels ?? []).join("、")}`,
+    `- 结构特征：${(insight.structureLabels ?? []).join("、")}`,
+    `- 样稿规模：${insight.paragraphCount ?? 0} 段 / ${insight.sentenceCount ?? 0} 句`,
   ].join("\n");
 }

@@ -58,7 +58,14 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const userMessage = isSchemaError
       ? "AI 模型返回的数据格式不完整，系统已尝试自动补全。如果仍然失败，请重试一次或切换模型。"
       : rawMessage;
-    return fail("生成宣传文案失败。", 400, userMessage);
+
+    // Client errors (validation, missing data) → 400; server errors (DB, LLM infra) → 500
+    const isClientError =
+      isSchemaError ||
+      rawMessage.includes("not found") ||
+      rawMessage.includes("缺少") ||
+      rawMessage.includes("未找到");
+    return fail("生成宣传文案失败。", isClientError ? 400 : 500, userMessage);
   }
 }
 

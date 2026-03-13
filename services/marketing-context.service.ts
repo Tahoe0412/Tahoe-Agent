@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getCopyLength, getUsageScenario, type CopyLength, type UsageScenario } from "@/lib/copy-goal";
-import { analyzeStyleReferenceSample, analyzeStyleWithLLM, formatStyleReferenceInsight, type StyleReferenceInsight } from "@/lib/style-reference";
+import { analyzeStyleReferenceSample, analyzeStyleWithLLM, formatStyleReferenceInsight, normalizeStyleReferenceInsight, type StyleReferenceInsight } from "@/lib/style-reference";
 import { getStyleTemplate, type StyleTemplate } from "@/lib/style-template";
 import { AppSettingsService } from "@/services/app-settings.service";
 import { getWritingMode, type WritingMode } from "@/lib/writing-mode";
@@ -141,9 +141,9 @@ export class MarketingContextService {
     }
     try {
       const settings = await this.appSettingsService.getEffectiveSettings();
-      return await analyzeStyleWithLLM(text, settings);
+      return normalizeStyleReferenceInsight(await analyzeStyleWithLLM(text, settings));
     } catch {
-      return analyzeStyleReferenceSample(text);
+      return normalizeStyleReferenceInsight(analyzeStyleReferenceSample(text));
     }
   }
 

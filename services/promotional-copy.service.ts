@@ -377,7 +377,6 @@ function buildMockCopy(params: {
     ],
     call_to_action: "收藏这条内容，再根据你的业务场景拆成标题、正文和平台版本。",
     risk_notes: ["避免绝对化承诺", "避免无法证明的效果表述"],
-    platform_adaptations: [],
     recommended_next_steps: ["先选 1 个主平台做首发版本", "基于评论反馈继续收敛标题和开头", "通过合规检查后再进入发布"],
     quality_diagnosis: {
       overall_score: 68,
@@ -516,9 +515,9 @@ export class PromotionalCopyService {
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       const styleInsightText = context?.styleReferenceInsight
         ? [
-            `- 标题风格：${context.styleReferenceInsight.titleStyleLines.join(" ")}`,
-            `- 开头风格：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
-            `- 正文节奏：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
+            `- 标题风格：${(context.styleReferenceInsight.titleStyleLines ?? []).join(" ")}`,
+            `- 开头风格：${(context.styleReferenceInsight.openingStyleLines ?? []).join(" ")}`,
+            `- 正文节奏：${(context.styleReferenceInsight.bodyRhythmLines ?? []).join(" ")}`,
           ].join("\n")
         : "当前没有可用的分段风格学习信息。";
 
@@ -598,7 +597,6 @@ export class PromotionalCopyService {
         ...generated,
         risk_notes: generated.risk_notes ?? [],
         recommended_next_steps: generated.recommended_next_steps ?? [],
-        platform_adaptations: generated.platform_adaptations ?? [],
       };
     } else if (settings.llmMockMode) {
       output = buildMockCopy({
@@ -996,9 +994,9 @@ export class PromotionalCopyService {
           context?.styleReferenceInsight
             ? [
                 "风格参照：",
-                `标题：${context.styleReferenceInsight.titleStyleLines.join(" ")}`,
-                `开头：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
-                `节奏：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
+                `标题：${(context.styleReferenceInsight.titleStyleLines ?? []).join(" ")}`,
+                `开头：${(context.styleReferenceInsight.openingStyleLines ?? []).join(" ")}`,
+                `节奏：${(context.styleReferenceInsight.bodyRhythmLines ?? []).join(" ")}`,
               ].join("\n")
             : "",
           "",
@@ -1028,7 +1026,6 @@ export class PromotionalCopyService {
         call_to_action: pickStr(rewriteResult.call_to_action, currentDraft.call_to_action),
         risk_notes: pickArr(rewriteResult.risk_notes, currentDraft.risk_notes ?? []),
         recommended_next_steps: pickArr(rewriteResult.recommended_next_steps, []),
-        platform_adaptations: [],
         quality_diagnosis: diagnosis,
       };
     } else if (settings.llmMockMode) {
@@ -1044,7 +1041,6 @@ export class PromotionalCopyService {
           rewrite_focus: ["强化开头", "压缩套话", "补强可感知价值点"],
           summary: "当前主稿方向是对的，但表达密度和转化感还不够，适合先增强再发布。",
         },
-        platform_adaptations: [],
       };
     } else {
       throw new Error(`宣传文案增强未找到可用模型。当前路由为 ${route.provider}/${route.model}，请先在设置中配置对应 API key，或临时开启 mock 模式。`);
