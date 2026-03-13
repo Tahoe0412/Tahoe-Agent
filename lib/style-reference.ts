@@ -1,3 +1,8 @@
+import { generateStructuredJson } from "@/lib/openai-json";
+import type { ModelRouteKey, ModelRouteConfig } from "@/lib/model-routing";
+import { canUseModelRoute } from "@/lib/model-routing";
+import type { LlmProvider } from "@prisma/client";
+
 export type StyleReferenceInsight = {
   paragraphCount: number;
   sentenceCount: number;
@@ -33,7 +38,7 @@ function takeFirstSentence(text: string) {
   return splitSentences(text)[0] ?? "";
 }
 
-export function analyzeStyleReferenceSample(text: string | null | undefined): StyleReferenceInsight | null {
+export function analyzeStyleReferenceSampleRuleBased(text: string | null | undefined): StyleReferenceInsight | null {
   const source = (text ?? "").trim();
   if (!source) {
     return null;
@@ -93,7 +98,7 @@ export function analyzeStyleReferenceSample(text: string | null | undefined): St
   ];
   const bodyRhythmLines = [
     paragraphs.length >= 4
-      ? "正文适合按“观察场域 -> 材料细节 -> 空间/理念 -> 收束落点”慢慢推进。"
+      ? `正文适合按\u201c观察场域 -> 材料细节 -> 空间/理念 -> 收束落点\u201d慢慢推进。`
       : "正文适合分成 3 到 4 层推进，不要一段里把所有价值说完。",
     averageSentenceLength >= 28
       ? "正文节奏偏长句展开，适合解释材料、工艺、路径和细微变化。"
@@ -104,7 +109,7 @@ export function analyzeStyleReferenceSample(text: string | null | undefined): St
   ];
 
   const summaryLines = [
-    `样稿共 ${paragraphs.length} 段、约 ${sentences.length} 句，整体属于“${rhythmLabel}”。`,
+    `样稿共 ${paragraphs.length} 段、约 ${sentences.length} 句，整体属于\u201c${rhythmLabel}\u201d。`,
     `语气特征：${(toneLabels.length > 0 ? toneLabels : ["表达克制"]).join("、")}。`,
     `结构特征：${(structureLabels.length > 0 ? structureLabels : ["自然铺陈"]).join("、")}。`,
     `标题风格：${titleStyleLines[0]}`,
@@ -124,6 +129,137 @@ export function analyzeStyleReferenceSample(text: string | null | undefined): St
     bodyRhythmLines,
     summaryLines,
   };
+}
+
+/** Backward-compatible sync alias for code paths that cannot await. */
+export const analyzeStyleReferenceSample = analyzeStyleReferenceSampleRuleBased;
+
+/* ───── LLM-based style analysis ───── */
+
+import { z } from "zod";
+
+const styleInsightZodSchema = z.object({
+  paragraphCount: z.number(),
+  sentenceCount: z.number(),
+  averageSentenceLength: z.number(),
+  rhythmLabel: z.string(),
+  toneLabels: z.array(z.string()).min(1).max(6),
+  structureLabels: z.array(z.string()).min(1).max(6),
+  titleStyleLines: z.array(z.string()).min(1).max(4),
+  openingStyleLines: z.array(z.string()).min(1).max(4),
+  bodyRhythmLines: z.array(z.string()).min(1).max(4),
+  summaryLines: z.array(z.string()).min(1).max(6),
+});
+
+const styleInsightJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "paragraphCount",
+    "sentenceCount",
+    "averageSentenceLength",
+    "rhythmLabel",
+    "toneLabels",
+    "structureLabels",
+    "titleStyleLines",
+    "openingStyleLines",
+    "bodyRhythmLines",
+    "summaryLines",
+  ],
+  properties: {
+    paragraphCount: { type: "number" },
+    sentenceCount: { type: "number" },
+    averageSentenceLength: { type: "number" },
+    rhythmLabel: { type: "string" },
+    toneLabels: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
+    structureLabels: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
+    titleStyleLines: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 4 },
+    openingStyleLines: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 4 },
+    bodyRhythmLines: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 4 },
+    summaryLines: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 6 },
+  },
+} as const;
+
+const styleInsightCache = new Map<string, StyleReferenceInsight>();
+
+function cacheKey(text: string) {
+  return text.slice(0, 200);
+}
+
+export async function analyzeStyleWithLLM(
+  text: string | null | undefined,
+  settings: {
+    llmMockMode: boolean;
+    llmProvider: LlmProvider;
+    llmRouting: Record<ModelRouteKey, ModelRouteConfig>;
+    openaiApiKey?: string | null;
+    geminiApiKey?: string | null;
+    deepseekApiKey?: string | null;
+    qwenApiKey?: string | null;
+  },
+): Promise<StyleReferenceInsight | null> {
+  const source = (text ?? "").trim();
+  if (!source) {
+    return null;
+  }
+
+  const key = cacheKey(source);
+  const cached = styleInsightCache.get(key);
+  if (cached) {
+    return cached;
+  }
+
+  if (!canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+    return analyzeStyleReferenceSampleRuleBased(source);
+  }
+
+  try {
+    const result = await generateStructuredJson<StyleReferenceInsight>({
+      routeKey: "MARKETING_ANALYSIS",
+      schemaName: "style_reference_insight",
+      schema: styleInsightJsonSchema,
+      zodSchema: styleInsightZodSchema,
+      temperature: 0.15,
+      systemPrompt: [
+        "你是一名资深品牌文案风格分析师。",
+        "你的任务是拆解一篇参考样稿的写作风格，生成一份结构化的风格学习指南。",
+        "分析必须具体到标题怎么写、开头用什么策略、正文的段落节奏如何推进。",
+        "不要泛泛而谈，每条都要能直接指导写作。",
+        "输出必须是合法 JSON。",
+      ].join(" "),
+      userPrompt: [
+        "请分析下面这篇参考样稿的写作风格，输出结构化的风格学习指南。",
+        "",
+        "分析维度：",
+        "- paragraphCount：样稿段落数",
+        "- sentenceCount：样稿句子数",
+        "- averageSentenceLength：平均句长（字符数）",
+        '- rhythmLabel：一句话描述整体节奏感（如「长短交替、观察式推进」）',
+        '- toneLabels：2-4 个语气特征标签（如「克制冷静」「观察式」「有人称温度」）',
+        '- structureLabels：2-4 个结构特征标签（如「因果推进」「分层叙事」「结尾有行动引导」）',
+        '- titleStyleLines：2-3 条标题写法指令（学习这篇样稿的标题该怎么起）',
+        '- openingStyleLines：2-3 条开头策略指令（学习这篇样稿的开头该怎么写）',
+        '- bodyRhythmLines：2-3 条正文节奏指令（学习这篇样稿的段落怎么推进）',
+        '- summaryLines：3-5 条整体风格摘要',
+        '',
+        '每条指令都要具体到「该做什么、不要做什么」，不要写成文学评论。',
+        "",
+        "参考样稿全文：",
+        source,
+      ].join("\n"),
+    });
+
+    styleInsightCache.set(key, result);
+    if (styleInsightCache.size > 50) {
+      const firstKey = styleInsightCache.keys().next().value;
+      if (firstKey !== undefined) {
+        styleInsightCache.delete(firstKey);
+      }
+    }
+    return result;
+  } catch {
+    return analyzeStyleReferenceSampleRuleBased(source);
+  }
 }
 
 export function formatStyleReferenceInsight(insight: StyleReferenceInsight | null) {

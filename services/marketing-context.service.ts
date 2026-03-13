@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db";
 import { getCopyLength, getUsageScenario, type CopyLength, type UsageScenario } from "@/lib/copy-goal";
-import { analyzeStyleReferenceSample, formatStyleReferenceInsight, type StyleReferenceInsight } from "@/lib/style-reference";
+import { analyzeStyleReferenceSample, analyzeStyleWithLLM, formatStyleReferenceInsight, type StyleReferenceInsight } from "@/lib/style-reference";
 import { getStyleTemplate, type StyleTemplate } from "@/lib/style-template";
+import { AppSettingsService } from "@/services/app-settings.service";
 import { getWritingMode, type WritingMode } from "@/lib/writing-mode";
 
 export type MarketingGenerationContext = {
@@ -54,6 +55,8 @@ export type MarketingGenerationContext = {
 };
 
 export class MarketingContextService {
+  private readonly appSettingsService = new AppSettingsService();
+
   async getProjectContext(projectId: string): Promise<MarketingGenerationContext | null> {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -89,7 +92,7 @@ export class MarketingContextService {
       coreIdea: (((project.metadata as Record<string, unknown> | null)?.core_idea as string | undefined) ?? "").trim() || null,
       sourceScript: project.raw_script_text,
       styleReferenceSample,
-      styleReferenceInsight: analyzeStyleReferenceSample(styleReferenceSample),
+      styleReferenceInsight: await this.buildStyleInsight(styleReferenceSample),
       writingMode: getWritingMode((project.metadata as Record<string, unknown> | null)?.writing_mode),
       styleTemplate: getStyleTemplate((project.metadata as Record<string, unknown> | null)?.style_template),
       copyLength: getCopyLength((project.metadata as Record<string, unknown> | null)?.copy_length),
@@ -132,70 +135,75 @@ export class MarketingContextService {
     };
   }
 
-  formatPromptContext(context: MarketingGenerationContext | null) {
-    if (!context) return "No brand or industry context is attached to this project yet.";
+  private async buildStyleInsight(text: string | null | undefined): Promise<StyleReferenceInsight | null> {
+    if (!(text ?? "").trim()) {
+      return null;
+    }
+    try {
+      const settings = await this.appSettingsService.getEffectiveSettings();
+      return await analyzeStyleWithLLM(text, settings);
+    } catch {
+      return analyzeStyleReferenceSample(text);
+    }
+  }
 
-    return [
-      `Project: ${context.projectTitle}`,
-      `Topic: ${context.topicQuery}`,
-      `Project Introduction: ${context.projectIntroduction ?? "N/A"}`,
-      `Core Idea: ${context.coreIdea ?? "N/A"}`,
-      `Original Input: ${context.sourceScript ?? "N/A"}`,
-      `Style Reference Sample: ${context.styleReferenceSample ?? "N/A"}`,
-      `Style Reference Insight:\n${formatStyleReferenceInsight(context.styleReferenceInsight)}`,
-      context.styleReferenceInsight
-        ? [
-            "Style Reference Segments:",
-            `- 标题风格学习：${context.styleReferenceInsight.titleStyleLines.join(" ")}`,
-            `- 开头风格学习：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
-            `- 正文节奏学习：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
-          ].join("\n")
-        : "Style Reference Segments: N/A",
-      `Writing Mode: ${context.writingMode}`,
-      `Style Template: ${context.styleTemplate}`,
-      `Copy Length: ${context.copyLength}`,
-      `Usage Scenario: ${context.usageScenario}`,
-      "",
-      "Brand Context:",
-      context.brand
-        ? [
-            `- Name: ${context.brand.name}`,
-            `- Stage: ${context.brand.stage}`,
-            `- Positioning: ${context.brand.positioning}`,
-            `- Core Belief: ${context.brand.coreBelief ?? "N/A"}`,
-            `- Brand Voice: ${context.brand.voice ?? "N/A"}`,
-            `- Platform Priority: ${context.brand.platformPriority.join(", ") || "N/A"}`,
-            `- Content Pillars: ${context.brand.pillarNames.join(", ") || "N/A"}`,
-            `- Forbidden Phrases: ${context.brand.forbiddenPhrases.join(", ") || "None"}`,
-          ].join("\n")
-        : "- No brand profile attached.",
-      "",
-      "Industry Context:",
-      context.industry
-        ? [
-            `- Industry: ${context.industry.name}`,
-            `- Keywords: ${context.industry.keywords.join(", ") || "N/A"}`,
-            `- Competitor Keywords: ${context.industry.competitorKeywords.join(", ") || "N/A"}`,
-            `- Boundaries: ${context.industry.boundaries ?? "N/A"}`,
-            `- Pain Points: ${context.industry.painPoints.join(", ") || "N/A"}`,
-            `- Common Questions: ${context.industry.commonQuestions.join(", ") || "N/A"}`,
-            `- Recommended Directions: ${context.industry.topicDirections.join(", ") || "N/A"}`,
-            `- Forbidden Terms: ${context.industry.forbiddenTerms.join(", ") || "None"}`,
-          ].join("\n")
-        : "- No industry template attached.",
-      "",
-      "Current Brief Context:",
-      context.brief
-        ? [
-            `- Title: ${context.brief.title}`,
-            `- Objective: ${context.brief.objective}`,
-            `- Tone: ${context.brief.tone}`,
-            `- Key Message: ${context.brief.keyMessage}`,
-            `- Target Audience: ${context.brief.targetAudience ?? "N/A"}`,
-            `- CTA: ${context.brief.callToAction ?? "N/A"}`,
-            `- Constraints: ${context.brief.constraints.join(", ") || "None"}`,
-          ].join("\n")
-        : "- No brief created yet.",
-    ].join("\n");
+  formatPromptContext(context: MarketingGenerationContext | null) {
+    if (!context) return "\u5f53\u524d\u9879\u76ee\u8fd8\u672a\u5173\u8054\u54c1\u724c\u6216\u884c\u4e1a\u4e0a\u4e0b\u6587\u3002";
+
+    const lines: string[] = [];
+
+    lines.push(`\u9879\u76ee\u540d\u79f0\uff1a${context.projectTitle}`);
+    lines.push(`\u4f20\u64ad\u4e3b\u9898\uff1a${context.topicQuery}`);
+    if (context.projectIntroduction) lines.push(`\u9879\u76ee\u4ecb\u7ecd\uff1a${context.projectIntroduction}`);
+    if (context.coreIdea) lines.push(`\u6838\u5fc3\u8868\u8fbe\uff1a${context.coreIdea}`);
+    if (context.sourceScript) lines.push(`\u539f\u59cb\u8f93\u5165\uff1a${context.sourceScript}`);
+    if (context.styleReferenceSample) lines.push(`\u98ce\u683c\u53c2\u7167\u6837\u7a3f\uff1a${context.styleReferenceSample}`);
+    if (context.styleReferenceInsight) {
+      lines.push(`\u98ce\u683c\u5206\u6790\uff1a\n${formatStyleReferenceInsight(context.styleReferenceInsight)}`);
+    }
+    lines.push(`\u5199\u4f5c\u6a21\u5f0f\uff1a${context.writingMode}`);
+    lines.push(`\u8f93\u51fa\u98ce\u683c\uff1a${context.styleTemplate}`);
+    lines.push(`\u6587\u6848\u957f\u5ea6\uff1a${context.copyLength}`);
+    lines.push(`\u4f7f\u7528\u573a\u666f\uff1a${context.usageScenario}`);
+
+    if (context.brand) {
+      lines.push("");
+      lines.push("\u54c1\u724c\u4e0a\u4e0b\u6587\uff1a");
+      lines.push(`- \u54c1\u724c\u540d\uff1a${context.brand.name}`);
+      lines.push(`- \u54c1\u724c\u9636\u6bb5\uff1a${context.brand.stage}`);
+      lines.push(`- \u54c1\u724c\u5b9a\u4f4d\uff1a${context.brand.positioning}`);
+      if (context.brand.coreBelief) lines.push(`- \u6838\u5fc3\u4fe1\u5ff5\uff1a${context.brand.coreBelief}`);
+      if (context.brand.voice) lines.push(`- \u54c1\u724c\u58f0\u97f3\uff1a${context.brand.voice}`);
+      if (context.brand.platformPriority.length > 0) lines.push(`- \u5e73\u53f0\u4f18\u5148\u7ea7\uff1a${context.brand.platformPriority.join("\u3001")}`);
+      if (context.brand.pillarNames.length > 0) lines.push(`- \u5185\u5bb9\u652f\u67f1\uff1a${context.brand.pillarNames.join("\u3001")}`);
+      if (context.brand.forbiddenPhrases.length > 0) lines.push(`- \u7981\u7528\u8868\u8fbe\uff1a${context.brand.forbiddenPhrases.join("\u3001")}`);
+    }
+
+    if (context.industry) {
+      lines.push("");
+      lines.push("\u884c\u4e1a\u4e0a\u4e0b\u6587\uff1a");
+      lines.push(`- \u884c\u4e1a\uff1a${context.industry.name}`);
+      if (context.industry.keywords.length > 0) lines.push(`- \u884c\u4e1a\u5173\u952e\u8bcd\uff1a${context.industry.keywords.join("\u3001")}`);
+      if (context.industry.competitorKeywords.length > 0) lines.push(`- \u7ade\u54c1\u5173\u952e\u8bcd\uff1a${context.industry.competitorKeywords.join("\u3001")}`);
+      if (context.industry.boundaries) lines.push(`- \u8868\u8fbe\u8fb9\u754c\uff1a${context.industry.boundaries}`);
+      if (context.industry.painPoints.length > 0) lines.push(`- \u5e38\u89c1\u75db\u70b9\uff1a${context.industry.painPoints.join("\u3001")}`);
+      if (context.industry.commonQuestions.length > 0) lines.push(`- \u5e38\u89c1\u95ee\u9898\uff1a${context.industry.commonQuestions.join("\u3001")}`);
+      if (context.industry.topicDirections.length > 0) lines.push(`- \u63a8\u8350\u65b9\u5411\uff1a${context.industry.topicDirections.join("\u3001")}`);
+      if (context.industry.forbiddenTerms.length > 0) lines.push(`- \u7981\u7528\u8bcd\uff1a${context.industry.forbiddenTerms.join("\u3001")}`);
+    }
+
+    if (context.brief) {
+      lines.push("");
+      lines.push("\u5f53\u524d\u4efb\u52a1\u5355\uff1a");
+      lines.push(`- \u6807\u9898\uff1a${context.brief.title}`);
+      lines.push(`- \u76ee\u6807\uff1a${context.brief.objective}`);
+      lines.push(`- \u8bed\u6c14\uff1a${context.brief.tone}`);
+      lines.push(`- \u6838\u5fc3\u8868\u8fbe\uff1a${context.brief.keyMessage}`);
+      if (context.brief.targetAudience) lines.push(`- \u76ee\u6807\u53d7\u4f17\uff1a${context.brief.targetAudience}`);
+      if (context.brief.callToAction) lines.push(`- CTA\uff1a${context.brief.callToAction}`);
+      if (context.brief.constraints.length > 0) lines.push(`- \u7ea6\u675f\u6761\u4ef6\uff1a${context.brief.constraints.join("\u3001")}`);
+    }
+
+    return lines.join("\n");
   }
 }

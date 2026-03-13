@@ -351,23 +351,30 @@ function buildMockCopy(params: {
   sourceMessage: string;
 }): PromotionalCopyOutput {
   return {
-    master_angle: `围绕“${params.topic}”建立一套更容易理解、转发和转化的宣传表达。`,
+    master_angle: `用用户听得懂的语言，把 ${params.topic} 的核心价值讲透。`,
     headline_options: [
       `${params.projectTitle}：这件事为什么值得现在关注`,
       `把 ${params.topic} 讲清楚，用户才会真正行动`,
       `${params.topic} 不是口号，而是可落地的价值`,
     ],
-    hero_copy: `如果用户不能在第一眼理解你要解决什么问题，再好的产品也很难被传播。${params.projectTitle} 这轮内容应该先把核心价值讲透。`,
-    long_form_copy: `${params.sourceMessage}\n\n我们建议把宣传重点集中在三件事：第一，用户当前最真实的痛点；第二，品牌为什么值得信任；第三，用户接下来应该采取什么行动。整套文案要减少空泛表达，优先使用可感知、可复述、可转发的语言。`,
+    hero_copy: `当用户第一眼看不懂你在解决什么问题，再好的产品也很难被传播。${params.projectTitle} 这轮内容先把核心价值讲透。`,
+    long_form_copy: `${params.sourceMessage}\n\n宣传重点集中在三件事：第一，用户当前最真实的痛点；第二，品牌为什么值得信任；第三，用户接下来应该采取什么行动。整套文案减少空泛表达，优先用可感知、可复述、可转发的语言。`,
     proof_points: [
       "先把用户最关心的问题说清楚，而不是先讲品牌自我介绍",
       "用更具体的价值点代替笼统口号",
       "所有结尾都要有明确 CTA",
     ],
-    call_to_action: "先收藏这条内容，再根据你的业务场景拆成标题、正文和平台版本。",
+    call_to_action: "收藏这条内容，再根据你的业务场景拆成标题、正文和平台版本。",
     risk_notes: ["避免绝对化承诺", "避免无法证明的效果表述"],
     platform_adaptations: [],
     recommended_next_steps: ["先选 1 个主平台做首发版本", "基于评论反馈继续收敛标题和开头", "通过合规检查后再进入发布"],
+    quality_diagnosis: {
+      overall_score: 68,
+      strengths: ["传播方向已经明确", "基本结构和 CTA 已到位"],
+      issues: ["开头钩子还不够强", "部分表达偏抽象", "证明点不够具体"],
+      rewrite_focus: ["强化开头", "压缩套话", "补强可感知价值点"],
+      summary: "当前主稿方向是对的，但表达密度和转化感还不够，适合先增强再发布。",
+    },
   };
 }
 
@@ -523,42 +530,29 @@ export class PromotionalCopyService {
           ].join(" "),
         userPrompt: [
           "请直接生成一版高质量宣传主稿。",
-          writingInstruction,
-          styleInstruction,
-          lengthInstruction,
-          scenarioInstruction,
+          "",
+          "【写作任务】",
+          [writingInstruction, styleInstruction, lengthInstruction, scenarioInstruction].join(" "),
           styleTemplate === "RESTRAINED_SPATIAL"
-            ? "特别要求：请参考高端品牌门店叙事或空间文案的方式来写。不要从用户痛点或功能卖点开头，而要先从城市观察、生活方式、材料与空间气质切入，再慢慢引出品牌。"
+            ? "特别要求：先从城市观察、生活方式、材料与空间气质切入，再慢慢引出品牌。"
             : "特别要求：保持可发布感，避免空泛理念化表达。",
-          context?.styleReferenceSample
-            ? "风格参照规则：你可以充分学习参考样稿的语气、节奏、句长、段落结构、情绪推进与表达密度，但绝不能复写其中的事实、产品名、句子或独有表达。你必须生成属于当前项目的新文案。"
-            : "风格参照规则：当前没有提供参考样稿，请主要依据写作模式、输出风格和品牌上下文控制文风。",
-          context?.styleReferenceInsight
-            ? [
-                "请特别按下面三段去学习参考样稿：",
-                styleInsightText,
-              ].join("\n")
-            : "当前没有可用的分段风格学习信息。",
-          "写作质量要求：",
+          "",
+          "【写作规则】",
           buildQualityRules(),
+          context?.styleReferenceSample
+            ? "风格参照规则：充分学习参考样稿的语气、节奏和结构，但不复写其中的事实或独有表达。"
+            : "",
+          context?.styleReferenceInsight
+            ? ["风格学习：", styleInsightText].join("\n")
+            : "",
           "",
-          `Workspace Mode: ${workspaceMode}`,
-          "",
-          "这是本轮真正的写作 brief，请基于它直接成稿：",
+          "【写作素材】",
+          `工作模式：${workspaceMode}`,
           creativeBrief,
           "",
-          "输出字段要求：",
-          "- master_angle：一句话说清这轮传播到底主打什么。",
-          "- headline_options：必须是可发标题，至少 3 条，风格要明显不同。",
-          "- hero_copy：一段 60-180 字开场摘要，像真正宣传开场。",
-          "- long_form_copy：完整主稿，要有可直接使用的段落，不要列提纲。",
-          "- proof_points：3-6 条具体证明点。",
-          "- call_to_action：一个明确 CTA。",
-          "- risk_notes：只写真实风险，不要泛泛而谈。",
-          "",
-          "这一步只输出宣传主稿本身，不要顺带生成平台稿。平台稿会在下一步单独生成。",
-          "请输出真正可发布的成稿，而不是分析摘要。",
-        ].join("\n"),
+          "输出字段：master_angle（主打角度）、headline_options（至少 3 条可发标题）、hero_copy（60-180 字开场）、long_form_copy（完整主稿）、proof_points（3-6 条证明点）、call_to_action、risk_notes。",
+          "只输出主稿，不要生成平台稿。",
+        ].filter(Boolean).join("\n"),
       });
 
       if (
@@ -607,6 +601,52 @@ export class PromotionalCopyService {
 
     const validated = promotionalCopyOutputSchema.parse(output);
 
+    // Auto quality diagnosis — lightweight scoring after generation
+    let qualityDiagnosis = validated.quality_diagnosis ?? undefined;
+    if (!qualityDiagnosis && canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      try {
+        const diagnosisResult = await generateStructuredJson({
+          routeKey: "MARKETING_ANALYSIS",
+          schemaName: "promotional_copy_diagnosis",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
+            properties: {
+              overall_score: { type: "number" },
+              strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+              issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
+              rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+              summary: { type: "string" },
+            },
+          } as const,
+          zodSchema: promotionalCopyDiagnosisSchema,
+          temperature: 0.15,
+          systemPrompt: [
+            "你是文案质量审核员，只做诊断评分，不重写。",
+            "评估标准：可发布感、传播攻击力、结构完整度、证明点具体度、CTA 清晰度。",
+            "输出必须是合法 JSON。",
+          ].join(" "),
+          userPrompt: [
+            "请对以下宣传主稿做质量诊断，给出评分和问题列表。",
+            "",
+            `主宣传角度：${validated.master_angle}`,
+            `开场摘要：${validated.hero_copy}`,
+            `完整主稿：\n${validated.long_form_copy}`,
+            `证明点：\n${validated.proof_points.map((p) => `- ${p}`).join("\n")}`,
+            `CTA：${validated.call_to_action}`,
+            "",
+            `项目主题：${project.topic_query}`,
+          ].join("\n"),
+        });
+        qualityDiagnosis = diagnosisResult;
+      } catch {
+        // Diagnosis failure should not block the main flow
+      }
+    }
+
+    const finalOutput = { ...validated, quality_diagnosis: qualityDiagnosis };
+
     const versionNumber = await this.getNextVersionNumber(projectId);
 
     const strategyTask = await prisma.strategyTask.create({
@@ -623,7 +663,7 @@ export class PromotionalCopyService {
           version_number: versionNumber,
           generated_at: new Date().toISOString(),
           generation_source: settings.llmMockMode ? "mock" : `${route.provider}/${route.model}`,
-          ...validated,
+          ...finalOutput,
         }),
       },
     });
@@ -632,7 +672,7 @@ export class PromotionalCopyService {
       strategy_task_id: strategyTask.id,
       platform_adaptation_count: 0,
       platform_adaptation_ids: [],
-      output: validated,
+      output: finalOutput,
     };
   }
 
