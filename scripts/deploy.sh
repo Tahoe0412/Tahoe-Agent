@@ -15,6 +15,12 @@ fi
 echo "[deploy] Installing dependencies..."
 npm ci
 
+echo "[deploy] Cleaning stale build cache..."
+rm -rf .next
+
+echo "[deploy] Generating Prisma client..."
+npx prisma generate
+
 echo "[deploy] Building application..."
 npm run build
 
