@@ -324,6 +324,7 @@ export function RenderLabWorkbench({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastCreatedJobId, setLastCreatedJobId] = useState<string | null>(null);
+  const [compareJobId, setCompareJobId] = useState<string>("");
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
 
   const selectedScene = rows.find((row) => row.id === selectedId) ?? rows[0] ?? null;
@@ -414,11 +415,16 @@ export function RenderLabWorkbench({
   }, [jobs, selectedJob]);
   const selectedJobThreadIndex = selectedJob ? selectedJobThread.findIndex((job) => job.id === selectedJob.id) : -1;
   const previousThreadJob = selectedJobThreadIndex > 0 ? selectedJobThread[selectedJobThreadIndex - 1] : null;
+  const compareJob =
+    (compareJobId ? selectedJobThread.find((job) => job.id === compareJobId) : null) ??
+    previousThreadJob ??
+    selectedJobThread.find((job) => job.id !== selectedJob?.id) ??
+    null;
   const selectedJobInput = selectedJob ? getJobInput(selectedJob) : null;
   const selectedJobOutput = selectedJob ? getJobOutput(selectedJob) : null;
   const selectedJobLinkedScene = selectedJob ? getLinkedScene(rows, selectedJob) : null;
   const selectedPrimaryAsset = selectedJob ? getPrimaryAsset(selectedJob.render_assets) : null;
-  const previousPrimaryAsset = previousThreadJob ? getPrimaryAsset(previousThreadJob.render_assets) : null;
+  const comparePrimaryAsset = compareJob ? getPrimaryAsset(compareJob.render_assets) : null;
 
   useEffect(() => {
     if (!filteredRows.find((row) => row.id === selectedId)) {
@@ -464,6 +470,22 @@ export function RenderLabWorkbench({
       detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, [jobs, lastCreatedJobId]);
+
+  useEffect(() => {
+    if (!selectedJob) {
+      setCompareJobId("");
+      return;
+    }
+
+    const preferredCompare = previousThreadJob?.id ?? selectedJobThread.find((job) => job.id !== selectedJob.id)?.id ?? "";
+    setCompareJobId((current) => {
+      if (current && current !== selectedJob.id && selectedJobThread.some((job) => job.id === current)) {
+        return current;
+      }
+
+      return preferredCompare;
+    });
+  }, [previousThreadJob, selectedJob, selectedJobThread]);
 
   function loadSceneIntoEditor(scene: ScenePlannerRow) {
     setPrompt(buildPrompt(scene));
@@ -1138,19 +1160,64 @@ export function RenderLabWorkbench({
                             <div>
                               <div className="flex items-center justify-between gap-3">
                                 <div className="text-sm text-[var(--text-inverse)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
-                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                                <div className="flex items-center gap-2">
+                                  {job.id !== selectedJob.id ? (
+                                    <span
+                                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                        compareJob?.id === job.id ? "theme-chip-ok" : "theme-chip"
+                                      }`}
+                                    >
+                                      {compareJob?.id === job.id ? (locale === "en" ? "Comparing" : "对比中") : locale === "en" ? "Candidate" : "可对比"}
+                                    </span>
+                                  ) : null}
+                                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                                </div>
                               </div>
                               <div className="mt-2 text-xs text-[color:rgba(246,240,232,0.62)]">{formatDate(job.created_at, locale)}</div>
                               <div className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(job, getLinkedScene(rows, job), locale, 120)}</div>
+                              {job.id !== selectedJob.id ? (
+                                <div className="mt-3">
+                                  <Button
+                                    type="button"
+                                    variant={compareJob?.id === job.id ? "secondary" : "ghost"}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setCompareJobId(job.id);
+                                    }}
+                                  >
+                                    {compareJob?.id === job.id ? (locale === "en" ? "Comparing Now" : "当前对比版本") : locale === "en" ? "Use for Compare" : "设为对比版本"}
+                                  </Button>
+                                </div>
+                              ) : null}
                             </div>
                           </button>
                         ))}
                       </div>
                     ) : null}
                   </div>
-                  {previousThreadJob ? (
+                  {compareJob ? (
                     <div>
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Version Compare" : "版本对比"}</div>
+                        {selectedJobThread.length > 2 ? (
+                          <label className="space-y-2 text-sm text-[color:rgba(246,240,232,0.68)]">
+                            <span>{locale === "en" ? "Compare against" : "选择对比版本"}</span>
+                            <select
+                              value={compareJob.id}
+                              onChange={(event) => setCompareJobId(event.target.value)}
+                              className="w-full rounded-[14px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm text-[var(--text-inverse)] outline-none"
+                            >
+                              {selectedJobThread
+                                .filter((job) => job.id !== selectedJob.id)
+                                .map((job, index) => (
+                                  <option key={job.id} value={job.id}>
+                                    {locale === "en" ? `Version ${index + 1} · ${formatDate(job.created_at, locale)}` : `版本 ${index + 1} · ${formatDate(job.created_at, locale)}`}
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                        ) : null}
+                      </div>
                       <div className="mt-3 grid gap-3 lg:grid-cols-2">
                         <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
                           <div className="flex items-center justify-between gap-3">
@@ -1171,20 +1238,60 @@ export function RenderLabWorkbench({
                         </div>
                         <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
                           <div className="flex items-center justify-between gap-3">
-                            <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Previous" : "上一版本"}</div>
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(previousThreadJob.job_status)}`}>{previousThreadJob.job_status}</span>
+                            <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Compare Target" : "对比版本"}</div>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(compareJob.job_status)}`}>{compareJob.job_status}</span>
                           </div>
                           <div className="mt-3 overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
-                            {previousPrimaryAsset?.file_url && inferAssetKind(previousPrimaryAsset) === "image" ? (
+                            {comparePrimaryAsset?.file_url && inferAssetKind(comparePrimaryAsset) === "image" ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={previousPrimaryAsset.file_url} alt={previousThreadJob.id} className="h-48 w-full object-cover" />
+                              <img src={comparePrimaryAsset.file_url} alt={compareJob.id} className="h-48 w-full object-cover" />
                             ) : (
                               <div className="flex h-48 items-center justify-center px-4 text-center text-sm text-[color:rgba(246,240,232,0.68)]">
-                                {locale === "en" ? "No previous preview asset." : "上一版本还没有可对比预览素材。"}
+                                {locale === "en" ? "No compare preview asset." : "该对比版本还没有可对比预览素材。"}
                               </div>
                             )}
                           </div>
-                          <div className="mt-3 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(previousThreadJob, getLinkedScene(rows, previousThreadJob), locale, 140)}</div>
+                          <div className="mt-3 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(compareJob, getLinkedScene(rows, compareJob), locale, 140)}</div>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-[color:rgba(246,240,232,0.62)]">
+                            <span>{formatDate(compareJob.created_at, locale)}</span>
+                            <span>{locale === "en" ? `Provider ${compareJob.provider}` : `提供方 ${compareJob.provider}`}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
+                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Status Change" : "状态变化"}</div>
+                          <div className="mt-2 text-sm text-[var(--text-inverse)]">
+                            {selectedJob.job_status === compareJob.job_status
+                              ? locale === "en"
+                                ? `Both are ${selectedJob.job_status}`
+                                : `两版均为 ${selectedJob.job_status}`
+                              : `${compareJob.job_status} -> ${selectedJob.job_status}`}
+                          </div>
+                        </div>
+                        <div className="rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
+                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Output Delta" : "输出数量变化"}</div>
+                          <div className="mt-2 text-sm text-[var(--text-inverse)]">
+                            {(compareJob.render_assets?.length ?? 0) === (selectedJob.render_assets?.length ?? 0)
+                              ? locale === "en"
+                                ? "No output count change"
+                                : "输出数量没有变化"
+                              : locale === "en"
+                                ? `${compareJob.render_assets?.length ?? 0} -> ${selectedJob.render_assets?.length ?? 0}`
+                                : `${compareJob.render_assets?.length ?? 0} -> ${selectedJob.render_assets?.length ?? 0}`}
+                          </div>
+                        </div>
+                        <div className="rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
+                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Prompt Shift" : "摘要变化"}</div>
+                          <div className="mt-2 text-sm text-[var(--text-inverse)]">
+                            {getJobSummary(compareJob, getLinkedScene(rows, compareJob), locale, 72) === getJobSummary(selectedJob, selectedJobLinkedScene, locale, 72)
+                              ? locale === "en"
+                                ? "Summary unchanged"
+                                : "摘要未变化"
+                              : locale === "en"
+                                ? "Prompt or result summary changed"
+                                : "提示词或结果摘要有变化"}
+                          </div>
                         </div>
                       </div>
                     </div>
