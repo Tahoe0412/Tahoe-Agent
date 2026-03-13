@@ -130,6 +130,7 @@ export class WorkspaceQueryService {
       topic_query: project.topic_query,
       status: project.status,
       created_at: project.created_at,
+      updated_at: project.updated_at,
       workspace_mode: getWorkspaceMode((project.metadata as Record<string, unknown> | null)?.workspace_mode),
       project_tags: (((project.metadata as Record<string, unknown> | null)?.project_tags as string[] | undefined) ?? []).slice(0, 12),
       is_pinned: ((project.metadata as Record<string, unknown> | null)?.is_pinned as boolean | undefined) ?? false,
