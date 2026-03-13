@@ -201,6 +201,7 @@ export function MarketingOpsWorkbench({
   const [riskNotes, setRiskNotes] = useState("");
   const [recommendedNextSteps, setRecommendedNextSteps] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null);
 
   const activeBrandId = marketingOverview.brandProfile?.id;
   const activeSprintId = marketingOverview.latestSprint?.id;
@@ -261,10 +262,13 @@ export function MarketingOpsWorkbench({
     setError(null);
     try {
       const response = await fetch(path, options);
-      const payload = (await response.json()) as {
-        success: boolean;
-        error?: { message?: string; detail?: string };
-      };
+      const text = await response.text();
+      let payload: { success: boolean; error?: { message?: string; detail?: string } };
+      try {
+        payload = JSON.parse(text) as typeof payload;
+      } catch {
+        throw new Error(response.ok ? "服务器返回了非 JSON 响应。" : `服务器返回了错误 (${response.status})，可能是请求超时。请稍后重试。`);
+      }
       if (!payload.success) {
         throw new Error(payload.error?.detail || payload.error?.message || "操作失败。");
       }
@@ -757,14 +761,26 @@ export function MarketingOpsWorkbench({
                           <span
                             role="button"
                             tabIndex={0}
-                            className="rounded-full px-2 py-1 text-xs text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)] transition cursor-pointer"
+                            className={`rounded-full px-2 py-1 text-xs transition cursor-pointer ${
+                              deleteArmedId === item.id
+                                ? "bg-[var(--danger-bg)] text-[var(--danger-text)] font-medium"
+                                : "text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)]"
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (!confirm(`确定删除版本「${item.title}」吗？`)) return;
+                              e.preventDefault();
+                              if (deleteArmedId !== item.id) {
+                                setDeleteArmedId(item.id);
+                                setTimeout(() => setDeleteArmedId((prev) => prev === item.id ? null : prev), 3000);
+                                return;
+                              }
+                              setDeleteArmedId(null);
                               void (async () => {
                                 try {
                                   const res = await fetch(`/api/projects/${projectId}/promotional-copy?taskId=${item.id}`, { method: "DELETE" });
-                                  const p = (await res.json()) as { success: boolean; error?: { message?: string } };
+                                  const text = await res.text();
+                                  let p: { success: boolean; error?: { message?: string } };
+                                  try { p = JSON.parse(text); } catch { throw new Error("服务器返回了非 JSON 响应"); }
                                   if (!p.success) throw new Error(p.error?.message ?? "删除失败");
                                   if (selectedVersionId === item.id) setSelectedVersionId(null);
                                   setMessage("版本已删除。");
@@ -774,7 +790,7 @@ export function MarketingOpsWorkbench({
                                 }
                               })();
                             }}
-                          >✕</span>
+                          >{deleteArmedId === item.id ? "确认删除" : "✕"}</span>
                         </div>
                       </div>
                       <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? "暂无摘要"}</div>
