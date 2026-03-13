@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ type ProjectSummary = {
   topic_query: string;
   status: "DRAFT" | "RUNNING" | "COMPLETED" | "FAILED" | "ARCHIVED";
   created_at: Date | string;
+  updated_at?: Date | string;
   workspace_mode?: WorkspaceMode;
   project_tags?: string[];
   is_pinned?: boolean;
@@ -25,6 +27,43 @@ type ProjectSummary = {
   trend_count: number;
   scene_count: number;
 };
+
+function formatProjectDate(value: string | Date | null | undefined) {
+  if (!value) {
+    return "刚刚";
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function getQuickEnterConfig(project: Pick<ProjectSummary, "id" | "workspace_mode">) {
+  const mode = project.workspace_mode ?? "SHORT_VIDEO";
+
+  if (mode === "SHORT_VIDEO") {
+    return {
+      href: `/script-lab?projectId=${project.id}` as Route,
+      label: "快速进入脚本实验台",
+    };
+  }
+
+  if (mode === "COPYWRITING") {
+    return {
+      href: `/marketing-ops?projectId=${project.id}` as Route,
+      label: "快速进入文案工作台",
+    };
+  }
+
+  return {
+    href: `/marketing-ops?projectId=${project.id}` as Route,
+    label: "快速进入推广工作台",
+  };
+}
 
 type SimpleBrandProfile = {
   id: string;
@@ -246,7 +285,7 @@ export function ProjectManager({
 
   return (
     <div className="space-y-6">
-      <form action={createProject} className="theme-panel-muted space-y-6 rounded-[24px] p-4">
+      <form id="project-manager-create-form" action={createProject} className="theme-panel-muted space-y-6 rounded-[24px] p-4">
         <div className="space-y-2">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-3)]">快速创建</div>
           <div className="text-xl font-semibold text-[var(--text-1)]">先选择工作模式，再创建项目</div>
@@ -486,52 +525,85 @@ export function ProjectManager({
       ) : null}
 
       <div className="space-y-3">
-        {visibleProjects.map((project) => (
-          <div key={project.id} className="theme-panel grid gap-4 rounded-[24px] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
-            <div className="pt-1">
-              <input type="checkbox" checked={selectedIds.includes(project.id)} onChange={() => toggleSelection(project.id)} className="size-4 accent-[var(--accent-strong)]" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="text-base font-semibold text-[var(--text-1)]">{project.title}</div>
-                <span className="theme-chip rounded-full px-2.5 py-1 text-xs font-medium">{project.status}</span>
-                {project.is_pinned ? <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--accent-strong)]">置顶</span> : null}
-                <span className={cn("rounded-full border px-2.5 py-1 text-xs font-medium text-[var(--text-2)]", project.workspace_mode === "SHORT_VIDEO" ? "theme-chip-ok" : "border-[var(--border)]")}>
-                  {getWorkspaceModeMeta(project.workspace_mode ?? "SHORT_VIDEO", "zh").label}
-                </span>
+        {visibleProjects.map((project) => {
+          const quickEnter = getQuickEnterConfig(project);
+
+          return (
+            <div key={project.id} className="theme-panel grid gap-4 rounded-[24px] p-4 md:grid-cols-[auto_1fr_auto] md:items-center">
+              <div className="pt-1">
+                <input type="checkbox" checked={selectedIds.includes(project.id)} onChange={() => toggleSelection(project.id)} className="size-4 accent-[var(--accent-strong)]" />
               </div>
-              <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(project.project_tags ?? []).map((tag) => (
-                  <span key={`${project.id}-${tag}`} className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">
-                    {tag}
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-[var(--accent-strong)]">
+                    模式 · {getWorkspaceModeMeta(project.workspace_mode ?? "SHORT_VIDEO", "zh").label}
                   </span>
-                ))}
+                  <div className="text-base font-semibold text-[var(--text-1)]">{project.title}</div>
+                  <span className="theme-chip rounded-full px-2.5 py-1 text-xs font-medium">{project.status}</span>
+                  {project.is_pinned ? <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--accent-strong)]">置顶</span> : null}
+                </div>
+                <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(project.project_tags ?? []).map((tag) => (
+                    <span key={`${project.id}-${tag}`} className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-3)]">
+                  <span>最近更新 {formatProjectDate(project.updated_at ?? project.created_at)}</span>
+                  <span>
+                    {project.id} · trends {project.trend_count} · scenes {project.scene_count}
+                  </span>
+                </div>
               </div>
-              <div className="mt-2 text-xs text-[var(--text-3)]">
-                {project.id} · trends {project.trend_count} · scenes {project.scene_count}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" onClick={() => router.push(quickEnter.href)}>
+                  {quickEnter.label}
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => router.push(`/?projectId=${project.id}`)}>
+                  打开
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => void togglePinned(project.id, !project.is_pinned)}>
+                  {project.is_pinned ? "取消置顶" : "置顶"}
+                </Button>
+                {project.status === "ARCHIVED" ? (
+                  <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "COMPLETED")}>
+                    恢复
+                  </Button>
+                ) : (
+                  <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "ARCHIVED")}>
+                    归档
+                  </Button>
+                )}
               </div>
+            </div>
+          );
+        })}
+        {visibleProjects.length === 0 ? (
+          <div className="theme-panel space-y-4 rounded-[24px] p-5">
+            <div className="space-y-2">
+              <div className="text-base font-semibold text-[var(--text-1)]">当前还没有匹配的项目</div>
+              <div className="text-sm leading-6 text-[var(--text-2)]">可以先调整搜索词、模式或状态筛选；如果这是全新的 Project Hub，现在就从上方快速创建区开始，建立你的第一个项目。</div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" onClick={() => router.push(`/?projectId=${project.id}`)}>
-                打开
+              <Button type="button" onClick={() => document.getElementById("project-manager-create-form")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                创建第一个项目
               </Button>
-              <Button type="button" variant="ghost" onClick={() => void togglePinned(project.id, !project.is_pinned)}>
-                {project.is_pinned ? "取消置顶" : "置顶"}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setQuery("");
+                  setStatusFilter("ALL");
+                  setModeFilter("ALL");
+                }}
+              >
+                清空筛选
               </Button>
-              {project.status === "ARCHIVED" ? (
-                <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "COMPLETED")}>
-                  恢复
-                </Button>
-              ) : (
-                <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "ARCHIVED")}>
-                  归档
-                </Button>
-              )}
             </div>
           </div>
-        ))}
-        {visibleProjects.length === 0 ? <div className="theme-panel rounded-[24px] p-5 text-sm text-[var(--text-2)]">当前筛选条件下没有项目。可以调整搜索词、模式或状态筛选。</div> : null}
+        ) : null}
       </div>
     </div>
   );
