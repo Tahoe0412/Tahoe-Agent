@@ -923,9 +923,9 @@ export class PromotionalCopyService {
       // ════════════════════════════════════════
       //  Step 2: REWRITE — consume diagnosis as explicit instructions
       // ════════════════════════════════════════
-      const issueDirectives = diagnosis.issues.map((issue, i) => `${i + 1}. [问题] ${issue}`).join("\n");
-      const focusDirectives = diagnosis.rewrite_focus.map((focus, i) => `${i + 1}. [动作] ${focus}`).join("\n");
-      const strengthGuards = diagnosis.strengths.map((s) => `- ${s}`).join("\n");
+      const issueDirectives = (diagnosis.issues ?? []).map((issue, i) => `${i + 1}. [问题] ${issue}`).join("\n") || "（诊断未发现具体问题）";
+      const focusDirectives = (diagnosis.rewrite_focus ?? []).map((focus, i) => `${i + 1}. [动作] ${focus}`).join("\n") || "（诊断未给出具体动作）";
+      const strengthGuards = (diagnosis.strengths ?? []).map((s) => `- ${s}`).join("\n") || "（诊断未列出优点）";
 
       const rewriteSchema = {
         type: "object",
