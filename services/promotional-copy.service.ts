@@ -676,6 +676,17 @@ export class PromotionalCopyService {
     };
   }
 
+  async deleteVersion(projectId: string, taskId: string) {
+    const task = await prisma.strategyTask.findFirst({
+      where: { id: taskId, project_id: projectId, task_type: "SCRIPT" },
+    });
+    if (!task) {
+      throw new Error("找不到该版本，可能已被删除。");
+    }
+    await prisma.strategyTask.delete({ where: { id: taskId } });
+    return { deleted: true };
+  }
+
   async saveVersion(
     projectId: string,
     input: {
@@ -840,16 +851,24 @@ export class PromotionalCopyService {
         schema: promotionalCopyEnhancementSchema,
         preprocess: (value) => normalizePromotionalCopyOutput(value, surfaces),
         systemPrompt: [
-          "你是一名资深品牌文案总监和内容编辑，不是解释者，而是修改者。",
-          "你的任务是先诊断当前主稿质量，再给出增强后的最终成稿。",
-          "增强目标是：更像真实可发布文案，更清楚、更有传播感、更具体、更有行动驱动。",
+          "你是一名资深品牌文案总监，你的唯一任务是改写文案，不是分析文案。",
+          "规则：你输出的 hero_copy 和 long_form_copy 必须和输入不同。禁止原封不动复制输入内容。",
+          "如果你发现自己在复制原文，停下来，用更好的表达重写它。",
+          "增强目标：更清楚、更有传播感、更具体、更有行动驱动。",
           "输出必须是合法 JSON。",
         ].join(" "),
         userPrompt: [
-          "请对下面这版宣传主稿先做质量诊断，再输出增强后的最终版本。",
+          "任务：先诊断下面这版主稿的问题，然后输出一版增强改写后的完整主稿。",
+          "",
+          "关键规则（必须遵守）：",
           buildEnhancementRules(),
-          "原稿存在的问题要讲具体，不要泛泛而谈。",
-          "增强版必须保持原传播方向，但表达要更强。",
+          "- 你输出的 long_form_copy 必须是改写后的新版本，禁止直接复制原文。",
+          "- 你输出的 hero_copy 必须重新组织语言，不能和原稿完全一样。",
+          "- 你输出的 headline_options 至少要有 3 条全新拟定的标题。",
+          "- 你输出的 proof_points 至少要有 3 条更具体的证明点。",
+          "- 你输出的 call_to_action 必须比原稿更具体、更有行动驱动力。",
+          "- 增强版必须保持原传播方向，但表达要明显不同。",
+          "",
           context?.styleReferenceInsight
             ? [
                 "继续沿用参考样稿的三段学习：",
@@ -857,24 +876,29 @@ export class PromotionalCopyService {
                 `- 开头风格：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
                 `- 正文节奏：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
               ].join("\n")
-            : "当前没有可用的分段风格学习信息。",
+            : "",
           "",
           "当前项目上下文：",
           creativeBrief,
           "",
-          "当前主稿：",
+          "=== 以下是需要改写的原稿（你必须改写，不能复制） ===",
           `主宣传角度：${currentDraft.master_angle}`,
           `标题备选：\n${currentDraft.headline_options.map((item) => `- ${item}`).join("\n")}`,
           `开场摘要：${currentDraft.hero_copy}`,
           `完整主稿：\n${currentDraft.long_form_copy}`,
           `证明点：\n${currentDraft.proof_points.map((item) => `- ${item}`).join("\n")}`,
           `CTA：${currentDraft.call_to_action}`,
+          "=== 原稿结束 ===",
           "",
           "输出要求：",
-          "- quality_diagnosis：包含整体评分、优点、问题、增强重点和一句总结。",
-          "- long_form_copy：必须输出增强后的完整主稿，而不是修改建议。",
-          "- 不要顺带输出平台稿，增强阶段只做主稿。",
-          "- 其余字段也同步优化。",
+          "- quality_diagnosis：包含 overall_score(0-100)、strengths(优点列表)、issues(问题列表)、rewrite_focus(增强重点列表)和 summary(一句话总结)。",
+          "- master_angle: 改写后的主宣传角度。",
+          "- headline_options: 至少3条改写后的标题备选。",
+          "- hero_copy: 改写后的开场摘要（不能和原稿一样）。",
+          "- long_form_copy: 改写后的完整主稿正文（不能和原稿一样，必须是完整文案不是修改建议）。",
+          "- proof_points: 至少3条更具体的证明点。",
+          "- call_to_action: 改写后的CTA。",
+          "- 不要输出 platform_adaptations。",
         ].join("\n"),
       });
 

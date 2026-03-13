@@ -70,3 +70,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return fail("保存宣传主稿版本失败。", 400, error instanceof Error ? error.message : undefined);
   }
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const url = new URL(request.url);
+    const taskId = url.searchParams.get("taskId");
+    if (!taskId) {
+      return fail("缺少 taskId 参数。", 400);
+    }
+    await promotionalCopyService.deleteVersion(id, taskId);
+    return ok({ deleted: true });
+  } catch (error) {
+    return fail("删除版本失败。", 400, error instanceof Error ? error.message : undefined);
+  }
+}

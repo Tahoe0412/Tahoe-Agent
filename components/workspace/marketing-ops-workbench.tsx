@@ -752,7 +752,30 @@ export function MarketingOpsWorkbench({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-medium text-[var(--text-1)]">{item.title}</div>
-                        {versionNumber ? <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
+                        <div className="flex items-center gap-2">
+                          {versionNumber ? <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            className="rounded-full px-2 py-1 text-xs text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)] transition cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!confirm(`确定删除版本「${item.title}」吗？`)) return;
+                              void (async () => {
+                                try {
+                                  const res = await fetch(`/api/projects/${projectId}/promotional-copy?taskId=${item.id}`, { method: "DELETE" });
+                                  const p = (await res.json()) as { success: boolean; error?: { message?: string } };
+                                  if (!p.success) throw new Error(p.error?.message ?? "删除失败");
+                                  if (selectedVersionId === item.id) setSelectedVersionId(null);
+                                  setMessage("版本已删除。");
+                                  router.refresh();
+                                } catch (err) {
+                                  setError(err instanceof Error ? err.message : "删除失败");
+                                }
+                              })();
+                            }}
+                          >✕</span>
+                        </div>
                       </div>
                       <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? "暂无摘要"}</div>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
