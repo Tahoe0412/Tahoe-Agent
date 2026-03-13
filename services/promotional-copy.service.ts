@@ -881,8 +881,15 @@ export class PromotionalCopyService {
         ].join("\n"),
       });
       output = {
+        ...currentDraft,
         ...generated,
-        risk_notes: generated.risk_notes ?? [],
+        master_angle: generated.master_angle || currentDraft.master_angle,
+        headline_options: (generated.headline_options?.length ?? 0) >= 3 ? generated.headline_options : currentDraft.headline_options,
+        hero_copy: (generated.hero_copy?.length ?? 0) >= 20 ? generated.hero_copy : currentDraft.hero_copy,
+        long_form_copy: (generated.long_form_copy?.length ?? 0) >= 80 ? generated.long_form_copy : currentDraft.long_form_copy,
+        proof_points: (generated.proof_points?.length ?? 0) >= 3 ? generated.proof_points : currentDraft.proof_points,
+        call_to_action: generated.call_to_action || currentDraft.call_to_action,
+        risk_notes: generated.risk_notes ?? currentDraft.risk_notes ?? [],
         recommended_next_steps: generated.recommended_next_steps ?? [],
         platform_adaptations: generated.platform_adaptations ?? [],
       };
@@ -906,7 +913,7 @@ export class PromotionalCopyService {
     }
 
     const validated = promotionalCopyOutputSchema.extend({
-      quality_diagnosis: promotionalCopyDiagnosisSchema,
+      quality_diagnosis: promotionalCopyDiagnosisSchema.optional(),
     }).parse(output);
 
     const versionNumber = await this.getNextVersionNumber(projectId);
