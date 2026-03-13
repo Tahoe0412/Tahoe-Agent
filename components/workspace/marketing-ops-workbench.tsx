@@ -479,7 +479,7 @@ export function MarketingOpsWorkbench({
 
   return (
     <div className="space-y-6">
-      <PanelCard title="快速流程" description="先选写法，再出一版主稿，再做平台稿和合规。高级编辑先收起来。">
+      <PanelCard title="内容运营台" description="按步骤操作：选择写法 → 生成主稿 → 派生平台稿 → 合规检查。">
         <div className="mb-5 grid gap-4 md:grid-cols-4">
           <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">品牌</div>
@@ -490,12 +490,12 @@ export function MarketingOpsWorkbench({
             <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{marketingOverview.industryTemplate?.industryName ?? "未绑定"}</div>
           </div>
           <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主稿版本</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{versions.length}</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主稿版本数</div>
+            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{versions.length} 版</div>
           </div>
           <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">平台稿 / 合规</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{marketingOverview.platformAdaptations.length} / {marketingOverview.complianceChecks.length}</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">平台稿 / 合规记录</div>
+            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{(marketingOverview.platformAdaptations ?? []).length} 篇 / {(marketingOverview.complianceChecks ?? []).length} 条</div>
           </div>
         </div>
 
@@ -614,25 +614,71 @@ export function MarketingOpsWorkbench({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={() => void generatePromotionalCopy()} disabled={pending !== null}>
-            {pending === "promo-copy" ? "生成中..." : "生成宣传主稿"}
-          </Button>
-          <Button variant="secondary" onClick={() => void diagnoseAndEnhanceCopy()} disabled={pending !== null}>
-            {pending === "enhance-copy" ? "增强中..." : "诊断并增强主稿"}
-          </Button>
-          <Button variant="secondary" onClick={() => void savePromotionalCopyVersion()} disabled={pending !== null}>
-            {pending === "save-copy" ? "保存中..." : "另存为新版本"}
-          </Button>
-          <Button variant="secondary" onClick={() => void generateAdaptationFromDraft()} disabled={pending !== null}>
-            {pending === "quick-adapt" ? "生成中..." : "从当前主稿生成平台稿"}
-          </Button>
-          <Button variant="secondary" onClick={() => void runComplianceCheck()} disabled={pending !== null}>
-            {pending === "compliance" ? "检查中..." : "对选中平台稿执行合规检查"}
-          </Button>
+        {/* ── Step-based action groups ── */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Step 1: Master copy */}
+          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">1</span>
+              <span className="text-sm font-semibold text-[var(--text-1)]">主稿操作</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => void generatePromotionalCopy()} disabled={pending !== null} className="w-full justify-center">
+                {pending === "promo-copy" ? "AI 正在生成..." : "生成新主稿"}
+              </Button>
+              <Button variant="secondary" onClick={() => void diagnoseAndEnhanceCopy()} disabled={pending !== null || !heroCopy.trim()} className="w-full justify-center">
+                {pending === "enhance-copy" ? "AI 增强中..." : "诊断并增强当前主稿"}
+              </Button>
+              <Button variant="secondary" onClick={() => void savePromotionalCopyVersion()} disabled={pending !== null || !heroCopy.trim()} className="w-full justify-center">
+                {pending === "save-copy" ? "保存中..." : "将当前编辑另存为新版本"}
+              </Button>
+              {!heroCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿内容才能增强或另存</div>}
+            </div>
+          </div>
+
+          {/* Step 2: Platform adaptation */}
+          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">2</span>
+              <span className="text-sm font-semibold text-[var(--text-1)]">派生平台稿</span>
+            </div>
+            <div className="mb-3">
+              <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-[16px] px-4 py-3 text-sm" disabled={pending !== null}>
+                {platformSurfaceList.map((item) => (
+                  <option key={item} value={item}>{getPlatformSurfaceMeta(item, "zh").label}</option>
+                ))}
+              </select>
+            </div>
+            <Button onClick={() => void generateAdaptationFromDraft()} disabled={pending !== null || !longFormCopy.trim()} className="w-full justify-center bg-[var(--accent)] text-white hover:opacity-90">
+              {pending === "quick-adapt" ? "AI 正在改写..." : `生成${getPlatformSurfaceMeta(adaptSurface, "zh").label}`}
+            </Button>
+            {!longFormCopy.trim() && <div className="mt-2 text-xs text-[var(--text-3)]">需要先有主稿正文才能派生平台稿</div>}
+          </div>
+
+          {/* Step 3: Compliance check */}
+          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">3</span>
+              <span className="text-sm font-semibold text-[var(--text-1)]">合规检查</span>
+            </div>
+            <Button variant="secondary" onClick={() => void runComplianceCheck()} disabled={pending !== null || !selectedAdaptation} className="w-full justify-center">
+              {pending === "compliance" ? "检查中..." : selectedAdaptation ? `检查「${getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}」合规性` : "检查选中平台稿的合规性"}
+            </Button>
+            {!selectedAdaptation && <div className="mt-2 text-xs text-[var(--text-3)]">需要先选中一条平台稿</div>}
+            {selectedAdaptation && latestCheckForSelected && (
+              <div className="mt-3 rounded-xl bg-[var(--surface-muted)] px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block size-2 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
+                  <span className="text-xs font-medium text-[var(--text-2)]">{latestCheckForSelected.needsReview ? "需要人工复核" : "未发现明显风险"}</span>
+                </div>
+                {latestCheckForSelected.summary && <div className="mt-1 text-xs text-[var(--text-3)] line-clamp-2">{latestCheckForSelected.summary}</div>}
+              </div>
+            )}
+          </div>
         </div>
-        {message ? <div className="mt-4 text-sm text-[var(--ok-text)]">{message}</div> : null}
-        {error ? <div className="mt-4 text-sm text-[var(--danger-text)]">{error}</div> : null}
+
+        {message ? <div className="mt-4 rounded-xl bg-[var(--ok-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--ok-text)]">{message}</div> : null}
+        {error ? <div className="mt-4 rounded-xl bg-[var(--danger-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--danger-text)]">{error}</div> : null}
       </PanelCard>
 
       <PanelCard title="当前主稿" description="默认只聚焦当前成稿，版本对比和平台稿细节后移。">
@@ -825,20 +871,13 @@ export function MarketingOpsWorkbench({
           </PanelCard>
 
           <div className="grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
-            <PanelCard title="平台稿件" description="需要发布前，再从当前主稿派生平台版本。">
+            <PanelCard title="平台稿件" description="从主稿派生的各平台版本。选中后可在右侧执行合规检查。">
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input rounded-[16px] px-4 py-3 text-sm">
-                    {platformSurfaceList.map((item) => (
-                      <option key={item} value={item}>{getPlatformSurfaceMeta(item, "zh").label}</option>
-                    ))}
-                  </select>
-                  <span className="text-sm text-[var(--text-2)]">当前生成平台：{getPlatformSurfaceMeta(adaptSurface, "zh").label}</span>
-                </div>
                 <div className="grid gap-3">
-                  {marketingOverview.platformAdaptations.length ? (
+                  {(marketingOverview.platformAdaptations ?? []).length ? (
                     (marketingOverview.platformAdaptations ?? []).map((item) => {
                       const active = item.id === selectedAdaptationId;
+                      const statusColor = item.status === "APPROVED" ? "bg-[var(--ok-text)]" : item.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]";
                       return (
                         <button
                           key={item.id}
@@ -846,71 +885,94 @@ export function MarketingOpsWorkbench({
                           onClick={() => setSelectedAdaptationId(item.id)}
                           className={`w-full rounded-[18px] border px-4 py-4 text-left transition ${
                             active
-                              ? "border-[var(--accent-strong)] bg-[var(--surface-muted)]"
+                              ? "border-[var(--accent-strong)] bg-[var(--surface-muted)] ring-1 ring-[var(--accent-strong)]"
                               : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-3">
-                            <div className="font-medium text-[var(--text-1)]">
-                              {getPlatformSurfaceMeta(item.surface as PlatformSurface, "zh").label}
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-block size-2 shrink-0 rounded-full ${statusColor}`} />
+                              <span className="font-medium text-[var(--text-1)]">
+                                {getPlatformSurfaceMeta(item.surface as PlatformSurface, "zh").label}
+                              </span>
                             </div>
                             <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, "zh")}</span>
                           </div>
                           <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? "未填写标题或开场句"}</div>
-                          <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body}</div>
+                          <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || "（暂无正文内容）"}</div>
+                          <div className="mt-2 text-xs text-[var(--text-3)]">{new Date(item.createdAt).toLocaleString("zh-CN")}</div>
                         </button>
                       );
                     })
                   ) : (
                     <div className="rounded-[18px] border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
-                      还没有平台稿件。先从当前主稿生成一个平台版本。
+                      还没有平台稿件。请先在上方 Step ❢ 选择平台并生成。
                     </div>
                   )}
                 </div>
               </div>
             </PanelCard>
 
-            <PanelCard title="合规检查与执行快照" description="默认后移，需要发布前再展开复核。">
+            <PanelCard title="合规检查" description="查看选中平台稿的合规检查结果，标记风险项。">
               <div className="space-y-4">
                 <div className="theme-panel-muted rounded-[18px] p-4">
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前选中平台稿</div>
                   {selectedAdaptation ? (
                     <div className="mt-3 space-y-2">
-                      <div className="font-medium text-[var(--text-1)]">
-                        {getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block size-2 rounded-full ${
+                          selectedAdaptation.status === "APPROVED" ? "bg-[var(--ok-text)]" : selectedAdaptation.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]"
+                        }`} />
+                        <span className="font-medium text-[var(--text-1)]">
+                          {getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}
+                        </span>
+                        <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, "zh")}</span>
                       </div>
                       <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? "未填写标题或开场句"}</div>
-                      <div className="text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body}</div>
+                      <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || "（暂无正文内容）"}</div>
                     </div>
                   ) : (
-                    <div className="mt-3 text-sm text-[var(--text-2)]">请先从左侧选择一条平台稿件。</div>
+                    <div className="mt-3 text-sm text-[var(--text-2)]">← 请先从左侧选择一条平台稿件，再查看合规结果。</div>
                   )}
                 </div>
 
                 <div className="theme-panel-muted rounded-[18px] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">最新检查结果</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">最新检查结果</div>
+                    {latestCheckForSelected && (
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                        latestCheckForSelected.needsReview
+                          ? "bg-[var(--danger-bg,var(--surface-muted))] text-[var(--danger-text)]"
+                          : "bg-[var(--ok-bg,var(--surface-muted))] text-[var(--ok-text)]"
+                      }`}>
+                        <span className={`inline-block size-1.5 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
+                        {latestCheckForSelected.needsReview ? "需要人工复核" : "暂无风险"}
+                      </span>
+                    )}
+                  </div>
                   {latestCheckForSelected ? (
                     <div className="mt-3 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(latestCheckForSelected.status, "zh")}</span>
-                        {latestCheckForSelected.needsReview ? <span className="text-xs text-[var(--danger-text)]">需要人工复核</span> : null}
-                      </div>
                       <div className="text-sm leading-7 text-[var(--text-2)]">{latestCheckForSelected.summary ?? "暂无风险总结。"}</div>
-                      {Array.isArray(latestCheckForSelected.flaggedIssues) && latestCheckForSelected.flaggedIssues.length ? (
-                        <div className="space-y-2">
-                          {(latestCheckForSelected.flaggedIssues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
-                            <div key={`${item.type ?? "issue"}-${index}`} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
-                              <div className="font-medium text-[var(--text-1)]">{item.type ?? "风险项"} · {item.text ?? "未命名内容"}</div>
-                              <div className="mt-1">{item.reason ?? "需要人工进一步判断。"}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-[var(--text-2)]">未命中明显风险。</div>
-                      )}
+                      {(() => {
+                        const issues = Array.isArray(latestCheckForSelected.flaggedIssues) ? latestCheckForSelected.flaggedIssues : [];
+                        if (!issues.length) return <div className="text-sm text-[var(--text-2)]">✓ 未命中明显风险。</div>;
+                        return (
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-[var(--danger-text)]">{issues.length} 条风险项</div>
+                            {(issues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
+                              <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
+                                <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? "风险项")} · {String(item?.text ?? "未命名内容")}</div>
+                                <div className="mt-1">{String(item?.reason ?? "需要人工进一步判断。")}</div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ) : (
-                    <div className="mt-3 text-sm text-[var(--text-2)]">当前平台稿还没有检查记录。</div>
+                    <div className="mt-3 text-sm text-[var(--text-2)]">
+                      {selectedAdaptation ? "当前平台稿还没有检查记录。请在上方 Step ❢ 执行合规检查。" : "选择平台稿后可查看检查记录。"}
+                    </div>
                   )}
                 </div>
               </div>
