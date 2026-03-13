@@ -276,7 +276,12 @@ export function MarketingOpsWorkbench({
       router.refresh();
       return payload;
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "操作失败。");
+      const raw = requestError instanceof Error ? requestError.message : "操作失败。";
+      const isAbort = requestError instanceof Error && (requestError.name === "AbortError" || raw.includes("aborted"));
+      const friendly = isAbort
+        ? "AI 模型生成时间过长，请求已中断。建议缩短输入内容或切换更快的模型后重试。"
+        : raw;
+      setError(friendly);
       return null;
     } finally {
       setPending(null);

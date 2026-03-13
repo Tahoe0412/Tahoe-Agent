@@ -13,6 +13,8 @@ interface StructuredJsonParams<T> {
   routeKey?: ModelRouteKey;
   preprocess?: (value: unknown) => unknown;
   temperature?: number;
+  /** Per-call timeout in milliseconds. Defaults to 120 000 (2 minutes). */
+  timeoutMs?: number;
 }
 
 interface OpenAIChatCompletionResponse {
@@ -56,9 +58,11 @@ async function requestOpenAI<T>({
   userPrompt,
   preprocess,
   temperature = 0.2,
+  timeoutMs,
 }: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string }) {
+  const effectiveTimeout = timeoutMs ?? 120_000;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 50_000);
+  const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
   let response: Response;
   try {
     response = await fetch(baseUrl, {
@@ -120,9 +124,11 @@ async function requestGemini<T>({
   userPrompt,
   preprocess,
   temperature = 0.2,
+  timeoutMs,
 }: StructuredJsonParams<T> & { apiKey: string; model: string }) {
+  const effectiveTimeout2 = timeoutMs ?? 120_000;
   const controller2 = new AbortController();
-  const timeoutId2 = setTimeout(() => controller2.abort(), 50_000);
+  const timeoutId2 = setTimeout(() => controller2.abort(), effectiveTimeout2);
   let response: Response;
   try {
     response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {

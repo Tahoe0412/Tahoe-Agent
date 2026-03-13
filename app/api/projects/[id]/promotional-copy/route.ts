@@ -40,8 +40,18 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return ok(result, { status: 201 });
   } catch (error) {
     const rawMessage = error instanceof Error ? error.message : String(error);
+    const isAbortError = error instanceof Error && (error.name === "AbortError" || rawMessage.includes("aborted"));
     // Turn raw Zod / schema errors into a human-readable message
     const isSchemaError = rawMessage.includes("invalid_type") || rawMessage.includes("too_small") || rawMessage.includes("zodSchema");
+
+    if (isAbortError) {
+      return fail(
+        "生成宣传文案失败。",
+        504,
+        "AI 模型生成时间过长，连接已中断。建议：1）确认网络稳定；2）缩短输入内容后重试；3）切换更快的模型。",
+      );
+    }
+
     const userMessage = isSchemaError
       ? "AI 模型返回的数据格式不完整，系统已尝试自动补全。如果仍然失败，请重试一次或切换模型。"
       : rawMessage;
