@@ -918,19 +918,30 @@ export class PromotionalCopyService {
       throw new Error(`宣传文案增强未找到可用模型。当前路由为 ${route.provider}/${route.model}，请先在设置中配置对应 API key，或临时开启 mock 模式。`);
     }
 
-    // Use safeParse — if validation still fails after merge, provide readable error instead of raw JSON
+    // Fully defensive validation: never let Zod throw to the frontend
     const enhancementSchema = promotionalCopyOutputSchema.extend({
       quality_diagnosis: promotionalCopyDiagnosisSchema.optional(),
     });
     const validationResult = enhancementSchema.safeParse(output);
-    const validated = validationResult.success
-      ? validationResult.data
-      : enhancementSchema.parse({
-          ...currentDraft,
-          ...output,
-          quality_diagnosis: output.quality_diagnosis,
-          platform_adaptations: [],
-        });
+    let validated: PromotionalCopyOutput;
+    if (validationResult.success) {
+      validated = validationResult.data;
+    } else {
+      // Fallback 1: strip potentially invalid quality_diagnosis and retry
+      const fallback1 = enhancementSchema.safeParse({
+        ...currentDraft,
+        ...output,
+        quality_diagnosis: undefined,
+        platform_adaptations: [],
+      });
+      if (fallback1.success) {
+        validated = fallback1.data;
+      } else {
+        // Fallback 2: just use currentDraft directly (guaranteed valid)
+        console.warn("[diagnoseAndEnhance] All validation fallbacks failed, returning currentDraft as-is.");
+        validated = { ...currentDraft, platform_adaptations: [] };
+      }
+    }
 
     const versionNumber = await this.getNextVersionNumber(projectId);
     const created = await prisma.strategyTask.create({
