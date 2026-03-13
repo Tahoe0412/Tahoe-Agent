@@ -15,9 +15,9 @@ type PromotionalCopyPayload = {
   generation_source?: string;
   quality_diagnosis?: {
     overall_score?: number;
-    strengths?: string[];
-    issues?: string[];
-    rewrite_focus?: string[];
+    strengths?: unknown[];
+    issues?: unknown[];
+    rewrite_focus?: unknown[];
     summary?: string;
   };
   master_angle?: string;
@@ -112,6 +112,16 @@ type MarketingOverview = {
 
 function toLines(value: string[] | undefined) {
   return (value ?? []).join("\n");
+}
+
+/** Safely render any value as a display string — handles objects from older schema versions. */
+function toDisplayString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>);
+    return entries.map(([k, v]) => `${k}：${String(v ?? "")}`).join("；");
+  }
+  return String(value ?? "");
 }
 
 function fromLines(value: string) {
@@ -669,24 +679,24 @@ export function MarketingOpsWorkbench({
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前优点</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.strengths ?? []).map((item) => (
-                          <div key={item}>• {item}</div>
+                        {(diagnosis.strengths ?? []).map((item, idx) => (
+                          <div key={idx}>• {toDisplayString(item)}</div>
                         ))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主要问题</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.issues ?? []).map((item) => (
-                          <div key={item}>• {item}</div>
+                        {(diagnosis.issues ?? []).map((item, idx) => (
+                          <div key={idx}>• {toDisplayString(item)}</div>
                         ))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">增强重点</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.rewrite_focus ?? []).map((item) => (
-                          <div key={item}>• {item}</div>
+                        {(diagnosis.rewrite_focus ?? []).map((item, idx) => (
+                          <div key={idx}>• {toDisplayString(item)}</div>
                         ))}
                       </div>
                     </div>
