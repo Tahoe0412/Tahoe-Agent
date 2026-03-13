@@ -878,24 +878,33 @@ export class PromotionalCopyService {
         ].join("\n"),
       });
 
-      // Merge LLM output with original draft — any missing/short field falls back to currentDraft
+      // Detailed logging: see exactly what the LLM returned after preprocessing
       const g = generated as Record<string, unknown>;
-      const gMasterAngle = typeof g.master_angle === "string" && g.master_angle.length >= 6 ? g.master_angle : currentDraft.master_angle;
-      const gHeadlines = Array.isArray(g.headline_options) && g.headline_options.length >= 3 ? g.headline_options as string[] : currentDraft.headline_options;
-      const gHeroCopy = typeof g.hero_copy === "string" && g.hero_copy.length >= 20 ? g.hero_copy : currentDraft.hero_copy;
-      const gLongForm = typeof g.long_form_copy === "string" && g.long_form_copy.length >= 80 ? g.long_form_copy : currentDraft.long_form_copy;
-      const gProofPoints = Array.isArray(g.proof_points) && g.proof_points.length >= 3 ? g.proof_points as string[] : currentDraft.proof_points;
-      const gCta = typeof g.call_to_action === "string" && g.call_to_action.length >= 4 ? g.call_to_action : currentDraft.call_to_action;
+      console.info("[diagnoseAndEnhance] raw LLM fields after preprocess:", {
+        master_angle: { type: typeof g.master_angle, length: typeof g.master_angle === "string" ? g.master_angle.length : "N/A", preview: typeof g.master_angle === "string" ? g.master_angle.slice(0, 40) : String(g.master_angle) },
+        hero_copy: { type: typeof g.hero_copy, length: typeof g.hero_copy === "string" ? g.hero_copy.length : "N/A" },
+        long_form_copy: { type: typeof g.long_form_copy, length: typeof g.long_form_copy === "string" ? g.long_form_copy.length : "N/A" },
+        headline_options: { type: typeof g.headline_options, isArray: Array.isArray(g.headline_options), length: Array.isArray(g.headline_options) ? g.headline_options.length : "N/A" },
+        proof_points: { type: typeof g.proof_points, isArray: Array.isArray(g.proof_points), length: Array.isArray(g.proof_points) ? g.proof_points.length : "N/A" },
+        call_to_action: { type: typeof g.call_to_action, length: typeof g.call_to_action === "string" ? g.call_to_action.length : "N/A" },
+        has_quality_diagnosis: !!g.quality_diagnosis,
+      });
+
+      // Accept any non-empty LLM output — only fall back to currentDraft when truly missing
+      const pickStr = (llm: unknown, fallback: string) =>
+        typeof llm === "string" && llm.trim().length > 0 ? llm.trim() : fallback;
+      const pickArr = (llm: unknown, fallback: string[]) =>
+        Array.isArray(llm) && llm.length > 0 ? llm as string[] : fallback;
 
       output = {
-        master_angle: gMasterAngle,
-        headline_options: gHeadlines,
-        hero_copy: gHeroCopy,
-        long_form_copy: gLongForm,
-        proof_points: gProofPoints,
-        call_to_action: gCta,
-        risk_notes: Array.isArray(g.risk_notes) ? g.risk_notes as string[] : currentDraft.risk_notes ?? [],
-        recommended_next_steps: Array.isArray(g.recommended_next_steps) ? g.recommended_next_steps as string[] : [],
+        master_angle: pickStr(g.master_angle, currentDraft.master_angle),
+        headline_options: pickArr(g.headline_options, currentDraft.headline_options),
+        hero_copy: pickStr(g.hero_copy, currentDraft.hero_copy),
+        long_form_copy: pickStr(g.long_form_copy, currentDraft.long_form_copy),
+        proof_points: pickArr(g.proof_points, currentDraft.proof_points),
+        call_to_action: pickStr(g.call_to_action, currentDraft.call_to_action),
+        risk_notes: pickArr(g.risk_notes, currentDraft.risk_notes ?? []),
+        recommended_next_steps: pickArr(g.recommended_next_steps, []),
         platform_adaptations: Array.isArray(g.platform_adaptations) ? g.platform_adaptations as PromotionalCopyOutput["platform_adaptations"] : [],
         quality_diagnosis: g.quality_diagnosis && typeof g.quality_diagnosis === "object" ? g.quality_diagnosis as PromotionalCopyOutput["quality_diagnosis"] : undefined,
       };
