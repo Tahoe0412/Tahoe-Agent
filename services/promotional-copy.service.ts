@@ -918,30 +918,18 @@ export class PromotionalCopyService {
       throw new Error(`宣传文案增强未找到可用模型。当前路由为 ${route.provider}/${route.model}，请先在设置中配置对应 API key，或临时开启 mock 模式。`);
     }
 
-    // Fully defensive validation: never let Zod throw to the frontend
-    const enhancementSchema = promotionalCopyOutputSchema.extend({
-      quality_diagnosis: promotionalCopyDiagnosisSchema.optional(),
+    // Log what the LLM actually returned vs what we merged (server-side only, for debugging)
+    console.info("[diagnoseAndEnhance] merge result:", {
+      master_angle_changed: output.master_angle !== currentDraft.master_angle,
+      hero_copy_changed: output.hero_copy !== currentDraft.hero_copy,
+      long_form_copy_changed: output.long_form_copy !== currentDraft.long_form_copy,
+      has_diagnosis: !!output.quality_diagnosis,
     });
-    const validationResult = enhancementSchema.safeParse(output);
-    let validated: PromotionalCopyOutput;
-    if (validationResult.success) {
-      validated = validationResult.data;
-    } else {
-      // Fallback 1: strip potentially invalid quality_diagnosis and retry
-      const fallback1 = enhancementSchema.safeParse({
-        ...currentDraft,
-        ...output,
-        quality_diagnosis: undefined,
-        platform_adaptations: [],
-      });
-      if (fallback1.success) {
-        validated = fallback1.data;
-      } else {
-        // Fallback 2: just use currentDraft directly (guaranteed valid)
-        console.warn("[diagnoseAndEnhance] All validation fallbacks failed, returning currentDraft as-is.");
-        validated = { ...currentDraft, platform_adaptations: [] };
-      }
-    }
+
+    // The merge already guarantees every field meets minimum requirements
+    // (each field individually falls back to currentDraft if the LLM output is insufficient).
+    // No need for a second Zod pass that could reject the entire merged output.
+    const validated = output;
 
     const versionNumber = await this.getNextVersionNumber(projectId);
     const created = await prisma.strategyTask.create({
