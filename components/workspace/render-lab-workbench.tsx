@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
@@ -182,6 +182,18 @@ function getLinkedScene(rows: ScenePlannerRow[], job: RenderJobRow) {
   return rows.find((row) => row.id === job.script_scene_id) ?? rows.find((row) => row.frameId && row.frameId === job.storyboard_frame_id) ?? null;
 }
 
+function getThreadKey(job: RenderJobRow) {
+  if (job.script_scene_id) {
+    return `scene:${job.script_scene_id}`;
+  }
+
+  if (job.storyboard_frame_id) {
+    return `frame:${job.storyboard_frame_id}`;
+  }
+
+  return null;
+}
+
 function inferAssetKind(asset: NonNullable<RenderJobRow["render_assets"]>[number]) {
   const mime = asset.mime_type?.toLowerCase() ?? "";
   const url = asset.file_url?.toLowerCase() ?? "";
@@ -195,6 +207,41 @@ function inferAssetKind(asset: NonNullable<RenderJobRow["render_assets"]>[number
   }
 
   return "file";
+}
+
+function getPrimaryAsset(assets: RenderJobRow["render_assets"]) {
+  if (!assets?.length) {
+    return null;
+  }
+
+  return assets.find((asset) => inferAssetKind(asset) === "image") ?? assets.find((asset) => inferAssetKind(asset) === "video") ?? assets[0];
+}
+
+function getOutputSummary(output: Record<string, unknown>) {
+  if (typeof output.summary === "string") {
+    return output.summary;
+  }
+
+  if (typeof output.result_summary === "string") {
+    return output.result_summary;
+  }
+
+  if (typeof output.message === "string") {
+    return output.message;
+  }
+
+  return "";
+}
+
+function getJobSummary(job: RenderJobRow, linkedScene: ScenePlannerRow | null, locale: Locale, length = 140) {
+  const input = getJobInput(job);
+  const output = getJobOutput(job);
+
+  return trimPreview(
+    input.prompt || input.shot_goal || getOutputSummary(output) || linkedScene?.shotGoal,
+    locale === "en" ? "No prompt summary yet." : "当前还没有任务摘要。",
+    length,
+  );
 }
 
 function AssetPreviewCard({
@@ -276,6 +323,8 @@ export function RenderLabWorkbench({
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastCreatedJobId, setLastCreatedJobId] = useState<string | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
 
   const selectedScene = rows.find((row) => row.id === selectedId) ?? rows[0] ?? null;
   const availableProviders = providerConfig[jobType].providers;
@@ -365,6 +414,11 @@ export function RenderLabWorkbench({
   }, [jobs, selectedJob]);
   const selectedJobThreadIndex = selectedJob ? selectedJobThread.findIndex((job) => job.id === selectedJob.id) : -1;
   const previousThreadJob = selectedJobThreadIndex > 0 ? selectedJobThread[selectedJobThreadIndex - 1] : null;
+  const selectedJobInput = selectedJob ? getJobInput(selectedJob) : null;
+  const selectedJobOutput = selectedJob ? getJobOutput(selectedJob) : null;
+  const selectedJobLinkedScene = selectedJob ? getLinkedScene(rows, selectedJob) : null;
+  const selectedPrimaryAsset = selectedJob ? getPrimaryAsset(selectedJob.render_assets) : null;
+  const previousPrimaryAsset = previousThreadJob ? getPrimaryAsset(previousThreadJob.render_assets) : null;
 
   useEffect(() => {
     if (!filteredRows.find((row) => row.id === selectedId)) {
@@ -388,6 +442,28 @@ export function RenderLabWorkbench({
       setNotes(buildNotes(selectedScene, locale));
     }
   }, [editorMode, locale, selectedScene]);
+
+  useEffect(() => {
+    if (!lastCreatedJobId) {
+      return;
+    }
+
+    const createdJob = jobs.find((job) => job.id === lastCreatedJobId);
+    if (!createdJob) {
+      return;
+    }
+
+    setSelectedJobId(createdJob.id);
+    if (createdJob.script_scene_id) {
+      setSelectedId(createdJob.script_scene_id);
+    }
+    setJobScope("ALL");
+    setJobSort("NEWEST");
+
+    window.requestAnimationFrame(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [jobs, lastCreatedJobId]);
 
   function loadSceneIntoEditor(scene: ScenePlannerRow) {
     setPrompt(buildPrompt(scene));
@@ -482,6 +558,7 @@ export function RenderLabWorkbench({
       setMessage(locale === "en" ? "Render job created. The latest jobs list has been refreshed." : "渲染任务已创建，最近任务列表已刷新。");
       if (payload.data?.id) {
         setSelectedJobId(payload.data.id);
+        setLastCreatedJobId(payload.data.id);
         setJobScope("ALL");
         setJobSort("NEWEST");
       }
@@ -762,7 +839,7 @@ export function RenderLabWorkbench({
       <div className="space-y-6">
         <PanelCard
           title={locale === "en" ? "Task History" : "任务历史"}
-          description={locale === "en" ? "Keep the right rail focused on previous runs so the center stays dedicated to editing." : "把历史任务固定在右侧，让中间区域始终专注在编辑与复用。"}
+          description={locale === "en" ? "Scan status, summaries, and scene threads quickly before opening the result detail view." : "先在这里快速扫清状态、摘要和场景线程，再进入下方结果详情。"}
         >
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-1">
@@ -832,14 +909,15 @@ export function RenderLabWorkbench({
             <div className="space-y-3">
               {filteredJobs.length ? (
                 filteredJobs.map((job) => {
-                  const input = getJobInput(job);
                   const linkedScene = getLinkedScene(rows, job);
                   const selected = selectedJob?.id === job.id;
-                  const threadCount = job.script_scene_id
-                    ? jobs.filter((item) => item.script_scene_id === job.script_scene_id).length
-                    : job.storyboard_frame_id
-                      ? jobs.filter((item) => item.storyboard_frame_id === job.storyboard_frame_id).length
-                      : 0;
+                  const primaryAsset = getPrimaryAsset(job.render_assets);
+                  const threadKey = getThreadKey(job);
+                  const threadItems = threadKey ? jobs.filter((item) => getThreadKey(item) === threadKey) : [];
+                  const threadCount = threadItems.length;
+                  const versionIndex = threadItems
+                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                    .findIndex((item) => item.id === job.id);
 
                   return (
                     <button
@@ -851,30 +929,48 @@ export function RenderLabWorkbench({
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                          {linkedScene ? <span className="theme-chip rounded-full px-2.5 py-1 text-xs font-medium">{locale === "en" ? `Scene #${linkedScene.frameOrder}` : `场景 #${linkedScene.frameOrder}`}</span> : null}
+                          {threadCount > 1 ? (
+                            <span className="theme-chip-ok rounded-full px-2.5 py-1 text-xs font-medium">
+                              {locale === "en" ? `v${versionIndex + 1}/${threadCount}` : `第 ${versionIndex + 1}/${threadCount} 版`}
+                            </span>
+                          ) : null}
+                        </div>
                         <div className={`text-sm ${selected ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{formatDate(job.created_at, locale)}</div>
                       </div>
-                      <div>
-                        <div className={`text-sm font-medium ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
-                          {(input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头"))}
-                        </div>
-                        <div className={`mt-1 text-sm ${selected ? "text-[color:rgba(246,240,232,0.74)]" : "text-[var(--text-2)]"}`}>
-                          {job.job_type} · {job.provider}
-                          {job.provider_model ? ` / ${job.provider_model}` : ""}
-                        </div>
-                        {linkedScene ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-[color:rgba(246,240,232,0.62)]" : "text-[var(--text-3)]"}`}>
-                            {locale === "en" ? "Scene" : "场景"} #{linkedScene.frameOrder}
+                      <div className="grid gap-3 md:grid-cols-[1fr_84px] md:items-start">
+                        <div>
+                          <div className={`text-sm font-medium ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
+                            {(getJobInput(job).frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头"))}
                           </div>
-                        ) : null}
-                        {threadCount > 1 ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-[color:rgba(246,240,232,0.62)]" : "text-[var(--text-3)]"}`}>
-                            {locale === "en" ? `${threadCount} iterations in thread` : `同线程共 ${threadCount} 版`}
+                          <div className={`mt-1 text-sm ${selected ? "text-[color:rgba(246,240,232,0.74)]" : "text-[var(--text-2)]"}`}>
+                            {job.job_type} · {job.provider}
+                            {job.provider_model ? ` / ${job.provider_model}` : ""}
                           </div>
-                        ) : null}
-                      </div>
-                      <div className={`text-sm leading-6 ${selected ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-1)]"}`}>
-                        {trimPreview(input.prompt || input.shot_goal || linkedScene?.shotGoal, locale === "en" ? "No prompt summary yet." : "当前还没有任务摘要。")}
+                          <div className={`mt-3 text-sm leading-6 ${selected ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-1)]"}`}>
+                            {getJobSummary(job, linkedScene, locale)}
+                          </div>
+                          <div className={`mt-3 flex flex-wrap gap-2 text-xs ${selected ? "text-[color:rgba(246,240,232,0.66)]" : "text-[var(--text-3)]"}`}>
+                            <span>{job.render_assets?.length ? (locale === "en" ? `${job.render_assets.length} outputs` : `${job.render_assets.length} 个输出`) : locale === "en" ? "No outputs yet" : "暂无输出"}</span>
+                            <span>{selected ? (locale === "en" ? "Viewing in detail" : "当前正在查看") : locale === "en" ? "Open result detail" : "可展开结果详情"}</span>
+                          </div>
+                        </div>
+                        <div className="overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
+                          {primaryAsset?.file_url && inferAssetKind(primaryAsset) === "image" ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={primaryAsset.file_url} alt={primaryAsset.file_name || primaryAsset.asset_type || job.id} className="h-24 w-full object-cover" />
+                          ) : primaryAsset?.file_url && inferAssetKind(primaryAsset) === "video" ? (
+                            <video className="h-24 w-full bg-black object-cover" muted>
+                              <source src={primaryAsset.file_url} type={primaryAsset.mime_type || undefined} />
+                            </video>
+                          ) : (
+                            <div className="flex h-24 items-center justify-center px-3 text-center text-[11px] text-[var(--text-3)]">
+                              {locale === "en" ? "Result preview pending" : "结果预览待生成"}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </button>
                   );
@@ -894,47 +990,112 @@ export function RenderLabWorkbench({
           </div>
         </PanelCard>
 
-        <DetailPanel title={locale === "en" ? "Job Details" : "任务详情"} className="xl:sticky xl:top-6 xl:self-start">
+        <div ref={detailPanelRef}>
+        <DetailPanel title={locale === "en" ? "Result Detail" : "结果详情"} className="xl:sticky xl:top-6 xl:self-start">
           {selectedJob ? (
             (() => {
-              const input = getJobInput(selectedJob);
-              const output = getJobOutput(selectedJob);
-              const linkedScene = getLinkedScene(rows, selectedJob);
-
               return (
                 <>
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头")}</div>
-                    <div className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.6)]">
-                      {selectedJob.job_type} · {selectedJob.provider}
-                      {selectedJob.provider_model ? ` / ${selectedJob.provider_model}` : ""}
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-medium text-[var(--text-inverse)]">{selectedJobInput?.frame_title || selectedJobLinkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头")}</div>
+                        <div className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.6)]">
+                          {selectedJob.job_type} · {selectedJob.provider}
+                          {selectedJob.provider_model ? ` / ${selectedJob.provider_model}` : ""}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(selectedJob.job_status)}`}>{selectedJob.job_status}</span>
+                        <span className="rounded-full border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-xs font-medium">{formatDate(selectedJob.created_at, locale)}</span>
+                        {selectedJobLinkedScene ? <span className="theme-chip rounded-full px-2.5 py-1 text-xs font-medium">{locale === "en" ? `Scene #${selectedJobLinkedScene.frameOrder}` : `场景 #${selectedJobLinkedScene.frameOrder}`}</span> : null}
+                      </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Outputs" : "输出结果"}</div>
+                        <div className="mt-2 text-lg font-semibold text-[var(--text-inverse)]">{selectedJob.render_assets?.length ?? 0}</div>
+                        <div className="mt-1 text-xs text-[color:rgba(246,240,232,0.62)]">{locale === "en" ? "Attached assets" : "已挂接素材"}</div>
+                      </div>
+                      <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Thread" : "版本线程"}</div>
+                        <div className="mt-2 text-lg font-semibold text-[var(--text-inverse)]">{selectedJobThread.length || 1}</div>
+                        <div className="mt-1 text-xs text-[color:rgba(246,240,232,0.62)]">
+                          {selectedJobThread.length > 1
+                            ? locale === "en"
+                              ? `Viewing v${selectedJobThreadIndex + 1}`
+                              : `当前查看第 ${selectedJobThreadIndex + 1} 版`
+                            : locale === "en"
+                              ? "Single version yet"
+                              : "当前仅 1 个版本"}
+                        </div>
+                      </div>
+                      <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "References" : "参考素材"}</div>
+                        <div className="mt-2 text-lg font-semibold text-[var(--text-inverse)]">
+                          {(selectedJobInput?.references?.length ? selectedJobInput.references : selectedJobLinkedScene?.references ?? []).length}
+                        </div>
+                        <div className="mt-1 text-xs text-[color:rgba(246,240,232,0.62)]">{locale === "en" ? "Context items" : "上下文素材数"}</div>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden rounded-[24px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)]">
+                      {selectedPrimaryAsset?.file_url && inferAssetKind(selectedPrimaryAsset) === "image" ? (
+                        <a href={selectedPrimaryAsset.file_url} target="_blank" rel="noreferrer" className="block">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={selectedPrimaryAsset.file_url} alt={selectedPrimaryAsset.file_name || selectedPrimaryAsset.asset_type || selectedJob.id} className="max-h-[360px] w-full object-cover" />
+                        </a>
+                      ) : selectedPrimaryAsset?.file_url && inferAssetKind(selectedPrimaryAsset) === "video" ? (
+                        <video controls preload="metadata" className="max-h-[360px] w-full bg-black object-contain">
+                          <source src={selectedPrimaryAsset.file_url} type={selectedPrimaryAsset.mime_type || undefined} />
+                          {locale === "en" ? "Your browser does not support embedded video preview." : "当前浏览器不支持内嵌视频预览。"}
+                        </video>
+                      ) : (
+                        <div className="flex min-h-52 items-center justify-center px-6 text-center text-sm text-[color:rgba(246,240,232,0.68)]">
+                          {selectedJob.job_status === "SUCCEEDED"
+                            ? locale === "en"
+                              ? "This run is complete, but there is no preview asset attached yet."
+                              : "这条任务已经完成，但当前还没有可直接消费的预览素材。"
+                            : locale === "en"
+                              ? "This area will surface the latest output as soon as the run produces an asset."
+                              : "任务一旦产出素材，这里会优先展示最新结果。"}
+                        </div>
+                      )}
+                      <div className="border-t border-[rgba(255,255,255,0.08)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.56)]">{locale === "en" ? "Consumption Summary" : "结果消费摘要"}</div>
+                        <div className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.82)]">
+                          {trimPreview(
+                            getOutputSummary(selectedJobOutput ?? {}) || selectedJobInput?.prompt || selectedJobInput?.shot_goal || selectedJobLinkedScene?.shotGoal,
+                            locale === "en" ? "No structured result summary yet." : "当前还没有结构化结果摘要。",
+                            320,
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
                       <Button type="button" variant="secondary" onClick={reuseSelectedJob}>
                         {locale === "en" ? "Continue From This Job" : "基于这条任务继续生成"}
                       </Button>
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Linked Scene" : "关联场景"}</div>
-                    <div className="mt-2">{linkedScene ? `#${linkedScene.frameOrder} ${linkedScene.frameTitle}` : locale === "en" ? "No linked scene found." : "当前未找到可匹配场景。"}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Prompt Summary" : "提示词摘要"}</div>
-                    <div className="mt-2">{trimPreview(input.prompt || input.visual_prompt || linkedScene?.visualPrompt, locale === "en" ? "No prompt captured." : "当前没有记录提示词。", 240)}</div>
+                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Scene Context" : "场景上下文"}</div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Linked Scene" : "关联场景"}</div>
+                        <div className="mt-2 text-[var(--text-inverse)]">{selectedJobLinkedScene ? `#${selectedJobLinkedScene.frameOrder} ${selectedJobLinkedScene.frameTitle}` : locale === "en" ? "No linked scene found." : "当前未找到可匹配场景。"}</div>
+                        <div className="mt-2 text-sm text-[color:rgba(246,240,232,0.72)]">{selectedJobLinkedScene?.shotGoal || (locale === "en" ? "No linked scene summary." : "暂无场景摘要。")}</div>
+                      </div>
+                      <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
+                        <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Prompt Summary" : "提示词摘要"}</div>
+                        <div className="mt-2 whitespace-pre-wrap text-sm text-[color:rgba(246,240,232,0.82)]">
+                          {trimPreview(selectedJobInput?.prompt || selectedJobInput?.visual_prompt || selectedJobLinkedScene?.visualPrompt, locale === "en" ? "No prompt captured." : "当前没有记录提示词。", 240)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Notes" : "备注"}</div>
-                    <div className="mt-2 whitespace-pre-wrap">{trimPreview(input.notes, locale === "en" ? "No notes attached." : "当前没有附加备注。", 240)}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Job Status" : "任务状态"}</div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(selectedJob.job_status)}`}>{selectedJob.job_status}</span>
-                      <span className="rounded-full border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-xs font-medium">
-                        {formatDate(selectedJob.created_at, locale)}
-                      </span>
-                    </div>
+                    <div className="mt-2 whitespace-pre-wrap">{trimPreview(selectedJobInput?.notes, locale === "en" ? "No notes attached." : "当前没有附加备注。", 240)}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Version Thread" : "版本链路"}</div>
@@ -948,30 +1109,88 @@ export function RenderLabWorkbench({
                           : "这个场景目前只有一个版本。"}
                     </div>
                     {selectedJobThread.length ? (
-                      <div className="mt-3 space-y-2">
+                      <div className="mt-3 grid gap-3">
                         {selectedJobThread.map((job, index) => (
                           <button
                             key={job.id}
                             type="button"
                             onClick={() => setSelectedJobId(job.id)}
-                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                            className={`grid gap-3 rounded-[20px] border p-4 text-left transition sm:grid-cols-[92px_1fr] ${
                               job.id === selectedJob.id
                                 ? "theme-panel-muted border-[rgba(255,255,255,0.16)]"
                                 : "border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.04)]"
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="text-sm text-[var(--text-inverse)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
-                              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                            <div className="overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
+                              {getPrimaryAsset(job.render_assets)?.file_url && inferAssetKind(getPrimaryAsset(job.render_assets) as NonNullable<RenderJobRow["render_assets"]>[number]) === "image" ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={getPrimaryAsset(job.render_assets)?.file_url ?? ""}
+                                  alt={job.id}
+                                  className="h-24 w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-24 items-center justify-center px-2 text-center text-[11px] text-[color:rgba(246,240,232,0.56)]">
+                                  {locale === "en" ? "No preview" : "暂无预览"}
+                                </div>
+                              )}
                             </div>
-                            <div className="mt-2 text-xs text-[color:rgba(246,240,232,0.62)]">{formatDate(job.created_at, locale)}</div>
+                            <div>
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm text-[var(--text-inverse)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
+                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                              </div>
+                              <div className="mt-2 text-xs text-[color:rgba(246,240,232,0.62)]">{formatDate(job.created_at, locale)}</div>
+                              <div className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(job, getLinkedScene(rows, job), locale, 120)}</div>
+                            </div>
                           </button>
                         ))}
                       </div>
                     ) : null}
                   </div>
+                  {previousThreadJob ? (
+                    <div>
+                      <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
+                      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Current" : "当前版本"}</div>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(selectedJob.job_status)}`}>{selectedJob.job_status}</span>
+                          </div>
+                          <div className="mt-3 overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
+                            {selectedPrimaryAsset?.file_url && inferAssetKind(selectedPrimaryAsset) === "image" ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={selectedPrimaryAsset.file_url} alt={selectedJob.id} className="h-48 w-full object-cover" />
+                            ) : (
+                              <div className="flex h-48 items-center justify-center px-4 text-center text-sm text-[color:rgba(246,240,232,0.68)]">
+                                {locale === "en" ? "No current preview asset." : "当前版本还没有可对比预览素材。"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-3 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(selectedJob, selectedJobLinkedScene, locale, 140)}</div>
+                        </div>
+                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Previous" : "上一版本"}</div>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(previousThreadJob.job_status)}`}>{previousThreadJob.job_status}</span>
+                          </div>
+                          <div className="mt-3 overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
+                            {previousPrimaryAsset?.file_url && inferAssetKind(previousPrimaryAsset) === "image" ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={previousPrimaryAsset.file_url} alt={previousThreadJob.id} className="h-48 w-full object-cover" />
+                            ) : (
+                              <div className="flex h-48 items-center justify-center px-4 text-center text-sm text-[color:rgba(246,240,232,0.68)]">
+                                {locale === "en" ? "No previous preview asset." : "上一版本还没有可对比预览素材。"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-3 text-sm leading-6 text-[color:rgba(246,240,232,0.8)]">{getJobSummary(previousThreadJob, getLinkedScene(rows, previousThreadJob), locale, 140)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Outputs" : "任务输出"}</div>
+                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Output Gallery" : "结果素材"}</div>
                     {selectedJob.render_assets?.length ? (
                       <div className="mt-3 space-y-3">
                         {selectedJob.render_assets.map((asset) => (
@@ -990,54 +1209,11 @@ export function RenderLabWorkbench({
                       </div>
                     )}
                   </div>
-                  {previousThreadJob ? (
-                    <div>
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
-                      <div className="mt-3 grid gap-3">
-                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Current" : "当前版本"}</div>
-                          <div className="mt-3 space-y-3">
-                            {selectedJob.render_assets?.length ? (
-                              selectedJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
-                            ) : (
-                              <div className="text-sm text-[color:rgba(246,240,232,0.72)]">{locale === "en" ? "No preview asset on current version." : "当前版本还没有可对比预览素材。"}</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Previous" : "上一版本"}</div>
-                          <div className="mt-3 space-y-3">
-                            {previousThreadJob.render_assets?.length ? (
-                              previousThreadJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
-                            ) : (
-                              <div className="text-sm text-[color:rgba(246,240,232,0.72)]">{locale === "en" ? "No preview asset on the previous version." : "上一版本还没有可对比预览素材。"}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Output Summary" : "输出摘要"}</div>
-                    <div className="mt-2 whitespace-pre-wrap">
-                      {trimPreview(
-                        typeof output.summary === "string"
-                          ? output.summary
-                          : typeof output.result_summary === "string"
-                            ? output.result_summary
-                            : typeof output.message === "string"
-                              ? output.message
-                              : "",
-                        locale === "en" ? "No structured output summary yet." : "当前还没有结构化输出摘要。",
-                        280,
-                      )}
-                    </div>
-                  </div>
                   <div>
                     <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "References" : "参考素材"}</div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {(input.references?.length ? input.references : linkedScene?.references ?? []).length ? (
-                        (input.references?.length ? input.references : linkedScene?.references ?? []).map((reference, index) => (
+                      {(selectedJobInput?.references?.length ? selectedJobInput.references : selectedJobLinkedScene?.references ?? []).length ? (
+                        (selectedJobInput?.references?.length ? selectedJobInput.references : selectedJobLinkedScene?.references ?? []).map((reference, index) => (
                           <span key={`${reference.label ?? "reference"}-${index}`} className="rounded-full border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-xs font-medium">
                             {reference.label || reference.type || (locale === "en" ? "Reference" : "参考")}
                           </span>
@@ -1060,6 +1236,7 @@ export function RenderLabWorkbench({
             <div>{locale === "en" ? "Select a job to inspect its scene, prompt, and reference context." : "选择一条任务后，这里会展开它的场景、提示词和参考上下文。"}</div>
           )}
         </DetailPanel>
+        </div>
       </div>
     </div>
   );
