@@ -573,19 +573,19 @@ export function MarketingOpsWorkbench({
               <div className="mt-3 grid gap-3 md:grid-cols-3">
                 <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
                   <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题风格</div>
-                  {styleReferenceInsight.titleStyleLines.map((line) => (
+                  {(styleReferenceInsight.titleStyleLines ?? []).map((line) => (
                     <div key={line}>• {line}</div>
                   ))}
                 </div>
                 <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
                   <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开头风格</div>
-                  {styleReferenceInsight.openingStyleLines.map((line) => (
+                  {(styleReferenceInsight.openingStyleLines ?? []).map((line) => (
                     <div key={line}>• {line}</div>
                   ))}
                 </div>
                 <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
                   <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">正文节奏</div>
-                  {styleReferenceInsight.bodyRhythmLines.map((line) => (
+                  {(styleReferenceInsight.bodyRhythmLines ?? []).map((line) => (
                     <div key={line}>• {line}</div>
                   ))}
                 </div>
@@ -593,7 +593,7 @@ export function MarketingOpsWorkbench({
             ) : null}
             {styleReferenceInsight ? (
               <div className="mt-3 grid gap-2 md:grid-cols-2">
-                {styleReferenceInsight.summaryLines.map((line) => (
+                {(styleReferenceInsight.summaryLines ?? []).map((line) => (
                   <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                     {line}
                   </div>
@@ -827,7 +827,7 @@ export function MarketingOpsWorkbench({
                 </div>
                 <div className="grid gap-3">
                   {marketingOverview.platformAdaptations.length ? (
-                    marketingOverview.platformAdaptations.map((item) => {
+                    (marketingOverview.platformAdaptations ?? []).map((item) => {
                       const active = item.id === selectedAdaptationId;
                       return (
                         <button
