@@ -39,7 +39,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         : await promotionalCopyService.generateForProject(id);
     return ok(result, { status: 201 });
   } catch (error) {
-    return fail("生成宣传文案失败。", 400, error instanceof Error ? error.message : undefined);
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    // Turn raw Zod / schema errors into a human-readable message
+    const isSchemaError = rawMessage.includes("invalid_type") || rawMessage.includes("too_small") || rawMessage.includes("zodSchema");
+    const userMessage = isSchemaError
+      ? "AI 模型返回的数据格式不完整，系统已尝试自动补全。如果仍然失败，请重试一次或切换模型。"
+      : rawMessage;
+    return fail("生成宣传文案失败。", 400, userMessage);
   }
 }
 

@@ -834,13 +834,10 @@ export class PromotionalCopyService {
 
     let output: PromotionalCopyOutput;
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
-      const generated = await generateStructuredJson({
+      const generated = await generateStructuredJson<Record<string, unknown>>({
         routeKey: "PROMOTIONAL_COPY",
         schemaName: "promotional_copy_enhancement_output",
         schema: promotionalCopyEnhancementSchema,
-        zodSchema: promotionalCopyOutputSchema.extend({
-          quality_diagnosis: promotionalCopyDiagnosisSchema,
-        }),
         preprocess: (value) => normalizePromotionalCopyOutput(value, surfaces),
         systemPrompt: [
           "你是一名资深品牌文案总监和内容编辑，不是解释者，而是修改者。",
@@ -880,18 +877,27 @@ export class PromotionalCopyService {
           "- 其余字段也同步优化。",
         ].join("\n"),
       });
+
+      // Merge LLM output with original draft — any missing/short field falls back to currentDraft
+      const g = generated as Record<string, unknown>;
+      const gMasterAngle = typeof g.master_angle === "string" && g.master_angle.length >= 6 ? g.master_angle : currentDraft.master_angle;
+      const gHeadlines = Array.isArray(g.headline_options) && g.headline_options.length >= 3 ? g.headline_options as string[] : currentDraft.headline_options;
+      const gHeroCopy = typeof g.hero_copy === "string" && g.hero_copy.length >= 20 ? g.hero_copy : currentDraft.hero_copy;
+      const gLongForm = typeof g.long_form_copy === "string" && g.long_form_copy.length >= 80 ? g.long_form_copy : currentDraft.long_form_copy;
+      const gProofPoints = Array.isArray(g.proof_points) && g.proof_points.length >= 3 ? g.proof_points as string[] : currentDraft.proof_points;
+      const gCta = typeof g.call_to_action === "string" && g.call_to_action.length >= 4 ? g.call_to_action : currentDraft.call_to_action;
+
       output = {
-        ...currentDraft,
-        ...generated,
-        master_angle: generated.master_angle || currentDraft.master_angle,
-        headline_options: (generated.headline_options?.length ?? 0) >= 3 ? generated.headline_options : currentDraft.headline_options,
-        hero_copy: (generated.hero_copy?.length ?? 0) >= 20 ? generated.hero_copy : currentDraft.hero_copy,
-        long_form_copy: (generated.long_form_copy?.length ?? 0) >= 80 ? generated.long_form_copy : currentDraft.long_form_copy,
-        proof_points: (generated.proof_points?.length ?? 0) >= 3 ? generated.proof_points : currentDraft.proof_points,
-        call_to_action: generated.call_to_action || currentDraft.call_to_action,
-        risk_notes: generated.risk_notes ?? currentDraft.risk_notes ?? [],
-        recommended_next_steps: generated.recommended_next_steps ?? [],
-        platform_adaptations: generated.platform_adaptations ?? [],
+        master_angle: gMasterAngle,
+        headline_options: gHeadlines,
+        hero_copy: gHeroCopy,
+        long_form_copy: gLongForm,
+        proof_points: gProofPoints,
+        call_to_action: gCta,
+        risk_notes: Array.isArray(g.risk_notes) ? g.risk_notes as string[] : currentDraft.risk_notes ?? [],
+        recommended_next_steps: Array.isArray(g.recommended_next_steps) ? g.recommended_next_steps as string[] : [],
+        platform_adaptations: Array.isArray(g.platform_adaptations) ? g.platform_adaptations as PromotionalCopyOutput["platform_adaptations"] : [],
+        quality_diagnosis: g.quality_diagnosis && typeof g.quality_diagnosis === "object" ? g.quality_diagnosis as PromotionalCopyOutput["quality_diagnosis"] : undefined,
       };
     } else if (settings.llmMockMode) {
       output = {
@@ -912,9 +918,19 @@ export class PromotionalCopyService {
       throw new Error(`宣传文案增强未找到可用模型。当前路由为 ${route.provider}/${route.model}，请先在设置中配置对应 API key，或临时开启 mock 模式。`);
     }
 
-    const validated = promotionalCopyOutputSchema.extend({
+    // Use safeParse — if validation still fails after merge, provide readable error instead of raw JSON
+    const enhancementSchema = promotionalCopyOutputSchema.extend({
       quality_diagnosis: promotionalCopyDiagnosisSchema.optional(),
-    }).parse(output);
+    });
+    const validationResult = enhancementSchema.safeParse(output);
+    const validated = validationResult.success
+      ? validationResult.data
+      : enhancementSchema.parse({
+          ...currentDraft,
+          ...output,
+          quality_diagnosis: output.quality_diagnosis,
+          platform_adaptations: [],
+        });
 
     const versionNumber = await this.getNextVersionNumber(projectId);
     const created = await prisma.strategyTask.create({

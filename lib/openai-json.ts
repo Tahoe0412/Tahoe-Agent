@@ -6,7 +6,7 @@ import type { ModelRouteKey } from "@/lib/model-routing";
 interface StructuredJsonParams<T> {
   schemaName: string;
   schema: Record<string, unknown>;
-  zodSchema: ZodSchema<T>;
+  zodSchema?: ZodSchema<T>;
   systemPrompt: string;
   userPrompt: string;
   model?: string;
@@ -93,7 +93,13 @@ async function requestOpenAI<T>({
   }
 
   const parsed = JSON.parse(content);
-  return zodSchema.parse(preprocess ? preprocess(parsed) : parsed);
+  const preprocessed = preprocess ? preprocess(parsed) : parsed;
+  if (zodSchema) {
+    const result = zodSchema.safeParse(preprocessed);
+    if (result.success) return result.data;
+    console.warn(`[openai-json] Zod validation failed for ${schemaName}, returning raw data for caller fallback.`, result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+  }
+  return preprocessed as T;
 }
 
 async function requestGemini<T>({
@@ -152,7 +158,13 @@ async function requestGemini<T>({
   }
 
   const parsed = JSON.parse(content);
-  return zodSchema.parse(preprocess ? preprocess(parsed) : parsed);
+  const preprocessed = preprocess ? preprocess(parsed) : parsed;
+  if (zodSchema) {
+    const result = zodSchema.safeParse(preprocessed);
+    if (result.success) return result.data;
+    console.warn(`[gemini-json] Zod validation failed for ${schemaName}, returning raw data for caller fallback.`, result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+  }
+  return preprocessed as T;
 }
 
 export async function generateStructuredJson<T>(params: StructuredJsonParams<T>): Promise<T> {
