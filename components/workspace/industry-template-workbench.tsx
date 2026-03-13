@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
+import { TagInput } from "@/components/ui/tag-input";
 import { getPlatformSurfaceMeta, type PlatformSurface } from "@/lib/platform-surface";
 
 type IndustryTemplateRow = {
@@ -48,15 +49,15 @@ export function IndustryTemplateWorkbench({
   const router = useRouter();
   const [selectedTemplateId, setSelectedTemplateId] = useState(templates[0]?.id ?? "");
   const [industryName, setIndustryName] = useState("");
-  const [industryKeywords, setIndustryKeywords] = useState("");
-  const [painPoints, setPainPoints] = useState("");
-  const [topics, setTopics] = useState("");
+  const [industryKeywords, setIndustryKeywords] = useState<string[]>([]);
+  const [painPoints, setPainPoints] = useState<string[]>([]);
+  const [topics, setTopics] = useState<string[]>([]);
   const [platformPriority, setPlatformPriority] = useState<string[]>(["XIAOHONGSHU_POST", "DOUYIN_VIDEO"]);
-  const [forbiddenTerms, setForbiddenTerms] = useState("");
+  const [forbiddenTerms, setForbiddenTerms] = useState<string[]>([]);
   const [competitorName, setCompetitorName] = useState("");
   const [competitorTier, setCompetitorTier] = useState<(typeof competitorTiers)[number]>("DIRECT");
   const [competitorPlatforms, setCompetitorPlatforms] = useState<string[]>(["DOUYIN_VIDEO"]);
-  const [competitorAngles, setCompetitorAngles] = useState("");
+  const [competitorAngles, setCompetitorAngles] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<"template" | "competitor" | "attach" | null>(null);
@@ -77,24 +78,24 @@ export function IndustryTemplateWorkbench({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           industry_name: industryName,
-          industry_keywords: industryKeywords.split("\n").map((item) => item.trim()).filter(Boolean),
+          industry_keywords: industryKeywords,
           competitor_keywords: [],
-          forbidden_terms: forbiddenTerms.split("\n").map((item) => item.trim()).filter(Boolean),
+          forbidden_terms: forbiddenTerms,
           platform_content_priorities: platformPriority,
-          common_pain_points: painPoints.split("\n").map((item) => item.trim()).filter(Boolean),
+          common_pain_points: painPoints,
           common_questions: [],
           recommended_content_pillars: [],
-          recommended_topic_directions: topics.split("\n").map((item) => item.trim()).filter(Boolean),
+          recommended_topic_directions: topics,
         }),
       });
       const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
       if (!payload.success) throw new Error(payload.error?.detail || payload.error?.message || "创建行业模板失败。");
       setMessage("行业模板已创建。");
       setIndustryName("");
-      setIndustryKeywords("");
-      setPainPoints("");
-      setTopics("");
-      setForbiddenTerms("");
+      setIndustryKeywords([]);
+      setPainPoints([]);
+      setTopics([]);
+      setForbiddenTerms([]);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建行业模板失败。");
@@ -117,14 +118,14 @@ export function IndustryTemplateWorkbench({
           competitor_tier: competitorTier,
           keywords: [],
           primary_platforms: competitorPlatforms,
-          messaging_angles: competitorAngles.split("\n").map((item) => item.trim()).filter(Boolean),
+          messaging_angles: competitorAngles,
         }),
       });
       const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
       if (!payload.success) throw new Error(payload.error?.detail || payload.error?.message || "创建竞品失败。");
       setMessage("竞品档案已创建。");
       setCompetitorName("");
-      setCompetitorAngles("");
+      setCompetitorAngles([]);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建竞品失败。");
@@ -186,9 +187,9 @@ export function IndustryTemplateWorkbench({
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">先填最关键的行业信息</div>
               <div className="mt-4 grid gap-4">
                 <input value={industryName} onChange={(event) => setIndustryName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="行业名称，例如口腔连锁 / 新消费护肤 / 本地餐饮" />
-                <textarea value={industryKeywords} onChange={(event) => setIndustryKeywords(event.target.value)} rows={4} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="行业关键词，每行一条" />
-                <textarea value={painPoints} onChange={(event) => setPainPoints(event.target.value)} rows={4} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="用户常见痛点，每行一条" />
-                <textarea value={topics} onChange={(event) => setTopics(event.target.value)} rows={4} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="推荐选题方向，每行一条" />
+                <TagInput value={industryKeywords} onChange={setIndustryKeywords} placeholder="输入行业关键词后按回车" />
+                <TagInput value={painPoints} onChange={setPainPoints} placeholder="输入用户常见痛点后按回车" />
+                <TagInput value={topics} onChange={setTopics} placeholder="输入推荐选题方向后按回车" />
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-[var(--text-3)]">优先平台（可多选）</div>
                   <div className="flex flex-wrap gap-2">
@@ -199,7 +200,7 @@ export function IndustryTemplateWorkbench({
                     ))}
                   </div>
                 </div>
-                <textarea value={forbiddenTerms} onChange={(event) => setForbiddenTerms(event.target.value)} rows={3} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="风险词（可选），每行一条" />
+                <TagInput value={forbiddenTerms} onChange={setForbiddenTerms} placeholder="输入风险词（可选）后按回车" />
                 <div className="flex items-center gap-3">
                   <Button onClick={() => void createTemplate()} disabled={pending !== null}>{pending === "template" ? "创建中..." : "创建行业模板"}</Button>
                   {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
@@ -228,7 +229,7 @@ export function IndustryTemplateWorkbench({
                           </option>
                         ))}
                       </select>
-                      <textarea value={competitorAngles} onChange={(event) => setCompetitorAngles(event.target.value)} rows={2} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="竞品常用内容角度，每行一条" />
+                      <TagInput value={competitorAngles} onChange={setCompetitorAngles} placeholder="输入竞品常用内容角度后按回车" />
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {surfaces.map((surface) => (

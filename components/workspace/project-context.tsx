@@ -61,6 +61,10 @@ export function ProjectContext({
   const [styleTemplate, setStyleTemplate] = useState<StyleTemplate>((project?.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO");
   const [copyLength, setCopyLength] = useState<CopyLength>((project?.copyLength as CopyLength | null) ?? "STANDARD");
   const [usageScenario, setUsageScenario] = useState<UsageScenario>((project?.usageScenario as UsageScenario | null) ?? "XIAOHONGSHU_POST");
+  const [brandProfileId, setBrandProfileId] = useState("");
+  const [industryTemplateId, setIndustryTemplateId] = useState("");
+  const [availableBrandProfiles, setAvailableBrandProfiles] = useState<Array<{ id: string; brand_name: string }>>([]);
+  const [availableIndustryTemplates, setAvailableIndustryTemplates] = useState<Array<{ id: string; industry_name: string }>>([]);
 
   useEffect(() => {
     if (!project?.id) return;
@@ -75,6 +79,35 @@ export function ProjectContext({
       }),
     });
   }, [project?.id]);
+
+  useEffect(() => {
+    if (isEditing && project?.id) {
+      void fetch(`/api/projects/${project.id}`)
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && payload.data) {
+            setBrandProfileId(payload.data.brand_profile_id || "");
+            setIndustryTemplateId(payload.data.industry_template_id || "");
+          }
+        });
+
+      void fetch("/api/brand-profiles")
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && Array.isArray(payload.data)) {
+            setAvailableBrandProfiles(payload.data);
+          }
+        });
+
+      void fetch("/api/industry-templates")
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && Array.isArray(payload.data)) {
+            setAvailableIndustryTemplates(payload.data);
+          }
+        });
+    }
+  }, [isEditing, project?.id]);
 
   useEffect(() => {
     if (!project) {
@@ -115,8 +148,9 @@ export function ProjectContext({
           style_reference_sample: styleReferenceSample.trim(),
           writing_mode: writingMode,
           style_template: styleTemplate,
-          copy_length: copyLength,
           usage_scenario: usageScenario,
+          brand_profile_id: brandProfileId || null,
+          industry_template_id: industryTemplateId || null,
         }),
       });
       const payload = (await response.json()) as {
@@ -260,6 +294,28 @@ export function ProjectContext({
                 <div className="text-xs leading-6 text-[var(--text-3)]">可粘贴多段你喜欢的文案。系统会学习语气、节奏和结构，不会直接照抄内容。</div>
               </label>
               <label className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">品牌档案</div>
+                <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                  <option value="">（未绑定 / 清除绑定）</option>
+                  {availableBrandProfiles.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.brand_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">行业模板</div>
+                <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                  <option value="">（未绑定 / 清除绑定）</option>
+                  {availableIndustryTemplates.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.industry_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-2 xl:col-span-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">写作模式</div>
                 <select value={writingMode} onChange={(event) => setWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
                   {writingModeList.map((item) => (
@@ -401,6 +457,28 @@ export function ProjectContext({
                           className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7"
                         />
                         <div className="text-xs leading-6 text-[var(--text-3)]">可粘贴多段你喜欢的文案。系统会学习语气、节奏和结构，不会直接照抄内容。</div>
+                      </label>
+                      <label className="space-y-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">品牌档案</div>
+                        <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                          <option value="">（未绑定 / 清除绑定）</option>
+                          {availableBrandProfiles.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.brand_name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="space-y-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">行业模板</div>
+                        <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                          <option value="">（未绑定 / 清除绑定）</option>
+                          {availableIndustryTemplates.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.industry_name}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                       <label className="space-y-2">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">写作模式</div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
+import { TagInput } from "@/components/ui/tag-input";
 import { getPlatformSurfaceMeta, type PlatformSurface } from "@/lib/platform-surface";
 
 type BrandProfileRow = {
@@ -76,12 +77,12 @@ export function BrandProfileWorkbench({
   const [voice, setVoice] = useState("");
   const [stage, setStage] = useState<(typeof stages)[number]["value"]>("COLD_START");
   const [platformPriority, setPlatformPriority] = useState<string[]>(["XIAOHONGSHU_POST", "DOUYIN_VIDEO"]);
-  const [forbidden, setForbidden] = useState("");
+  const [forbidden, setForbidden] = useState<string[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState(profiles[0]?.id ?? "");
   const [pillarName, setPillarName] = useState("");
   const [pillarType, setPillarType] = useState<(typeof pillarTypes)[number]>("EDUCATION");
   const [pillarSummary, setPillarSummary] = useState("");
-  const [pillarTopics, setPillarTopics] = useState("");
+  const [pillarTopics, setPillarTopics] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<"brand" | "pillar" | "attach" | null>(null);
@@ -108,7 +109,7 @@ export function BrandProfileWorkbench({
           product_lines: [],
           target_personas: [],
           platform_priority: platformPriority,
-          forbidden_phrases: forbidden.split("\n").map((item) => item.trim()).filter(Boolean),
+          forbidden_phrases: forbidden,
         }),
       });
       const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
@@ -117,7 +118,7 @@ export function BrandProfileWorkbench({
       setBrandName("");
       setPositioning("");
       setVoice("");
-      setForbidden("");
+      setForbidden([]);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建品牌档案失败。");
@@ -139,7 +140,7 @@ export function BrandProfileWorkbench({
           pillar_name: pillarName,
           pillar_type: pillarType,
           pillar_summary: pillarSummary || undefined,
-          topic_directions: pillarTopics.split("\n").map((item) => item.trim()).filter(Boolean),
+          topic_directions: pillarTopics,
           platform_fit: activeProfile.platform_priority,
           priority_score: 70,
           active: true,
@@ -150,7 +151,7 @@ export function BrandProfileWorkbench({
       setMessage("内容支柱已创建。");
       setPillarName("");
       setPillarSummary("");
-      setPillarTopics("");
+      setPillarTopics([]);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建内容支柱失败。");
@@ -233,7 +234,7 @@ export function BrandProfileWorkbench({
                     ))}
                   </div>
                 </div>
-                <textarea value={forbidden} onChange={(event) => setForbidden(event.target.value)} rows={3} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="禁止表达（可选），每行一条" />
+                <TagInput value={forbidden} onChange={setForbidden} placeholder="输入禁止表达（可选）后按回车" />
                 <div className="flex items-center gap-3">
                   <Button onClick={() => void createProfile()} disabled={pending !== null}>{pending === "brand" ? "创建中..." : "创建品牌档案"}</Button>
                   {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
@@ -273,7 +274,7 @@ export function BrandProfileWorkbench({
                       </select>
                       <input value={pillarSummary} onChange={(event) => setPillarSummary(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="这类内容主要承担什么营销作用" />
                     </div>
-                    <textarea value={pillarTopics} onChange={(event) => setPillarTopics(event.target.value)} rows={3} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="推荐选题方向，每行一条" />
+                    <TagInput value={pillarTopics} onChange={setPillarTopics} placeholder="输入推荐选题方向后按回车" />
                     <div className="flex items-center gap-3">
                       <Button variant="secondary" onClick={() => void createPillar()} disabled={pending !== null}>
                         {pending === "pillar" ? "保存中..." : "新增内容方向"}

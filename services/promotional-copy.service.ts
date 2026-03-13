@@ -601,54 +601,8 @@ export class PromotionalCopyService {
 
     const validated = promotionalCopyOutputSchema.parse(output);
 
-    // Auto quality diagnosis — lightweight scoring after generation
-    let qualityDiagnosis = validated.quality_diagnosis ?? undefined;
-    if (!qualityDiagnosis && canUseModelRoute("MARKETING_ANALYSIS", settings)) {
-      try {
-        const diagnosisResult = await generateStructuredJson({
-          routeKey: "MARKETING_ANALYSIS",
-          schemaName: "promotional_copy_diagnosis",
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
-            properties: {
-              overall_score: { type: "number" },
-              strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-              issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
-              rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-              summary: { type: "string" },
-            },
-          } as const,
-          zodSchema: promotionalCopyDiagnosisSchema,
-          temperature: 0.15,
-          systemPrompt: [
-            "你是文案质量审核员，只做诊断评分，不重写。",
-            "评估标准：可发布感、传播攻击力、结构完整度、证明点具体度、CTA 清晰度。",
-            "输出必须是合法 JSON。",
-          ].join(" "),
-          userPrompt: [
-            "请对以下宣传主稿做质量诊断，给出评分和问题列表。",
-            "",
-            `主宣传角度：${validated.master_angle}`,
-            `开场摘要：${validated.hero_copy}`,
-            `完整主稿：\n${validated.long_form_copy}`,
-            `证明点：\n${validated.proof_points.map((p) => `- ${p}`).join("\n")}`,
-            `CTA：${validated.call_to_action}`,
-            "",
-            `项目主题：${project.topic_query}`,
-          ].join("\n"),
-        });
-        qualityDiagnosis = diagnosisResult;
-      } catch {
-        // Diagnosis failure should not block the main flow
-      }
-    }
-
-    const finalOutput = { ...validated, quality_diagnosis: qualityDiagnosis };
-
+    // Save the task immediately — no quality diagnosis blocking the response
     const versionNumber = await this.getNextVersionNumber(projectId);
-
     const strategyTask = await prisma.strategyTask.create({
       data: {
         project_id: projectId,
@@ -663,16 +617,73 @@ export class PromotionalCopyService {
           version_number: versionNumber,
           generated_at: new Date().toISOString(),
           generation_source: settings.llmMockMode ? "mock" : `${route.provider}/${route.model}`,
-          ...finalOutput,
+          ...validated,
         }),
       },
     });
+
+    // Fire-and-forget: run diagnosis asynchronously and patch the saved task when done
+    if (!validated.quality_diagnosis && canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      const taskId = strategyTask.id;
+      void (async () => {
+        try {
+          const diagnosisResult = await generateStructuredJson({
+            routeKey: "MARKETING_ANALYSIS",
+            schemaName: "promotional_copy_diagnosis",
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
+              properties: {
+                overall_score: { type: "number" },
+                strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+                issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
+                rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+                summary: { type: "string" },
+              },
+            } as const,
+            zodSchema: promotionalCopyDiagnosisSchema,
+            temperature: 0.15,
+            systemPrompt: [
+              "你是文案质量审核员，只做诊断评分，不重写。",
+              "评估标准：可发布感、传播攻击力、结构完整度、证明点具体度、CTA 清晰度。",
+              "输出必须是合法 JSON。",
+            ].join(" "),
+            userPrompt: [
+              "请对以下宣传主稿做质量诊断，给出评分和问题列表。",
+              "",
+              `主宣传角度：${validated.master_angle}`,
+              `开场摘要：${validated.hero_copy}`,
+              `完整主稿：\n${validated.long_form_copy}`,
+              `证明点：\n${validated.proof_points.map((p) => `- ${p}`).join("\n")}`,
+              `CTA：${validated.call_to_action}`,
+              "",
+              `项目主题：${project.topic_query}`,
+            ].join("\n"),
+          });
+
+          // Merge diagnosis into the saved task_json
+          const current = await prisma.strategyTask.findUnique({ where: { id: taskId }, select: { task_json: true } });
+          if (current) {
+            const existingJson = (current.task_json as Record<string, unknown>) ?? {};
+            await prisma.strategyTask.update({
+              where: { id: taskId },
+              data: {
+                task_json: toJson({ ...existingJson, quality_diagnosis: diagnosisResult }),
+              },
+            });
+          }
+        } catch {
+          // Diagnosis failure is non-fatal; main copy is already saved
+        }
+      })();
+    }
 
     return {
       strategy_task_id: strategyTask.id,
       platform_adaptation_count: 0,
       platform_adaptation_ids: [],
-      output: finalOutput,
+      output: validated,
     };
   }
 

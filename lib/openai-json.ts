@@ -57,29 +57,37 @@ async function requestOpenAI<T>({
   preprocess,
   temperature = 0.2,
 }: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string }) {
-  const response = await fetch(baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      temperature,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: schemaName,
-          strict: true,
-          schema,
-        },
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 50_000);
+  let response: Response;
+  try {
+    response = await fetch(baseUrl, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    }),
-  });
+      body: JSON.stringify({
+        model,
+        temperature,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: schemaName,
+            strict: true,
+            schema,
+          },
+        },
+      }),
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -113,38 +121,46 @@ async function requestGemini<T>({
   preprocess,
   temperature = 0.2,
 }: StructuredJsonParams<T> & { apiKey: string; model: string }) {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
+  const controller2 = new AbortController();
+  const timeoutId2 = setTimeout(() => controller2.abort(), 50_000);
+  let response: Response;
+  try {
+    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      signal: controller2.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
       },
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: [
-                userPrompt,
-                "",
-                `Return valid JSON only for schema "${schemaName}".`,
-                "Do not include markdown fences or commentary.",
-                `JSON schema reference:\n${JSON.stringify(schema)}`,
-              ].join("\n"),
-            },
-          ],
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
         },
-      ],
-      generationConfig: {
-        temperature,
-        responseMimeType: "application/json",
-      },
-    }),
-  });
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: [
+                  userPrompt,
+                  "",
+                  `Return valid JSON only for schema "${schemaName}".`,
+                  "Do not include markdown fences or commentary.",
+                  `JSON schema reference:\n${JSON.stringify(schema)}`,
+                ].join("\n"),
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature,
+          responseMimeType: "application/json",
+        },
+      }),
+    });
+  } finally {
+    clearTimeout(timeoutId2);
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
