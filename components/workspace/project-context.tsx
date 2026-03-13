@@ -210,7 +210,7 @@ export function ProjectContext({
         <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">系统学到的风格特征</div>
           <div className="mt-2 grid gap-2 md:grid-cols-2">
-            {project.styleReferenceInsight.summaryLines.slice(0, showExpandedDetails ? undefined : 4).map((line) => (
+            {(project.styleReferenceInsight.summaryLines ?? []).slice(0, showExpandedDetails ? undefined : 4).map((line) => (
               <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                 {line}
               </div>
@@ -607,7 +607,7 @@ export function ProjectContext({
                       <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-3">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">系统学到的风格特征</div>
                         <div className="mt-2 grid gap-2 md:grid-cols-2">
-                          {project.styleReferenceInsight.summaryLines.map((line) => (
+                          {(project.styleReferenceInsight.summaryLines ?? []).map((line) => (
                             <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                               {line}
                             </div>
@@ -654,7 +654,7 @@ export function ProjectContext({
                           <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
                             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">系统学到的风格特征</div>
                             <div className="mt-2 grid gap-2 md:grid-cols-2">
-                              {project.styleReferenceInsight.summaryLines.slice(0, 4).map((line) => (
+                              {(project.styleReferenceInsight.summaryLines ?? []).slice(0, 4).map((line) => (
                                 <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                                   {line}
                                 </div>
