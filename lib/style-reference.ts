@@ -16,6 +16,26 @@ export type StyleReferenceInsight = {
   summaryLines: string[];
 };
 
+/** Normalize a StyleReferenceInsight so every array field is guaranteed to be a proper array.
+ *  Call this once at the data boundary (workspace-query) instead of scattering ?? [] across UI. */
+export function normalizeStyleReferenceInsight(
+  input: StyleReferenceInsight | null | undefined,
+): StyleReferenceInsight | null {
+  if (!input) return null;
+  return {
+    paragraphCount: input.paragraphCount ?? 0,
+    sentenceCount: input.sentenceCount ?? 0,
+    averageSentenceLength: input.averageSentenceLength ?? 0,
+    rhythmLabel: input.rhythmLabel ?? "",
+    toneLabels: Array.isArray(input.toneLabels) ? input.toneLabels : [],
+    structureLabels: Array.isArray(input.structureLabels) ? input.structureLabels : [],
+    titleStyleLines: Array.isArray(input.titleStyleLines) ? input.titleStyleLines : [],
+    openingStyleLines: Array.isArray(input.openingStyleLines) ? input.openingStyleLines : [],
+    bodyRhythmLines: Array.isArray(input.bodyRhythmLines) ? input.bodyRhythmLines : [],
+    summaryLines: Array.isArray(input.summaryLines) ? input.summaryLines : [],
+  };
+}
+
 function splitParagraphs(text: string) {
   return text
     .split(/\n\s*\n/g)

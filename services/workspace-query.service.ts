@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getCopyLengthMeta, getUsageScenarioMeta } from "@/lib/copy-goal";
-import { analyzeStyleReferenceSample } from "@/lib/style-reference";
+import { analyzeStyleReferenceSample, normalizeStyleReferenceInsight } from "@/lib/style-reference";
 import { getStyleTemplateMeta } from "@/lib/style-template";
 import { getWritingModeMeta } from "@/lib/writing-mode";
 import { getWorkspaceMode } from "@/lib/workspace-mode";
@@ -414,7 +414,7 @@ export class WorkspaceQueryService {
     ];
 
     const styleReferenceSample = (((project.metadata as Record<string, unknown> | null)?.style_reference_sample as string | undefined) ?? "").trim();
-    const styleReferenceInsight = analyzeStyleReferenceSample(styleReferenceSample);
+    const styleReferenceInsight = normalizeStyleReferenceInsight(analyzeStyleReferenceSample(styleReferenceSample));
 
     return toClientSafe({
       project,
