@@ -867,75 +867,13 @@ export class PromotionalCopyService {
 
     let output: PromotionalCopyOutput;
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
-
-      // ── Step 1: Diagnose (fast, lightweight) ──
-      let diagnosis: { overall_score: number; strengths: string[]; issues: string[]; rewrite_focus: string[]; summary: string } | null = null;
-      if (canUseModelRoute("MARKETING_ANALYSIS", settings)) {
-        try {
-          diagnosis = await generateStructuredJson({
-            routeKey: "MARKETING_ANALYSIS",
-            schemaName: "promotional_copy_diagnosis",
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
-              properties: {
-                overall_score: { type: "number" },
-                strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-                issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
-                rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-                summary: { type: "string" },
-              },
-            } as const,
-            zodSchema: promotionalCopyDiagnosisSchema,
-            temperature: 0.15,
-            timeoutMs: 60_000,
-            systemPrompt: [
-              "你是文案质量审核员，只做诊断评分，不重写。",
-              "评估标准：可发布感、品牌锚点清晰度、传播攻击力、结构完整度、证明点具体度、CTA 连贯度。",
-              "issues 必须具体指出段落位置和问题类型（如'开头缺品牌名''第3段证明点无数据支撑''CTA 未承接正文关键词'）。",
-              "rewrite_focus 必须是可执行的改写动作（如'开头换成场景+品牌名切入''第2条证明点补充第三方检测数据'）。",
-              "输出必须是合法 JSON。",
-            ].join(" "),
-            userPrompt: [
-              "请对以下宣传主稿做质量诊断。",
-              "",
-              `主宣传角度：${currentDraft.master_angle}`,
-              `开场摘要：${currentDraft.hero_copy}`,
-              `完整主稿：\n${currentDraft.long_form_copy}`,
-              `证明点：\n${currentDraft.proof_points.map((p) => `- ${p}`).join("\n")}`,
-              `CTA：${currentDraft.call_to_action}`,
-              "",
-              `项目主题：${project.topic_query}`,
-              creativeBrief ? `\n补充上下文：\n${creativeBrief}` : "",
-            ].join("\n"),
-          });
-        } catch {
-          // If diagnosis fails, proceed with generic rewrite instructions
-        }
-      }
-
-      // ── Step 2: Rewrite using diagnosis as explicit instructions ──
-      const diagnosisDirective = diagnosis
-        ? [
-            "【诊断结果 — 你必须逐条修复以下问题】",
-            `当前评分：${diagnosis.overall_score}/100`,
-            "诊断发现的问题：",
-            ...diagnosis.issues.map((issue, i) => `${i + 1}. ${issue}`),
-            "",
-            "改写重点动作：",
-            ...diagnosis.rewrite_focus.map((focus, i) => `${i + 1}. ${focus}`),
-            "",
-            "保留的优点（不要破坏）：",
-            ...diagnosis.strengths.map((s) => `- ${s}`),
-          ].join("\n")
-        : [
-            "【通用增强指令】",
-            "1. 开头换一种完全不同的切入方式。",
-            "2. 品牌/产品身份在前2段内必须出现。",
-            "3. 每个证明点补充可验证的具体细节。",
-            "4. CTA 必须承接正文核心论点。",
-          ].join("\n");
+      // Truncate long inputs to reduce token count and speed up LLM response
+      const truncatedBrief = creativeBrief.length > 800
+        ? creativeBrief.slice(0, 700) + "\n…（上下文已截断）"
+        : creativeBrief;
+      const truncatedLongForm = currentDraft.long_form_copy.length > 1500
+        ? currentDraft.long_form_copy.slice(0, 1200) + "\n…（中间省略）…\n" + currentDraft.long_form_copy.slice(-250)
+        : currentDraft.long_form_copy;
 
       const generated = await generateStructuredJson<Record<string, unknown>>({
         routeKey: "PROMOTIONAL_COPY",
@@ -943,53 +881,38 @@ export class PromotionalCopyService {
         schema: promotionalCopyEnhancementSchema,
         preprocess: (value) => normalizePromotionalCopyOutput(value, surfaces),
         systemPrompt: [
-          "你是一名资深品牌文案总监。你的任务是根据诊断结果，对原稿进行结构性改写。",
-          "你不是润色，你是重写。你必须改变段落结构、开头方式和论证逻辑。",
-          "如果诊断说缺品牌锚点，你的改写必须在开头加入品牌名和核心价值。",
-          "如果诊断说证明点空洞，你必须补充具体数据、地名、时间或第三方背书。",
-          "如果诊断说CTA脱节，你必须用正文出现过的关键词重写CTA。",
-          "输出必须是合法 JSON。",
+          "你是品牌文案总监，任务是诊断原稿结构性问题并做结构性改写（不是润色）。",
+          "诊断要具体到段落位置。改写必须逐条解决诊断问题。",
+          "输出合法 JSON。",
         ].join(" "),
         userPrompt: [
-          "任务：根据下方诊断结果，输出一版结构性改写后的完整主稿。",
+          "先诊断原稿问题，再输出结构性改写后的完整主稿。",
           "",
-          diagnosisDirective,
-          "",
-          "改写规则：",
+          "【改写规则】",
           buildEnhancementRules(),
           "",
           context?.styleReferenceInsight
             ? [
-                "继续沿用参考样稿的三段学习：",
-                `- 标题风格：${context.styleReferenceInsight.titleStyleLines.join(" ")}`,
-                `- 开头风格：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
-                `- 正文节奏：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
+                "风格参照：",
+                `标题：${context.styleReferenceInsight.titleStyleLines.join(" ")}`,
+                `开头：${context.styleReferenceInsight.openingStyleLines.join(" ")}`,
+                `节奏：${context.styleReferenceInsight.bodyRhythmLines.join(" ")}`,
               ].join("\n")
             : "",
           "",
-          "当前项目上下文：",
-          creativeBrief,
+          "项目上下文：",
+          truncatedBrief,
           "",
-          "=== 以下是需要改写的原稿 ===",
-          `主宣传角度：${currentDraft.master_angle}`,
-          `标题备选：\n${currentDraft.headline_options.map((item) => `- ${item}`).join("\n")}`,
-          `开场摘要：${currentDraft.hero_copy}`,
-          `完整主稿：\n${currentDraft.long_form_copy}`,
-          `证明点：\n${currentDraft.proof_points.map((item) => `- ${item}`).join("\n")}`,
+          "=== 原稿 ===",
+          `角度：${currentDraft.master_angle}`,
+          `标题：${currentDraft.headline_options.join(" / ")}`,
+          `开场：${currentDraft.hero_copy}`,
+          `正文：\n${truncatedLongForm}`,
+          `证明点：${currentDraft.proof_points.join(" / ")}`,
           `CTA：${currentDraft.call_to_action}`,
           "=== 原稿结束 ===",
           "",
-          "输出要求：",
-          diagnosis
-            ? `- quality_diagnosis：复用上方诊断（overall_score=${diagnosis.overall_score}），更新 summary 说明增强后的改进。`
-            : "- quality_diagnosis：包含 overall_score(0-100)、strengths、issues、rewrite_focus、summary。",
-          "- master_angle: 优化后的主宣传角度。",
-          "- headline_options: 至少3条全新标题，其中至少1条包含数据或对比钩子。",
-          "- hero_copy: 完全重新组织的开场（必须和原稿不同，必须在前2句出现品牌/产品身份）。",
-          "- long_form_copy: 结构性改写后的完整主稿（必须解决诊断中的每个issue，字数不少于原稿）。",
-          "- proof_points: 至少3条带具体细节的证明点（数据、地名、时间、材料等）。",
-          "- call_to_action: 承接正文关键词的具体CTA。",
-          "- 不要输出 platform_adaptations。",
+          "输出：quality_diagnosis(score/strengths/issues/rewrite_focus/summary)、master_angle、headline_options(≥3,含数据钩子)、hero_copy(前2句含品牌身份)、long_form_copy(逐条解决issues,≥原稿字数)、proof_points(≥3,带数据)、call_to_action(承接正文)。不要platform_adaptations。",
         ].filter(Boolean).join("\n"),
       });
 

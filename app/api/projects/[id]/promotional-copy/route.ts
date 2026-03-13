@@ -3,6 +3,9 @@ import { PromotionalCopyService } from "@/services/promotional-copy.service";
 
 const promotionalCopyService = new PromotionalCopyService();
 
+// Extend the serverless function timeout for LLM-heavy operations
+export const maxDuration = 120;
+
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
