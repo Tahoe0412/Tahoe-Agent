@@ -1,7 +1,5 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
-import { getBlobReadWriteToken, getMaxUploadMb, getUploadStorageMode } from "@/lib/env";
 import { AssetService } from "@/services/asset.service";
 
 const service = new AssetService();
@@ -9,38 +7,6 @@ const service = new AssetService();
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const contentType = request.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-      if (getUploadStorageMode() !== "vercel_blob") {
-        return fail("当前未启用 Blob 直传模式。", 400);
-      }
-
-      const body = (await request.json()) as HandleUploadBody;
-      const jsonResponse = await handleUpload({
-        token: getBlobReadWriteToken() || undefined,
-        request,
-        body,
-        onBeforeGenerateToken: async (_pathname, clientPayload) => {
-          const payload = clientPayload ? (JSON.parse(clientPayload) as Record<string, unknown>) : {};
-          if (payload.project_id !== id) {
-            throw new Error("项目上下文不匹配，无法生成上传 token。");
-          }
-
-          return {
-            maximumSizeInBytes: getMaxUploadMb() * 1024 * 1024,
-            allowedContentTypes: ["image/*", "audio/*", "video/*", "text/plain", "application/pdf"],
-            addRandomSuffix: false,
-            allowOverwrite: false,
-            tokenPayload: clientPayload,
-            validUntil: Date.now() + 60 * 60 * 1000,
-          };
-        },
-      });
-
-      return Response.json(jsonResponse);
-    }
-
     const formData = await request.formData();
 
     const file = formData.get("file");

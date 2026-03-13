@@ -48,7 +48,7 @@ export class AssetService {
       continuityGroup: params.continuityGroup,
       fileName: params.file.name,
       bytes,
-      file: params.file,
+      mimeType: params.file.type || undefined,
     });
 
     return prisma.uploadedAsset.create({

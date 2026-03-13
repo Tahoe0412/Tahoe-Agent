@@ -1,6 +1,5 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -108,13 +107,13 @@ async function parseResponse(response: Response) {
 export function ScenePlannerWorkbench({
   projectId,
   rows,
-  hasEphemeralUploads = false,
+  showLocalStorageNotice = false,
   uploadStorageMode = "local",
 }: {
   projectId: string;
   rows: ScenePlannerRow[];
-  hasEphemeralUploads?: boolean;
-  uploadStorageMode?: "local" | "vercel_blob";
+  showLocalStorageNotice?: boolean;
+  uploadStorageMode?: "local" | "tencent_cos";
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
@@ -197,54 +196,18 @@ export function ScenePlannerWorkbench({
     setError(null);
 
     try {
-      if (uploadStorageMode === "vercel_blob") {
-        const uploaded = await upload(selectedFile.name, selectedFile, {
-          access: "public",
-          handleUploadUrl: `/api/projects/${projectId}/assets/upload`,
-          multipart: selectedFile.size > 5 * 1024 * 1024,
-          clientPayload: JSON.stringify({
-            project_id: projectId,
-            script_scene_id: selectedScene.id,
-            asset_type: assetType,
-            continuity_group: selectedScene.continuityGroup,
-          }),
-        });
+      const formData = new FormData();
+      formData.set("file", selectedFile);
+      formData.set("asset_type", assetType);
+      formData.set("script_scene_id", selectedScene.id);
+      formData.set("continuity_group", selectedScene.continuityGroup);
 
-        await parseResponse(
-          await fetch(`/api/projects/${projectId}/assets/uploaded-metadata`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              script_scene_id: selectedScene.id,
-              asset_type: assetType,
-              continuity_group: selectedScene.continuityGroup,
-              file_name: selectedFile.name,
-              file_url: uploaded.url,
-              mime_type: selectedFile.type || undefined,
-              metadata_json: {
-                size_bytes: selectedFile.size,
-                storage_mode: "vercel_blob",
-                stored_path: uploaded.pathname,
-              },
-            }),
-          }),
-        );
-      } else {
-        const formData = new FormData();
-        formData.set("file", selectedFile);
-        formData.set("asset_type", assetType);
-        formData.set("script_scene_id", selectedScene.id);
-        formData.set("continuity_group", selectedScene.continuityGroup);
-
-        await parseResponse(
-          await fetch(`/api/projects/${projectId}/assets/upload`, {
-            method: "POST",
-            body: formData,
-          }),
-        );
-      }
+      await parseResponse(
+        await fetch(`/api/projects/${projectId}/assets/upload`, {
+          method: "POST",
+          body: formData,
+        }),
+      );
 
       await parseResponse(
         await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
@@ -381,7 +344,7 @@ export function ScenePlannerWorkbench({
 
           <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
             <div className="text-sm font-medium text-[var(--text-inverse)]">上传真实素材</div>
-            {hasEphemeralUploads ? (
+            {showLocalStorageNotice ? (
               <div className="rounded-2xl border border-[rgba(255,196,128,0.28)] bg-[rgba(255,196,128,0.12)] px-4 py-3 text-xs leading-6 text-[color:rgba(255,236,214,0.92)]">
                 当前环境仍使用本地 `public/uploads` 作为素材存储。它适合当前自托管开发与轻量生产，但如果后续要扩大共享或做长期可靠存储，建议切到 S3、R2 或对象存储服务。
               </div>
@@ -411,7 +374,7 @@ export function ScenePlannerWorkbench({
             </label>
             <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
               文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前镜头的素材分析。
-              {uploadStorageMode === "vercel_blob" ? " 当前已启用直传 Blob，可用于更大的测试文件。" : " 当前使用服务端上传时，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
+              {uploadStorageMode === "tencent_cos" ? " 当前已启用腾讯云对象存储，可用于后续跨实例共享与更稳定的素材沉淀。" : " 当前使用服务端上传和本地存储，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
             <Button onClick={() => void saveAssetMetadata()} disabled={pending !== null || !selectedFile}>
               {pending === "upload" ? "上传中..." : "上传并更新素材状态"}

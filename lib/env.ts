@@ -26,33 +26,39 @@ export function getConnectorTimeoutMs() {
   return Number.isFinite(value) && value > 0 ? value : 8000;
 }
 
-export function getUploadStorageMode(): "local" | "vercel_blob" {
+export type UploadStorageMode = "local" | "tencent_cos";
+
+export function getUploadStorageMode(): UploadStorageMode {
   const value = process.env.UPLOAD_STORAGE_MODE?.trim().toLowerCase();
-  return value === "vercel_blob" ? "vercel_blob" : "local";
+  return value === "tencent_cos" ? "tencent_cos" : "local";
 }
 
-export function getDeploymentTarget() {
-  const value = process.env.VERCEL?.toLowerCase();
-  return value === "1" || value === "true" ? "vercel" : "local";
+export function usesLocalUploadStorage() {
+  return getUploadStorageMode() === "local";
 }
 
-export function hasEphemeralLocalUploads() {
-  return getDeploymentTarget() === "vercel" && getUploadStorageMode() === "local";
-}
+export function getTencentCosConfig() {
+  const secretId = process.env.TENCENT_COS_SECRET_ID?.trim();
+  const secretKey = process.env.TENCENT_COS_SECRET_KEY?.trim();
+  const bucket = process.env.TENCENT_COS_BUCKET?.trim();
+  const region = process.env.TENCENT_COS_REGION?.trim();
+  const baseUrl = process.env.TENCENT_COS_BASE_URL?.trim();
 
-export function getBlobReadWriteToken() {
-  const value = process.env.BLOB_READ_WRITE_TOKEN?.trim();
-  return value && value.length > 0 ? value : null;
+  if (!secretId || !secretKey || !bucket || !region) {
+    return null;
+  }
+
+  return {
+    secretId,
+    secretKey,
+    bucket,
+    region,
+    baseUrl: baseUrl && baseUrl.length > 0 ? baseUrl.replace(/\/+$/, "") : null,
+  };
 }
 
 export function getEffectiveServerUploadMbLimit() {
-  const configuredLimit = getMaxUploadMb();
-
-  if (getDeploymentTarget() === "vercel") {
-    return Math.min(configuredLimit, 4.5);
-  }
-
-  return configuredLimit;
+  return getMaxUploadMb();
 }
 
 export function getUploadBasePath() {

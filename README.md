@@ -200,15 +200,22 @@ MAX_UPLOAD_MB="20"
 ```
 
 - 当前生产环境使用腾讯云服务器，本地存储适合开发和轻量演示。如果后续要做多机共享、跨实例持久化或更大文件上传，建议切到对象存储：
+- 如果后续要切到腾讯云对象存储，可改成：
 
 ```bash
-UPLOAD_STORAGE_MODE="local"
+UPLOAD_STORAGE_MODE="tencent_cos"
+TENCENT_COS_SECRET_ID="your_secret_id"
+TENCENT_COS_SECRET_KEY="your_secret_key"
+TENCENT_COS_BUCKET="your_bucket"
+TENCENT_COS_REGION="ap-guangzhou"
+TENCENT_COS_BASE_URL="https://your-cdn-or-cos-domain"
 ```
 
 说明：
 - `local` 适合本地开发和演示
+- `tencent_cos` 适合腾讯云自托管后的长期素材沉淀与跨实例共享
 - 生产环境当前仍可继续使用 `local`，因为应用运行在自有腾讯云服务器
-- 如果后续要做长期资产沉淀，建议补 S3、COS、R2 等对象存储方案
+- `TENCENT_COS_BASE_URL` 可选；如果你绑定了 CDN 或自定义域名，建议在这里填写
 
 ### 接入真实大模型
 

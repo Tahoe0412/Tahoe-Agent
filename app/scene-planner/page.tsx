@@ -6,7 +6,7 @@ import { NextStepLink } from "@/components/workspace/next-step-link";
 import { ScenePlannerWorkbench } from "@/components/workspace/scene-planner-workbench";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import type { PageState } from "@/lib/demo-workspace-data";
-import { getUploadStorageMode, hasEphemeralLocalUploads } from "@/lib/env";
+import { getUploadStorageMode, usesLocalUploadStorage } from "@/lib/env";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 
@@ -22,8 +22,8 @@ export default async function ScenePlannerPage({
   const { state, projectId } = await searchParams;
   const recentProjects = await workspaceQueryService.listRecentProjects();
   const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
-  const ephemeralUploads = hasEphemeralLocalUploads();
   const uploadStorageMode = getUploadStorageMode();
+  const showLocalStorageNotice = usesLocalUploadStorage();
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
@@ -82,7 +82,7 @@ export default async function ScenePlannerPage({
           <ScenePlannerWorkbench
             projectId={projectId}
             rows={workspace.scenePlannerRows}
-            hasEphemeralUploads={ephemeralUploads}
+            showLocalStorageNotice={showLocalStorageNotice}
             uploadStorageMode={uploadStorageMode}
           />
         )}

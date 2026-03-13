@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { put } from "@vercel/blob";
-import { getBlobReadWriteToken, getUploadBasePath, getUploadStorageMode } from "@/lib/env";
+import COS from "cos-nodejs-sdk-v5";
+import { getTencentCosConfig, getUploadBasePath, getUploadStorageMode } from "@/lib/env";
 
 function sanitizeSegment(value: string) {
   return value.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -55,31 +55,59 @@ export async function saveFileToLocalStorage(params: {
   };
 }
 
-export async function saveFileToVercelBlob(params: {
+function buildTencentCosFileUrl(pathname: string, baseUrl: string | null, bucket: string, region: string) {
+  if (baseUrl) {
+    return `${baseUrl}/${pathname}`;
+  }
+
+  return `https://${bucket}.cos.${region}.myqcloud.com/${pathname}`;
+}
+
+export async function saveFileToTencentCos(params: {
   projectId: string;
   continuityGroup?: string | null;
   fileName: string;
-  file: File;
+  bytes: Uint8Array;
+  mimeType?: string;
 }) {
-  const token = getBlobReadWriteToken();
-  if (!token) {
-    throw new Error("未配置 BLOB_READ_WRITE_TOKEN，无法使用 Vercel Blob 上传。");
+  const config = getTencentCosConfig();
+  if (!config) {
+    throw new Error("未配置腾讯云对象存储参数，无法使用 tencent_cos 上传。");
   }
 
   const uploadPath = buildUploadPathname(params);
-  const uploaded = await put(uploadPath.pathname, params.file, {
-    access: "public",
-    addRandomSuffix: false,
-    allowOverwrite: false,
-    contentType: params.file.type || undefined,
-    token,
+  const client = new COS({
+    SecretId: config.secretId,
+    SecretKey: config.secretKey,
+  });
+  const body = Buffer.from(params.bytes);
+
+  await new Promise<void>((resolve, reject) => {
+    client.putObject(
+      {
+        Bucket: config.bucket,
+        Region: config.region,
+        Key: uploadPath.pathname,
+        Body: body,
+        ContentLength: body.byteLength,
+        ContentType: params.mimeType || undefined,
+      },
+      (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      },
+    );
   });
 
   return {
-    absolutePath: uploaded.url,
-    relativePath: uploaded.url,
-    storageMode: "vercel_blob" as const,
-    storedPath: uploaded.pathname,
+    absolutePath: buildTencentCosFileUrl(uploadPath.pathname, config.baseUrl, config.bucket, config.region),
+    relativePath: buildTencentCosFileUrl(uploadPath.pathname, config.baseUrl, config.bucket, config.region),
+    storageMode: "tencent_cos" as const,
+    storedPath: uploadPath.pathname,
   };
 }
 
@@ -88,14 +116,15 @@ export async function saveFileToStorage(params: {
   continuityGroup?: string | null;
   fileName: string;
   bytes: Uint8Array;
-  file: File;
+  mimeType?: string;
 }) {
-  if (getUploadStorageMode() === "vercel_blob") {
-    return saveFileToVercelBlob({
+  if (getUploadStorageMode() === "tencent_cos") {
+    return saveFileToTencentCos({
       projectId: params.projectId,
       continuityGroup: params.continuityGroup,
       fileName: params.fileName,
-      file: params.file,
+      bytes: params.bytes,
+      mimeType: params.mimeType,
     });
   }
 
