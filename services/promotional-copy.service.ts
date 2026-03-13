@@ -869,26 +869,119 @@ export class PromotionalCopyService {
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       // Truncate long inputs to reduce token count and speed up LLM response
       const truncatedBrief = creativeBrief.length > 800
-        ? creativeBrief.slice(0, 700) + "\n…（上下文已截断）"
+        ? creativeBrief.slice(0, 700) + "\n...(上下文已截断)"
         : creativeBrief;
       const truncatedLongForm = currentDraft.long_form_copy.length > 1500
-        ? currentDraft.long_form_copy.slice(0, 1200) + "\n…（中间省略）…\n" + currentDraft.long_form_copy.slice(-250)
+        ? currentDraft.long_form_copy.slice(0, 1200) + "\n...(中间省略)...\n" + currentDraft.long_form_copy.slice(-250)
         : currentDraft.long_form_copy;
 
-      const generated = await generateStructuredJson<Record<string, unknown>>({
+      // ════════════════════════════════════════
+      //  Step 1: DIAGNOSE — produce structured intermediate
+      // ════════════════════════════════════════
+      const diagnosisJsonSchema = {
+        type: "object",
+        additionalProperties: false,
+        required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
+        properties: {
+          overall_score: { type: "number" },
+          strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+          issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
+          rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+          summary: { type: "string" },
+        },
+      } as const;
+
+      const diagnosis = await generateStructuredJson({
         routeKey: "PROMOTIONAL_COPY",
-        schemaName: "promotional_copy_enhancement_output",
-        schema: promotionalCopyEnhancementSchema,
-        preprocess: (value) => normalizePromotionalCopyOutput(value, surfaces),
+        schemaName: "promotional_copy_diagnosis",
+        schema: diagnosisJsonSchema,
+        zodSchema: promotionalCopyDiagnosisSchema,
+        temperature: 0.15,
         systemPrompt: [
-          "你是品牌文案总监，任务是诊断原稿结构性问题并做结构性改写（不是润色）。",
-          "诊断要具体到段落位置。改写必须逐条解决诊断问题。",
+          "你是品牌文案质量审核员。只做诊断，不做改写。",
+          "评估维度：可发布感、品牌锚点清晰度、传播攻击力、结构推进完整度、证明点具体度、CTA连贯度。",
+          "issues 必须具体到段落位置和问题类型。",
+          "rewrite_focus 必须是可执行的改写动作。",
           "输出合法 JSON。",
         ].join(" "),
         userPrompt: [
-          "先诊断原稿问题，再输出结构性改写后的完整主稿。",
+          "请对以下宣传主稿做质量诊断。",
           "",
-          "【改写规则】",
+          `角度：${currentDraft.master_angle}`,
+          `开场：${currentDraft.hero_copy}`,
+          `正文：\n${truncatedLongForm}`,
+          `证明点：${currentDraft.proof_points.join(" / ")}`,
+          `CTA：${currentDraft.call_to_action}`,
+          "",
+          `项目主题：${project.topic_query}`,
+          truncatedBrief ? `\n项目上下文：\n${truncatedBrief}` : "",
+        ].join("\n"),
+      });
+
+      console.info("[diagnoseAndEnhance] Step 1 diagnosis:", JSON.stringify(diagnosis, null, 2));
+
+      // ════════════════════════════════════════
+      //  Step 2: REWRITE — consume diagnosis as explicit instructions
+      // ════════════════════════════════════════
+      const issueDirectives = diagnosis.issues.map((issue, i) => `${i + 1}. [问题] ${issue}`).join("\n");
+      const focusDirectives = diagnosis.rewrite_focus.map((focus, i) => `${i + 1}. [动作] ${focus}`).join("\n");
+      const strengthGuards = diagnosis.strengths.map((s) => `- ${s}`).join("\n");
+
+      const rewriteSchema = {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          master_angle: { type: "string" },
+          headline_options: { type: "array", items: { type: "string" } },
+          hero_copy: { type: "string" },
+          long_form_copy: { type: "string" },
+          proof_points: { type: "array", items: { type: "string" } },
+          call_to_action: { type: "string" },
+          risk_notes: { type: "array", items: { type: "string" } },
+          recommended_next_steps: { type: "array", items: { type: "string" } },
+        },
+        required: ["master_angle", "headline_options", "hero_copy", "long_form_copy", "proof_points", "call_to_action"],
+      } as const;
+
+      const rewriteResult = await generateStructuredJson<Record<string, unknown>>({
+        routeKey: "PROMOTIONAL_COPY",
+        schemaName: "promotional_copy_rewrite",
+        schema: rewriteSchema,
+        preprocess: (value) => {
+          if (!value || typeof value !== "object") return value;
+          const src = value as Record<string, unknown>;
+          return {
+            ...src,
+            headline_options: normalizeStringList(src.headline_options),
+            hero_copy: normalizeRichText(src.hero_copy),
+            long_form_copy: normalizeRichText(src.long_form_copy),
+            proof_points: normalizeStringList(src.proof_points),
+            risk_notes: normalizeStringList(src.risk_notes),
+            recommended_next_steps: normalizeStringList(src.recommended_next_steps),
+          };
+        },
+        systemPrompt: [
+          "你是品牌文案总监。你收到了一份质量诊断报告，你的任务是按照诊断报告逐条修复原稿。",
+          "你不是润色，你是结构性改写。你必须改变段落结构、开头方式和论证逻辑。",
+          "你必须解决诊断报告中的每一个 [问题]，执行每一个 [动作]，同时保护列出的优点。",
+          "输出合法 JSON，只输出改写后的文案字段，不要输出诊断。",
+        ].join(" "),
+        userPrompt: [
+          "以下是质量诊断报告，你必须逐条执行：",
+          "",
+          `诊断评分：${diagnosis.overall_score}/100`,
+          `诊断总结：${diagnosis.summary}`,
+          "",
+          "必须修复的问题：",
+          issueDirectives,
+          "",
+          "必须执行的改写动作：",
+          focusDirectives,
+          "",
+          "必须保留的优点（不要破坏）：",
+          strengthGuards,
+          "",
+          "改写规则：",
           buildEnhancementRules(),
           "",
           context?.styleReferenceInsight
@@ -903,7 +996,7 @@ export class PromotionalCopyService {
           "项目上下文：",
           truncatedBrief,
           "",
-          "=== 原稿 ===",
+          "=== 需要改写的原稿 ===",
           `角度：${currentDraft.master_angle}`,
           `标题：${currentDraft.headline_options.join(" / ")}`,
           `开场：${currentDraft.hero_copy}`,
@@ -912,39 +1005,32 @@ export class PromotionalCopyService {
           `CTA：${currentDraft.call_to_action}`,
           "=== 原稿结束 ===",
           "",
-          "输出：quality_diagnosis(score/strengths/issues/rewrite_focus/summary)、master_angle、headline_options(≥3,含数据钩子)、hero_copy(前2句含品牌身份)、long_form_copy(逐条解决issues,≥原稿字数)、proof_points(≥3,带数据)、call_to_action(承接正文)。不要platform_adaptations。",
+          "输出：master_angle、headline_options(>=3,含数据钩子)、hero_copy(前2句含品牌身份)、long_form_copy(逐条解决问题,>=原稿字数)、proof_points(>=3,带数据)、call_to_action(承接正文)。",
         ].filter(Boolean).join("\n"),
       });
 
-      // Detailed logging: see exactly what the LLM returned after preprocessing
-      const g = generated as Record<string, unknown>;
-      console.info("[diagnoseAndEnhance] raw LLM fields after preprocess:", {
-        master_angle: { type: typeof g.master_angle, length: typeof g.master_angle === "string" ? g.master_angle.length : "N/A", preview: typeof g.master_angle === "string" ? g.master_angle.slice(0, 40) : String(g.master_angle) },
-        hero_copy: { type: typeof g.hero_copy, length: typeof g.hero_copy === "string" ? g.hero_copy.length : "N/A" },
-        long_form_copy: { type: typeof g.long_form_copy, length: typeof g.long_form_copy === "string" ? g.long_form_copy.length : "N/A" },
-        headline_options: { type: typeof g.headline_options, isArray: Array.isArray(g.headline_options), length: Array.isArray(g.headline_options) ? g.headline_options.length : "N/A" },
-        proof_points: { type: typeof g.proof_points, isArray: Array.isArray(g.proof_points), length: Array.isArray(g.proof_points) ? g.proof_points.length : "N/A" },
-        call_to_action: { type: typeof g.call_to_action, length: typeof g.call_to_action === "string" ? g.call_to_action.length : "N/A" },
-        has_quality_diagnosis: !!g.quality_diagnosis,
+      console.info("[diagnoseAndEnhance] Step 2 rewrite:", {
+        master_angle_changed: rewriteResult.master_angle !== currentDraft.master_angle,
+        hero_copy_changed: rewriteResult.hero_copy !== currentDraft.hero_copy,
+        long_form_copy_changed: rewriteResult.long_form_copy !== currentDraft.long_form_copy,
       });
 
-      // Accept any non-empty LLM output — only fall back to currentDraft when truly missing
       const pickStr = (llm: unknown, fallback: string) =>
         typeof llm === "string" && llm.trim().length > 0 ? llm.trim() : fallback;
       const pickArr = (llm: unknown, fallback: string[]) =>
         Array.isArray(llm) && llm.length > 0 ? llm as string[] : fallback;
 
       output = {
-        master_angle: pickStr(g.master_angle, currentDraft.master_angle),
-        headline_options: pickArr(g.headline_options, currentDraft.headline_options),
-        hero_copy: pickStr(g.hero_copy, currentDraft.hero_copy),
-        long_form_copy: pickStr(g.long_form_copy, currentDraft.long_form_copy),
-        proof_points: pickArr(g.proof_points, currentDraft.proof_points),
-        call_to_action: pickStr(g.call_to_action, currentDraft.call_to_action),
-        risk_notes: pickArr(g.risk_notes, currentDraft.risk_notes ?? []),
-        recommended_next_steps: pickArr(g.recommended_next_steps, []),
-        platform_adaptations: Array.isArray(g.platform_adaptations) ? g.platform_adaptations as PromotionalCopyOutput["platform_adaptations"] : [],
-        quality_diagnosis: g.quality_diagnosis && typeof g.quality_diagnosis === "object" ? g.quality_diagnosis as PromotionalCopyOutput["quality_diagnosis"] : undefined,
+        master_angle: pickStr(rewriteResult.master_angle, currentDraft.master_angle),
+        headline_options: pickArr(rewriteResult.headline_options, currentDraft.headline_options),
+        hero_copy: pickStr(rewriteResult.hero_copy, currentDraft.hero_copy),
+        long_form_copy: pickStr(rewriteResult.long_form_copy, currentDraft.long_form_copy),
+        proof_points: pickArr(rewriteResult.proof_points, currentDraft.proof_points),
+        call_to_action: pickStr(rewriteResult.call_to_action, currentDraft.call_to_action),
+        risk_notes: pickArr(rewriteResult.risk_notes, currentDraft.risk_notes ?? []),
+        recommended_next_steps: pickArr(rewriteResult.recommended_next_steps, []),
+        platform_adaptations: [],
+        quality_diagnosis: diagnosis,
       };
     } else if (settings.llmMockMode) {
       output = {
