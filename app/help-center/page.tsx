@@ -156,8 +156,8 @@ export default async function HelpCenterPage({
               <Link href="/settings" className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
                 去设置页
               </Link>
-              <a href="https://vercel.com" target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
-                部署相关
+              <a href="/api/health" target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
+                健康检查
               </a>
             </div>
             <div className="rounded-2xl bg-[var(--surface-muted)] p-4">

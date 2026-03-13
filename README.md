@@ -7,7 +7,7 @@
 - [用户手册](/Users/ztq0412/Documents/Playground/docs/user-manual.md)
 - [版本更新记录](/Users/ztq0412/Documents/Playground/docs/release-notes.md)
 - [营销平台架构](/Users/ztq0412/Documents/Playground/docs/marketing-platform-architecture.md)
-- [Vercel 部署说明](/Users/ztq0412/Documents/Playground/docs/vercel-deployment.md)
+- [腾讯云部署说明](/Users/ztq0412/Documents/Playground/DEPLOY.md)
 
 ## 1. 技术架构设计
 
@@ -199,18 +199,16 @@ UPLOAD_BASE_PATH="public/uploads"
 MAX_UPLOAD_MB="20"
 ```
 
-- 如果部署到 Vercel，建议改成：
+- 当前生产环境使用腾讯云服务器，本地存储适合开发和轻量演示。如果后续要做多机共享、跨实例持久化或更大文件上传，建议切到对象存储：
 
 ```bash
-UPLOAD_STORAGE_MODE="vercel_blob"
-BLOB_READ_WRITE_TOKEN="your_blob_token"
+UPLOAD_STORAGE_MODE="local"
 ```
 
 说明：
 - `local` 适合本地开发和演示
-- `vercel_blob` 适合 Vercel 测试版和共享环境
-- `local` 模式在 Vercel 上不适合长期使用
-- `vercel_blob` 模式已支持前端直传，更适合测试版共享环境
+- 生产环境当前仍可继续使用 `local`，因为应用运行在自有腾讯云服务器
+- 如果后续要做长期资产沉淀，建议补 S3、COS、R2 等对象存储方案
 
 ### 接入真实大模型
 
@@ -303,14 +301,14 @@ PLATFORM_CONNECTOR_MODE="live"
 - 已使用 Zod 约束结构化 AI 输出
 - 当前平台采集与 AI 生成逻辑为占位实现，便于下一步接入真实搜索 API、LLM 和异步队列
 
-## 8. 测试版上线建议
+## 8. 生产部署建议
 
-推荐先做“受控共享测试版”，而不是直接公开开放：
+当前正式部署链路已经切到腾讯云服务器，推荐按这条主链路维护：
 
 1. 配置线上环境变量
 ```bash
 DATABASE_URL="..."
-APP_BASE_URL="https://your-preview-domain.com"
+APP_BASE_URL="http://111.229.24.208"
 PREVIEW_ACCESS_ENABLED="true"
 PREVIEW_ACCESS_PASSWORD="your-preview-password"
 ```
@@ -333,22 +331,22 @@ PLATFORM_CONNECTOR_MODE="live"
 - 页面入口：`/access`
 - 健康检查：`/api/health`
 
-5. Vercel 构建建议
+5. 服务器构建建议
 ```bash
 npm install
+npm run build
 ```
 
 说明：
-- 项目已内置 `postinstall: prisma generate`，Vercel 安装依赖时会自动生成 Prisma Client
 - 线上环境仍需提供正确的 `DATABASE_URL`
+- 自动部署入口见 [DEPLOY.md](/Users/ztq0412/Documents/Playground/DEPLOY.md)
 
 说明：
 - 当 `PREVIEW_ACCESS_ENABLED=true` 时，页面访问会被统一重定向到 `/access`
 - 输入正确口令后会写入 cookie，适合内部团队或受邀测试用户共享
 - `GET /api/health` 会返回应用状态和数据库连通状态，适合部署探活
-- 当前素材上传默认写入 `public/uploads`，在 Vercel 这类环境中属于临时文件，只适合演示测试
-- 当前代码已支持切到 `vercel_blob`；若需要更长期或跨云共享，后续仍建议补 S3、R2 或 Supabase Storage
-- 更完整的步骤见 [docs/vercel-deployment.md](/Users/ztq0412/Documents/Playground/docs/vercel-deployment.md)
+- 当前素材上传默认写入 `public/uploads`，更适合自托管开发和轻量生产环境
+- 若需要更长期或跨云共享，后续仍建议补 S3、R2、COS 等对象存储
 
 ## 8. 下一步建议
 

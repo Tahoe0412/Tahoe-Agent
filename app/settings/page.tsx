@@ -6,7 +6,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { WorkspaceLayout } from "@/components/workspace/layout";
-import { hasEphemeralLocalUploads } from "@/lib/env";
 import { copy, getLocale } from "@/lib/locale";
 import { AppSettingsService } from "@/services/app-settings.service";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
@@ -19,7 +18,6 @@ export default async function SettingsPage() {
   const locale = await getLocale();
   const text = copy[locale];
   const settings = await appSettingsService.getEffectiveSettings();
-  const hasEphemeralUploads = hasEphemeralLocalUploads();
   const [projects, brandProfiles, industryTemplates] = await Promise.all([
     workspaceQueryService.listProjects(),
     workspaceQueryService.listBrandProfiles(),
@@ -58,11 +56,11 @@ export default async function SettingsPage() {
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <PanelCard
-            title={locale === "en" ? "Vercel Preview Readiness" : "Vercel 测试版准备"}
+            title={locale === "en" ? "Deployment Readiness" : "部署准备"}
             description={
               locale === "en"
-                ? "Prepare a protected preview first, then replace local uploads before wider sharing."
-                : "先用受控测试版上线，再把本地上传替换成对象存储后再扩大共享。"
+                ? "Use Tencent Cloud as the primary runtime and confirm environment, storage, and access control before wider sharing."
+                : "以腾讯云作为主运行环境，在扩大共享前先确认环境变量、存储方式和访问控制。"
             }
           >
             <div className="grid gap-4 md:grid-cols-2">
@@ -70,20 +68,16 @@ export default async function SettingsPage() {
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">Access</div>
                 <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">
                   {locale === "en"
-                    ? "Use PREVIEW_ACCESS_ENABLED and PREVIEW_ACCESS_PASSWORD so only invited users can open the preview workspace."
-                    : "通过 `PREVIEW_ACCESS_ENABLED` 和 `PREVIEW_ACCESS_PASSWORD` 控制访问，只给内部团队或受邀用户开放测试版。"}
+                    ? "Use PREVIEW_ACCESS_ENABLED and PREVIEW_ACCESS_PASSWORD so only invited teammates or test users can open the workspace."
+                    : "通过 `PREVIEW_ACCESS_ENABLED` 和 `PREVIEW_ACCESS_PASSWORD` 控制访问，只给内部团队或受邀测试用户开放工作台。"}
                 </div>
               </div>
               <div className="theme-panel-muted rounded-[22px] p-4">
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">Storage</div>
                 <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">
-                  {hasEphemeralUploads
-                    ? locale === "en"
-                      ? "This deployment still uses local uploads, which are ephemeral on Vercel. Move assets to S3, R2, or Supabase Storage before broader use."
-                      : "当前部署仍使用本地上传，Vercel 上这类文件是临时的。扩大共享前，建议切到 S3、R2 或 Supabase Storage。"
-                    : locale === "en"
-                      ? "Local upload mode is acceptable for development, but object storage is recommended before broader sharing."
-                      : "本地上传适合开发调试，但正式共享前仍建议换成对象存储。"}
+                  {locale === "en"
+                    ? "Local uploads are acceptable on your self-hosted Tencent Cloud server for early production, but object storage is still recommended before broader sharing."
+                    : "当前自托管在腾讯云服务器上，本地上传可支持早期生产使用；如果后续扩大共享，仍建议切到对象存储。"}
                 </div>
               </div>
             </div>
@@ -102,8 +96,8 @@ export default async function SettingsPage() {
               <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Recommended" : "建议项"}</div>
               <div className="mt-2">
                 {locale === "en"
-                  ? "Enable Tavily plus YouTube/X live connectors if you need real trend evidence in the preview."
-                  : "如果要在测试版里看到真实趋势来源，建议打开 Tavily，以及 YouTube / X live connector。"}
+                  ? "Enable Tavily plus YouTube/X live connectors if you need real trend evidence in the live workspace."
+                  : "如果要在当前正式工作台里看到真实趋势来源，建议打开 Tavily，以及 YouTube / X live connector。"}
               </div>
             </div>
             <div>

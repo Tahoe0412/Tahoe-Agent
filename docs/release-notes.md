@@ -50,9 +50,9 @@
   - 最新新闻搜索
 
 - 部署能力
-  - Vercel 受控测试版
+  - 腾讯云服务器生产部署
   - 访问口令
-  - Vercel Blob 上传
+  - GitHub Actions 自动发布
 
 ## 更新模板
 

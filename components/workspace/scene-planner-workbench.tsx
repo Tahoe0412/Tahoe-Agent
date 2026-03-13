@@ -383,7 +383,7 @@ export function ScenePlannerWorkbench({
             <div className="text-sm font-medium text-[var(--text-inverse)]">上传真实素材</div>
             {hasEphemeralUploads ? (
               <div className="rounded-2xl border border-[rgba(255,196,128,0.28)] bg-[rgba(255,196,128,0.12)] px-4 py-3 text-xs leading-6 text-[color:rgba(255,236,214,0.92)]">
-                当前部署在 Vercel，素材仍写入本地 `public/uploads`。这类文件适合测试演示，不适合作为长期可靠存储；正式共享前建议切到 S3、R2 或 Supabase Storage。
+                当前环境仍使用本地 `public/uploads` 作为素材存储。它适合当前自托管开发与轻量生产，但如果后续要扩大共享或做长期可靠存储，建议切到 S3、R2 或对象存储服务。
               </div>
             ) : null}
             <label className="grid gap-2">
@@ -411,7 +411,7 @@ export function ScenePlannerWorkbench({
             </label>
             <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
               文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前镜头的素材分析。
-              {uploadStorageMode === "vercel_blob" ? " 当前已启用直传 Blob，可用于更大的测试文件。" : " 部署在 Vercel 时，当前服务端上传建议控制在 4.5MB 以内。"}
+              {uploadStorageMode === "vercel_blob" ? " 当前已启用直传 Blob，可用于更大的测试文件。" : " 当前使用服务端上传时，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
             <Button onClick={() => void saveAssetMetadata()} disabled={pending !== null || !selectedFile}>
               {pending === "upload" ? "上传中..." : "上传并更新素材状态"}
