@@ -360,7 +360,7 @@ function buildMockCopy(params: {
   projectTitle: string;
   topic: string;
   sourceMessage: string;
-}): PromotionalCopyOutput {
+}) {
   return {
     master_angle: `用用户听得懂的语言，把 ${params.topic} 的核心价值讲透。`,
     headline_options: [
