@@ -32,12 +32,12 @@ jobs:
             -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
               sudo mkdir -p /home/ubuntu/Tahoe-Agent
               sudo tar --overwrite --no-same-owner --no-same-permissions -xzf - -C /home/ubuntu/Tahoe-Agent
+              sudo chown -R "${{ secrets.SERVER_USER }}":"${{ secrets.SERVER_USER }}" /home/ubuntu/Tahoe-Agent
             '
 
       - name: Deploy over SSH
         run: |
           ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
-            chmod +x /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
-            SKIP_GIT_PULL=1 /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
+            SKIP_GIT_PULL=1 bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           '
