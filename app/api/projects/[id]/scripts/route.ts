@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { scriptRewriteRequestSchema } from "@/schemas/script-production";
 import { ScriptService } from "@/services/script.service";
 
@@ -8,7 +9,7 @@ const service = new ScriptService();
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = scriptRewriteRequestSchema.parse(await request.json());
+    const body = scriptRewriteRequestSchema.parse(await parseJsonBody(request));
 
     if (!body.script_text) {
       return fail("script_text 是必填项。", 400);
@@ -25,7 +26,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return fail("创建 script 失败。", 500, error.message);
     }
-    return fail("创建 script 失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "创建 script 失败。");
   }
 }
-

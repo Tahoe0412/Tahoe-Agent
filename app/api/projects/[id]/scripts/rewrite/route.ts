@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
 import { prisma } from "@/lib/db";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { scriptRewriteRequestSchema } from "@/schemas/script-production";
 import { ScriptRewriterService } from "@/services/script-rewriter.service";
 
@@ -9,7 +10,7 @@ const service = new ScriptRewriterService();
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = scriptRewriteRequestSchema.parse(await request.json());
+    const body = scriptRewriteRequestSchema.parse(await parseJsonBody(request));
 
     const project = await prisma.project.findUnique({
       where: { id },
@@ -37,6 +38,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return fail("脚本重构写库失败。", 500, error.message);
     }
 
-    return fail("脚本重构失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "脚本重构失败。");
   }
 }

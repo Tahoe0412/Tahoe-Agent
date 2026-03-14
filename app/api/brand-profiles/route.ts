@@ -1,4 +1,5 @@
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { BrandProfileService } from "@/services/brand-profile.service";
 
 const brandProfileService = new BrandProfileService();
@@ -14,9 +15,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const profile = await brandProfileService.create(await request.json());
+    const profile = await brandProfileService.create(await parseJsonBody(request));
     return ok(profile, { status: 201 });
   } catch (error) {
-    return fail("创建品牌档案失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "创建品牌档案失败。");
   }
 }

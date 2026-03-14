@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { sceneClassificationRequestSchema } from "@/schemas/script-production";
 import { SceneClassificationService } from "@/services/scene-classification.service";
 
@@ -11,7 +12,7 @@ export async function POST(
 ) {
   try {
     const { id, sceneId } = await params;
-    const body = sceneClassificationRequestSchema.parse(await request.json());
+    const body = sceneClassificationRequestSchema.parse(await parseJsonBody(request));
 
     const result = await service.classifyAndSave({
       projectId: id,
@@ -25,6 +26,6 @@ export async function POST(
       return fail("镜头分类写库失败。", 500, error.message);
     }
 
-    return fail("镜头分类失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "镜头分类失败。");
   }
 }

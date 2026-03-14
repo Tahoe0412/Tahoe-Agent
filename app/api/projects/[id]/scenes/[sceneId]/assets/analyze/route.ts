@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { toErrorResponse } from "@/lib/http-error";
 import { AssetDependencyAnalyzerService } from "@/services/asset-dependency-analyzer.service";
 
 const service = new AssetDependencyAnalyzerService();
@@ -19,6 +20,6 @@ export async function POST(
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return fail("素材依赖分析失败。", 500, error.message);
     }
-    return fail("素材依赖分析失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "素材依赖分析失败。");
   }
 }

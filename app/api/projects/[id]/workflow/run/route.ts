@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { parseOptionalJsonBody, toErrorResponse } from "@/lib/http-error";
 import { WorkflowService } from "@/services/workflow.service";
 
 const workflowService = new WorkflowService();
@@ -10,7 +11,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const body = (await request.json().catch(() => ({}))) as { mode?: "full" | "report" };
+    const body = await parseOptionalJsonBody<{ mode?: "full" | "report" }>(request, {});
     const mode = body.mode ?? "full";
 
     const result =
@@ -26,6 +27,6 @@ export async function POST(
       return fail("工作流执行失败。", 500, error.message);
     }
 
-    return fail("工作流执行失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "工作流执行失败。");
   }
 }

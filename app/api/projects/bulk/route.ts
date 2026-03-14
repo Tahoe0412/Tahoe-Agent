@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { fail, ok } from "@/lib/api-response";
+import { ok } from "@/lib/api-response";
 import { prisma } from "@/lib/db";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 
 const bulkProjectUpdateSchema = z.object({
   project_ids: z.array(z.string().cuid()).min(1).max(50),
@@ -13,7 +14,7 @@ const bulkProjectUpdateSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = bulkProjectUpdateSchema.parse(await request.json());
+    const body = bulkProjectUpdateSchema.parse(await parseJsonBody(request));
     const projects = await prisma.project.findMany({
       where: {
         id: {
@@ -55,6 +56,6 @@ export async function POST(request: Request) {
       updated_count: projects.length,
     });
   } catch (error) {
-    return fail("批量更新项目失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "批量更新项目失败。");
   }
 }

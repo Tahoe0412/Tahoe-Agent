@@ -1,4 +1,5 @@
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, parseOptionalJsonBody, toErrorResponse } from "@/lib/http-error";
 import { PromotionalCopyService } from "@/services/promotional-copy.service";
 
 const promotionalCopyService = new PromotionalCopyService();
@@ -9,22 +10,19 @@ export const maxDuration = 120;
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const rawBody = await _request.text();
-    const body = rawBody
-      ? (JSON.parse(rawBody) as {
-          action?: "generate" | "enhance";
-          title?: string;
-          master_angle?: string;
-          headline_options?: string[];
-          hero_copy?: string;
-          long_form_copy?: string;
-          proof_points?: string[];
-          call_to_action?: string;
-          risk_notes?: string[];
-          recommended_next_steps?: string[];
-          source_task_id?: string | null;
-        })
-      : {};
+    const body = await parseOptionalJsonBody<{
+      action?: "generate" | "enhance";
+      title?: string;
+      master_angle?: string;
+      headline_options?: string[];
+      hero_copy?: string;
+      long_form_copy?: string;
+      proof_points?: string[];
+      call_to_action?: string;
+      risk_notes?: string[];
+      recommended_next_steps?: string[];
+      source_task_id?: string | null;
+    }>(_request, {});
     const result =
       body.action === "enhance"
         ? await promotionalCopyService.diagnoseAndEnhance(id, {
@@ -62,6 +60,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     // Client errors (validation, missing data) → 400; server errors (DB, LLM infra) → 500
     const isClientError =
       isSchemaError ||
+      rawMessage.includes("请求体不是合法 JSON") ||
       rawMessage.includes("not found") ||
       rawMessage.includes("缺少") ||
       rawMessage.includes("未找到");
@@ -72,7 +71,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = (await request.json()) as {
+    const body = (await parseJsonBody(request)) as {
       title?: string;
       master_angle: string;
       headline_options: string[];
@@ -87,7 +86,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const result = await promotionalCopyService.saveVersion(id, body);
     return ok(result, { status: 201 });
   } catch (error) {
-    return fail("保存宣传主稿版本失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "保存宣传主稿版本失败。");
   }
 }
 
@@ -102,6 +101,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     await promotionalCopyService.deleteVersion(id, taskId);
     return ok({ deleted: true });
   } catch (error) {
-    return fail("删除版本失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "删除版本失败。");
   }
 }

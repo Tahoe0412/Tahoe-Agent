@@ -20,6 +20,10 @@ function readRequestedPlatforms(project: { primary_platform: PlatformValue | nul
   return [project.primary_platform ?? "YOUTUBE"];
 }
 
+export function resolveWorkflowResearchMockMode(metadata: { mock_mode?: boolean } | null | undefined) {
+  return typeof metadata?.mock_mode === "boolean" ? metadata.mock_mode : false;
+}
+
 export class WorkflowService {
   private readonly researchJobService = new ResearchJobService();
   private readonly scriptService = new ScriptService();
@@ -61,7 +65,7 @@ export class WorkflowService {
         projectId,
         platforms,
         topicQuery: project.topic_query,
-        mockMode: metadata.mock_mode ?? true,
+        mockMode: resolveWorkflowResearchMockMode(metadata),
       }),
     );
 

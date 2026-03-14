@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { toErrorResponse } from "@/lib/http-error";
 import { ResearchJobService } from "@/services/research-job.service";
 
 const service = new ResearchJobService();
@@ -13,6 +14,6 @@ export async function POST(_: Request, { params }: { params: Promise<{ jobId: st
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return fail("运行趋势研究失败。", 500, error.message);
     }
-    return fail("运行趋势研究失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "运行趋势研究失败。");
   }
 }

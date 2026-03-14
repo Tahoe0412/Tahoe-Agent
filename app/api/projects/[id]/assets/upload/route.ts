@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { toErrorResponse } from "@/lib/http-error";
 import { AssetService } from "@/services/asset.service";
 
 const service = new AssetService();
@@ -36,6 +37,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return fail("上传素材失败。", 500, error.message);
     }
 
-    return fail("上传素材失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "上传素材失败。");
   }
 }

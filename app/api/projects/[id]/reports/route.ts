@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { toErrorResponse } from "@/lib/http-error";
 import { ReportService } from "@/services/report.service";
 
 const service = new ReportService();
@@ -10,7 +11,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const reports = await service.listReports(id);
     return ok(reports);
   } catch (error) {
-    return fail("读取研究报告失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "读取研究报告失败。");
   }
 }
 
@@ -23,6 +24,6 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return fail("生成研究报告失败。", 500, error.message);
     }
-    return fail("生成研究报告失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "生成研究报告失败。");
   }
 }

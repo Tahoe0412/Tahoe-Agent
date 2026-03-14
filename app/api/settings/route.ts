@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { appSettingsUpdateSchema } from "@/schemas/app-settings";
 import { AppSettingsService } from "@/services/app-settings.service";
 
@@ -16,7 +17,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const body = appSettingsUpdateSchema.parse(await request.json());
+    const body = appSettingsUpdateSchema.parse(await parseJsonBody(request));
     const saved = await service.update(body);
     return ok(saved);
   } catch (error) {
@@ -29,6 +30,6 @@ export async function PUT(request: Request) {
       return fail("保存设置失败。", 500, detail);
     }
 
-    return fail("保存设置失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "保存设置失败。");
   }
 }

@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/db";
 import { projectCreateSchema } from "@/schemas/project";
 import { ResearchOrchestratorService } from "@/services/research-orchestrator.service";
@@ -58,7 +59,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await parseJsonBody(request);
     const payload = projectCreateSchema.parse(body);
     const result = await orchestrator.run(payload);
 
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof Error) {
-      return fail("项目创建失败。", 400, error.message);
+      return toErrorResponse(error, "项目创建失败。");
     }
 
     return fail("未知错误。", 500);

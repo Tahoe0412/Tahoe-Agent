@@ -1,5 +1,6 @@
 import { fail, ok } from "@/lib/api-response";
 import { prisma } from "@/lib/db";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { projectUpdateSchema } from "@/schemas/project";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -75,7 +76,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = projectUpdateSchema.parse(await request.json());
+    const body = projectUpdateSchema.parse(await parseJsonBody(request));
     const current = await prisma.project.findUnique({
       where: { id },
       select: {
@@ -116,6 +117,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     return ok(project);
   } catch (error) {
-    return fail("更新项目失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "更新项目失败。");
   }
 }

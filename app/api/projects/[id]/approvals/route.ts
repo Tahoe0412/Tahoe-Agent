@@ -1,4 +1,5 @@
 import { fail, ok } from "@/lib/api-response";
+import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { ApprovalGateService } from "@/services/approval-gate.service";
 
 const approvalGateService = new ApprovalGateService();
@@ -16,9 +17,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const approval = await approvalGateService.upsert(id, await request.json());
+    const approval = await approvalGateService.upsert(id, await parseJsonBody(request));
     return ok(approval, { status: 201 });
   } catch (error) {
-    return fail("写入 approval gate 失败。", 400, error instanceof Error ? error.message : undefined);
+    return toErrorResponse(error, "写入 approval gate 失败。");
   }
 }
