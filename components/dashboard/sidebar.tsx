@@ -3,121 +3,146 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { usePathname, useSearchParams } from "next/navigation";
-import { BarChart3, BookOpen, BriefcaseBusiness, ChevronRight, Clapperboard, Compass, FileStack, FolderKanban, LayoutDashboard, Settings, Sparkles, SwatchBook, Waypoints } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  BriefcaseBusiness,
+  Clapperboard,
+  Compass,
+  FileStack,
+  FolderKanban,
+  LayoutDashboard,
+  Settings,
+  Sparkles,
+  SwatchBook,
+  Waypoints,
+} from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
 import { cn } from "@/lib/utils";
-import { Disclosure } from "@/components/ui/disclosure";
+import { useSidebar } from "@/components/layout/app-shell";
+
+type NavItem = {
+  href: Route;
+  label: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  accentColor?: string;
+  accentBg?: string;
+};
+
+function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+      {label}
+    </span>
+  );
+}
+
+function GroupHeading({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
+  if (collapsed) return null;
+  return (
+    <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:rgba(246,240,232,0.42)]">
+      {children}
+    </div>
+  );
+}
+
+function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active: boolean; projectId: string | null; collapsed: boolean }) {
+  const Icon = item.icon;
+  const href = projectId ? (`${item.href}?projectId=${projectId}` as Route) : item.href;
+  const accentBg = active && item.accentBg ? item.accentBg : undefined;
+  const accentColor = active && item.accentColor ? item.accentColor : undefined;
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-2xl transition",
+        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-3",
+        active
+          ? "text-[var(--text-inverse)]"
+          : "text-[color:rgba(246,240,232,0.78)] hover:bg-[rgba(255,255,255,0.07)] hover:text-[var(--text-inverse)]",
+      )}
+      style={active ? { background: accentBg || "rgba(255,255,255,0.14)" } : undefined}
+    >
+      <div
+        className={cn("shrink-0 rounded-xl p-2", active ? "bg-[rgba(255,255,255,0.14)]" : "bg-[rgba(255,255,255,0.06)]")}
+        style={accentColor ? { color: accentColor } : undefined}
+      >
+        <Icon className="size-4" />
+      </div>
+      {!collapsed && (
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium">{item.label}</div>
+          <div className={cn("mt-0.5 truncate text-xs", active ? "text-[color:rgba(246,240,232,0.72)]" : "text-[color:rgba(246,240,232,0.48)]")}>{item.hint}</div>
+        </div>
+      )}
+      <SidebarTooltip label={item.label} show={collapsed} />
+    </Link>
+  );
+}
 
 export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { locale: Locale; workspaceMode?: WorkspaceMode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const text = copy[locale];
-  const coreItems =
-    workspaceMode === "SHORT_VIDEO"
-      ? [
-          { href: "/" as Route, label: text.nav.dashboard, hint: "先看当前项目与下一步", icon: LayoutDashboard },
-          { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "把目标和边界先写清楚", icon: FileStack },
-          { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "看趋势与证据", icon: Compass },
-          { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: "改脚本、定镜头", icon: Clapperboard },
-          { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "补素材与分镜", icon: BarChart3 },
-          { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint, icon: Sparkles },
-        ]
-      : [
-          { href: "/" as Route, label: text.nav.dashboard, hint: "先看当前项目与下一步", icon: LayoutDashboard },
-          { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "把目标和边界先写清楚", icon: FileStack },
-          { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "看趋势与证据", icon: Compass },
-          { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: "生成主稿、平台稿与合规检查", icon: Waypoints },
-        ];
-  const secondaryItems = [
-    { href: "/project-hub" as Route, label: text.nav.projectHub, hint: text.nav.projectHubHint, icon: FolderKanban },
-    { href: "/brand-profiles" as Route, label: text.nav.brandProfiles, hint: text.nav.brandHint, icon: SwatchBook },
-    { href: "/industry-templates" as Route, label: text.nav.industryTemplates, hint: text.nav.industryHint, icon: BriefcaseBusiness },
-    ...(workspaceMode === "SHORT_VIDEO"
-      ? [{ href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint, icon: Waypoints }]
-      : [{ href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint, icon: Clapperboard }]),
-    { href: "/help-center" as Route, label: text.nav.helpCenter, hint: text.nav.helpHint, icon: BookOpen },
-    { href: "/settings" as Route, label: text.nav.settings, hint: text.nav.settingsHint, icon: Settings },
+  const { collapsed } = useSidebar();
+
+  /* ── Group 1: 前置探索 (Explore) ── */
+  const exploreItems: NavItem[] = [
+    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(122,139,114,0.16)", accentColor: "var(--sage)" },
+    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(122,137,152,0.16)", accentColor: "var(--slate-blue)" },
+    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(154,130,146,0.16)", accentColor: "var(--plum)" },
   ];
 
+  /* ── Group 2: 生产车间 (Build) ── */
+  const buildItems: NavItem[] = [
+    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "rgba(122,137,152,0.16)", accentColor: "var(--slate-blue)" },
+    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "rgba(122,139,114,0.16)", accentColor: "var(--sage)" },
+    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "rgba(176,125,106,0.16)", accentColor: "var(--terracotta)" },
+    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "rgba(154,130,146,0.16)", accentColor: "var(--plum)" },
+  ];
+
+  /* ── Group 3: 资产与配置 (Manage) ── */
+  const manageItems: NavItem[] = [
+    { href: "/project-hub" as Route, label: text.nav.projectHub, hint: text.nav.projectHubHint || "全部项目", icon: FolderKanban },
+    { href: "/brand-profiles" as Route, label: text.nav.brandProfiles, hint: text.nav.brandHint || "品牌特征", icon: SwatchBook },
+    { href: "/industry-templates" as Route, label: text.nav.industryTemplates, hint: text.nav.industryHint || "行业模板", icon: BriefcaseBusiness },
+    { href: "/help-center" as Route, label: text.nav.helpCenter, hint: text.nav.helpHint || "帮助文档", icon: BookOpen },
+    { href: "/settings" as Route, label: text.nav.settings, hint: text.nav.settingsHint || "全局设置", icon: Settings },
+  ];
+
+  const groups = [
+    { key: "explore", heading: collapsed ? "" : "探索", items: exploreItems },
+    { key: "build", heading: collapsed ? "" : "生产", items: buildItems },
+    { key: "manage", heading: collapsed ? "" : "管理", items: manageItems },
+  ] as const;
+
   return (
-    <div className="space-y-6">
-      <nav className="space-y-4">
-        <div className="px-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[color:rgba(246,240,232,0.5)]">
-          当前最常用
+    <div className={cn("flex flex-col gap-5", collapsed && "items-center")}>
+      {groups.map((group) => (
+        <nav key={group.key} className="w-full">
+          <GroupHeading collapsed={collapsed}>{group.heading}</GroupHeading>
+          <div className={cn("space-y-1", collapsed && "space-y-0.5")}>
+            {group.items.map((item) => (
+              <NavLink key={item.href} item={item} active={pathname === item.href} projectId={projectId} collapsed={collapsed} />
+            ))}
+          </div>
+        </nav>
+      ))}
+
+      {/* ── Mode description card ── */}
+      {!collapsed && (
+        <div className="rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-5">
+          <div className="text-sm font-medium text-[var(--text-inverse)]">{text.shell.workModeTitle}</div>
+          <p className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.68)]">
+            {text.shell.workModeDesc}
+          </p>
         </div>
-        <div className="space-y-1.5">
-          {coreItems.map((item) => {
-            const active = pathname === item.href;
-            const Icon = item.icon;
-            const href = projectId ? (`${item.href}?projectId=${projectId}` as Route) : item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={href}
-                className={cn(
-                  "group flex items-center gap-3 rounded-2xl px-3 py-3 transition",
-                  active
-                    ? "bg-[rgba(255,255,255,0.14)] text-[var(--text-inverse)]"
-                    : "text-[color:rgba(246,240,232,0.82)] hover:bg-[rgba(255,255,255,0.07)] hover:text-[var(--text-inverse)]",
-                )}
-              >
-                <div className={cn("rounded-xl p-2", active ? "bg-[rgba(255,255,255,0.14)]" : "bg-[rgba(255,255,255,0.08)]")}>
-                  <Icon className="size-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{item.label}</div>
-                  <div className={cn("mt-0.5 truncate text-xs", active ? "text-[color:rgba(246,240,232,0.74)]" : "text-[color:rgba(246,240,232,0.54)]")}>{item.hint}</div>
-                </div>
-                <ChevronRight className={cn("size-4 shrink-0 transition", active ? "opacity-100" : "opacity-0 group-hover:opacity-60")} />
-              </Link>
-            );
-          })}
-        </div>
-
-        <Disclosure
-          className="group rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-2"
-          summaryClassName="px-2 py-2 text-sm font-medium text-[color:rgba(246,240,232,0.84)]"
-          contentClassName="mt-2 space-y-1.5"
-          title="更多模块与设置"
-        >
-            {secondaryItems.map((item) => {
-              const active = pathname === item.href;
-              const Icon = item.icon;
-              const href = projectId ? (`${item.href}?projectId=${projectId}` as Route) : item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={href}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-2xl px-3 py-3 transition",
-                    active
-                      ? "bg-[rgba(255,255,255,0.14)] text-[var(--text-inverse)]"
-                      : "text-[color:rgba(246,240,232,0.82)] hover:bg-[rgba(255,255,255,0.07)] hover:text-[var(--text-inverse)]",
-                  )}
-                >
-                  <div className={cn("rounded-xl p-2", active ? "bg-[rgba(255,255,255,0.14)]" : "bg-[rgba(255,255,255,0.08)]")}>
-                    <Icon className="size-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">{item.label}</div>
-                    <div className={cn("mt-0.5 truncate text-xs", active ? "text-[color:rgba(246,240,232,0.74)]" : "text-[color:rgba(246,240,232,0.54)]")}>{item.hint}</div>
-                  </div>
-                </Link>
-              );
-            })}
-        </Disclosure>
-      </nav>
-
-      <div className="rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-5">
-        <div className="text-sm font-medium text-[var(--text-inverse)]">{text.shell.workModeTitle}</div>
-        <p className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.72)]">
-          {text.shell.workModeDesc}
-        </p>
-      </div>
+      )}
     </div>
   );
 }
