@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useState, useCallback, useEffect, createContext, useContext } from "react";
-import { Menu, X, Settings, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Menu, X, Settings, PanelLeftClose, PanelLeft, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SidebarContextValue = { collapsed: boolean };
@@ -94,13 +94,9 @@ export function AppShell({
                 className="inline-flex items-center justify-center rounded-lg p-2 text-[var(--text-2)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
                 aria-label="Toggle sidebar"
               >
-                {collapsed ? <PanelLeft className="size-5" /> : <PanelLeftClose className="hidden size-5 xl:block" />}
+                {collapsed ? <PanelLeftOpen className="size-5 hidden xl:block" /> : <PanelLeftClose className="size-5 hidden xl:block" />}
                 <Menu className="size-5 xl:hidden" />
               </button>
-
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--text-1)]">
-                Tahoe
-              </span>
             </div>
 
             <a

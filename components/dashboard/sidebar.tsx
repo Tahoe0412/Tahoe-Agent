@@ -16,6 +16,7 @@ import {
   Sparkles,
   SwatchBook,
   Waypoints,
+  GalleryVerticalEnd,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
@@ -122,34 +123,47 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
   ] as const;
 
   return (
-    <div className={cn("flex flex-col gap-5", collapsed && "items-center")}>
-      {/* ── Brand mark ── */}
-      {!collapsed && (
-        <div className="px-2 pb-1">
-          <span className="text-xs font-bold uppercase tracking-[0.35em] text-[var(--sidebar-text)] opacity-80">Tahoe</span>
+    <div className="flex h-full flex-col">
+      {/* ── Brand Header ── */}
+      <div className={cn("mb-6 flex shrink-0 items-center", collapsed ? "justify-center" : "px-2")}>
+        <div className={cn("flex items-center transition-all", collapsed ? "size-10 justify-center rounded-xl bg-white/5" : "gap-3")}>
+          {!collapsed ? (
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/5">
+              <GalleryVerticalEnd className="size-4 text-[var(--sidebar-text-hover)]" />
+            </div>
+          ) : (
+            <GalleryVerticalEnd className="size-5 text-[var(--sidebar-text-hover)]" />
+          )}
+          {!collapsed && (
+            <span className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--sidebar-text-hover)]">
+              Tahoe
+            </span>
+          )}
         </div>
-      )}
+      </div>
 
-      {groups.map((group) => (
-        <nav key={group.key} className="w-full">
-          <GroupHeading collapsed={collapsed}>{group.heading}</GroupHeading>
-          <div className={cn("space-y-1", collapsed && "space-y-0.5")}>
-            {group.items.map((item) => (
-              <NavLink key={item.href} item={item} active={pathname === item.href} projectId={projectId} collapsed={collapsed} />
-            ))}
+      <div className={cn("flex flex-1 flex-col gap-6 overflow-y-auto", collapsed && "items-center gap-5")}>
+        {groups.map((group) => (
+          <nav key={group.key} className="w-full">
+            <GroupHeading collapsed={collapsed}>{group.heading}</GroupHeading>
+            <div className={cn("space-y-1", collapsed && "space-y-0.5")}>
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} active={pathname === item.href} projectId={projectId} collapsed={collapsed} />
+              ))}
+            </div>
+          </nav>
+        ))}
+
+        {/* ── Mode description card ── */}
+        {!collapsed && (
+          <div className="mt-auto mb-2 rounded-2xl border border-white/6 bg-white/4 p-4">
+            <div className="text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
+            <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)]">
+              {text.shell.workModeDesc}
+            </p>
           </div>
-        </nav>
-      ))}
-
-      {/* ── Mode description card ── */}
-      {!collapsed && (
-        <div className="rounded-2xl border border-white/6 bg-white/4 p-4">
-          <div className="text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
-          <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)]">
-            {text.shell.workModeDesc}
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
