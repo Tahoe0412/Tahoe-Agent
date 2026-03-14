@@ -479,229 +479,131 @@ export function MarketingOpsWorkbench({
 
   return (
     <div className="space-y-6">
-      <PanelCard title="内容运营台" description="按步骤操作：选择写法 → 生成主稿 → 派生平台稿 → 合规检查。">
-        <div className="mb-5 grid gap-4 md:grid-cols-4">
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">品牌</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{marketingOverview.brandProfile?.brandName ?? "未绑定"}</div>
-          </div>
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">行业模板</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{marketingOverview.industryTemplate?.industryName ?? "未绑定"}</div>
-          </div>
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主稿版本数</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{versions.length} 版</div>
-          </div>
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">平台稿 / 合规记录</div>
-            <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{(marketingOverview.platformAdaptations ?? []).length} 篇 / {(marketingOverview.complianceChecks ?? []).length} 条</div>
-          </div>
+      {/* ── Header: Project Context & Config ── */}
+      <PanelCard title="内容运营台" description="主稿生产 → 平台分发 → 合规风控">
+        <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
+          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.brandProfile?.brandName ?? "未绑定品牌"}</span>
+          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.industryTemplate?.industryName ?? "未绑定模板"}</span>
+          <span className="text-[var(--text-3)]">{versions.length} 版主稿 · {(marketingOverview.platformAdaptations ?? []).length} 篇平台稿 · {(marketingOverview.complianceChecks ?? []).length} 条合规</span>
         </div>
 
         {!marketingOverview.brandProfile || !marketingOverview.industryTemplate ? (
-          <div className="mb-5 rounded-[18px] border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm leading-7 text-[var(--warning-text)]">
-            当前项目还没有完整绑定品牌档案或行业模板。这样生成的主稿会更容易泛化，风格也更难稳定。要测试高质量结果，建议至少先补齐品牌定位、品牌语气、禁止表达和行业边界。
+          <div className="mb-4 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm leading-7 text-[var(--warning-text)]">
+            当前项目还没有完整绑定品牌档案或行业模板。生成的主稿会更容易泛化，风格也更难稳定。建议先补齐品牌定位、语气和行业边界。
           </div>
         ) : null}
 
-        <div className="mb-5 grid gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <div className="text-sm font-medium text-[var(--text-2)]">写作模式</div>
-            <select
-              value={writingMode}
-              onChange={(event) => void updateWritingMode(event.target.value as WritingMode)}
-              className="theme-input w-full rounded-[16px] px-4 py-3 text-sm"
-              disabled={pending !== null}
-            >
-              {writingModeList.map((mode) => (
-                <option key={mode} value={mode}>
-                  {getWritingModeMeta(mode, "zh").label}
-                </option>
-              ))}
-            </select>
-            <div className="text-sm text-[var(--text-2)]">{writingMeta.description}</div>
-          </label>
-          <label className="space-y-2">
-            <div className="text-sm font-medium text-[var(--text-2)]">输出风格</div>
-            <select
-              value={styleTemplate}
-              onChange={(event) => void updateStyleTemplate(event.target.value as StyleTemplate)}
-              className="theme-input w-full rounded-[16px] px-4 py-3 text-sm"
-              disabled={pending !== null}
-            >
-              {styleTemplateList.map((style) => (
-                <option key={style} value={style}>
-                  {getStyleTemplateMeta(style, "zh").label}
-                </option>
-              ))}
-            </select>
-            <div className="text-sm text-[var(--text-2)]">{styleMeta.description}</div>
-          </label>
-        </div>
-
-        <div className="mb-5 grid gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <div className="text-sm font-medium text-[var(--text-2)]">文案长度</div>
-            <select
-              value={copyLength}
-              onChange={(event) => void updateCopyLength(event.target.value as CopyLength)}
-              className="theme-input w-full rounded-[16px] px-4 py-3 text-sm"
-              disabled={pending !== null}
-            >
-              {copyLengthList.map((item) => (
-                <option key={item} value={item}>
-                  {getCopyLengthMeta(item, "zh").label}
-                </option>
-              ))}
-            </select>
-            <div className="text-sm text-[var(--text-2)]">{copyLengthMeta.description}</div>
-          </label>
-          <label className="space-y-2">
-            <div className="text-sm font-medium text-[var(--text-2)]">使用场景</div>
-            <select
-              value={usageScenario}
-              onChange={(event) => void updateUsageScenario(event.target.value as UsageScenario)}
-              className="theme-input w-full rounded-[16px] px-4 py-3 text-sm"
-              disabled={pending !== null}
-            >
-              {usageScenarioList.map((item) => (
-                <option key={item} value={item}>
-                  {getUsageScenarioMeta(item, "zh").label}
-                </option>
-              ))}
-            </select>
-            <div className="text-sm text-[var(--text-2)]">{usageScenarioMeta.description}</div>
-          </label>
-        </div>
-
-        {styleReferenceSample ? (
-          <div className="mb-5 rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风格参照</div>
-            <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">当前项目已附带参考样稿。生成主稿时会学习它的语气、节奏和结构，但不会直接照抄内容。可在顶部“编辑项目信息”里继续补充。</div>
-            {styleReferenceInsight ? (
-              <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题风格</div>
-                  {(styleReferenceInsight.titleStyleLines ?? []).map((line) => (
-                    <div key={line}>• {line}</div>
-                  ))}
-                </div>
-                <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开头风格</div>
-                  {(styleReferenceInsight.openingStyleLines ?? []).map((line) => (
-                    <div key={line}>• {line}</div>
-                  ))}
-                </div>
-                <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">正文节奏</div>
-                  {(styleReferenceInsight.bodyRhythmLines ?? []).map((line) => (
-                    <div key={line}>• {line}</div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {styleReferenceInsight ? (
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
-                {(styleReferenceInsight.summaryLines ?? []).map((line) => (
-                  <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
-                    {line}
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <div className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm leading-7 text-[var(--text-2)]">{styleReferenceSample}</div>
-          </div>
-        ) : null}
-
-        {/* ── Step-based action groups ── */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* Step 1: Master copy */}
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">1</span>
-              <span className="text-sm font-semibold text-[var(--text-1)]">主稿操作</span>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => void generatePromotionalCopy()} disabled={pending !== null} className="w-full justify-center">
-                {pending === "promo-copy" ? "AI 正在生成..." : "生成新主稿"}
-              </Button>
-              <Button variant="secondary" onClick={() => void diagnoseAndEnhanceCopy()} disabled={pending !== null || !heroCopy.trim()} className="w-full justify-center">
-                {pending === "enhance-copy" ? "AI 增强中..." : "诊断并增强当前主稿"}
-              </Button>
-              <Button variant="secondary" onClick={() => void savePromotionalCopyVersion()} disabled={pending !== null || !heroCopy.trim()} className="w-full justify-center">
-                {pending === "save-copy" ? "保存中..." : "将当前编辑另存为新版本"}
-              </Button>
-              {!heroCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿内容才能增强或另存</div>}
-            </div>
-          </div>
-
-          {/* Step 2: Platform adaptation */}
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">2</span>
-              <span className="text-sm font-semibold text-[var(--text-1)]">派生平台稿</span>
-            </div>
-            <div className="mb-3">
-              <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-[16px] px-4 py-3 text-sm" disabled={pending !== null}>
-                {platformSurfaceList.map((item) => (
-                  <option key={item} value={item}>{getPlatformSurfaceMeta(item, "zh").label}</option>
-                ))}
+        <Disclosure
+          className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4"
+          summaryClassName="text-sm font-medium text-[var(--text-1)]"
+          contentClassName="mt-4 space-y-4"
+          title="调整生成配置"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <div className="text-sm font-medium text-[var(--text-2)]">写作模式</div>
+              <select value={writingMode} onChange={(event) => void updateWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                {writingModeList.map((mode) => (<option key={mode} value={mode}>{getWritingModeMeta(mode, "zh").label}</option>))}
               </select>
-            </div>
-            <Button onClick={() => void generateAdaptationFromDraft()} disabled={pending !== null || !longFormCopy.trim()} className="w-full justify-center bg-[var(--accent)] text-white hover:opacity-90">
-              {pending === "quick-adapt" ? "AI 正在改写..." : `生成${getPlatformSurfaceMeta(adaptSurface, "zh").label}`}
-            </Button>
-            {!longFormCopy.trim() && <div className="mt-2 text-xs text-[var(--text-3)]">需要先有主稿正文才能派生平台稿</div>}
+              <div className="text-sm text-[var(--text-2)]">{writingMeta.description}</div>
+            </label>
+            <label className="space-y-2">
+              <div className="text-sm font-medium text-[var(--text-2)]">输出风格</div>
+              <select value={styleTemplate} onChange={(event) => void updateStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                {styleTemplateList.map((style) => (<option key={style} value={style}>{getStyleTemplateMeta(style, "zh").label}</option>))}
+              </select>
+              <div className="text-sm text-[var(--text-2)]">{styleMeta.description}</div>
+            </label>
           </div>
-
-          {/* Step 3: Compliance check */}
-          <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">3</span>
-              <span className="text-sm font-semibold text-[var(--text-1)]">合规检查</span>
-            </div>
-            <Button variant="secondary" onClick={() => void runComplianceCheck()} disabled={pending !== null || !selectedAdaptation} className="w-full justify-center">
-              {pending === "compliance" ? "检查中..." : selectedAdaptation ? `检查「${getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}」合规性` : "检查选中平台稿的合规性"}
-            </Button>
-            {!selectedAdaptation && <div className="mt-2 text-xs text-[var(--text-3)]">需要先选中一条平台稿</div>}
-            {selectedAdaptation && latestCheckForSelected && (
-              <div className="mt-3 rounded-xl bg-[var(--surface-muted)] px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <span className={`inline-block size-2 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
-                  <span className="text-xs font-medium text-[var(--text-2)]">{latestCheckForSelected.needsReview ? "需要人工复核" : "未发现明显风险"}</span>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <div className="text-sm font-medium text-[var(--text-2)]">文案长度</div>
+              <select value={copyLength} onChange={(event) => void updateCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                {copyLengthList.map((item) => (<option key={item} value={item}>{getCopyLengthMeta(item, "zh").label}</option>))}
+              </select>
+              <div className="text-sm text-[var(--text-2)]">{copyLengthMeta.description}</div>
+            </label>
+            <label className="space-y-2">
+              <div className="text-sm font-medium text-[var(--text-2)]">使用场景</div>
+              <select value={usageScenario} onChange={(event) => void updateUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                {usageScenarioList.map((item) => (<option key={item} value={item}>{getUsageScenarioMeta(item, "zh").label}</option>))}
+              </select>
+              <div className="text-sm text-[var(--text-2)]">{usageScenarioMeta.description}</div>
+            </label>
+          </div>
+          {styleReferenceSample ? (
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风格参照</div>
+              <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">当前项目已附带参考样稿。生成主稿时会学习它的语气、节奏和结构。</div>
+              {styleReferenceInsight ? (
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题风格</div>
+                    {(styleReferenceInsight.titleStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
+                  </div>
+                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开头风格</div>
+                    {(styleReferenceInsight.openingStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
+                  </div>
+                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">正文节奏</div>
+                    {(styleReferenceInsight.bodyRhythmLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
+                  </div>
                 </div>
-                {latestCheckForSelected.summary && <div className="mt-1 text-xs text-[var(--text-3)] line-clamp-2">{latestCheckForSelected.summary}</div>}
-              </div>
-            )}
-          </div>
-        </div>
+              ) : null}
+              {styleReferenceInsight ? (
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  {(styleReferenceInsight.summaryLines ?? []).map((line) => (
+                    <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">{line}</div>
+                  ))}
+                </div>
+              ) : null}
+              <div className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm leading-7 text-[var(--text-2)]">{styleReferenceSample}</div>
+            </div>
+          ) : null}
+        </Disclosure>
 
         {message ? <div className="mt-4 rounded-xl bg-[var(--ok-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--ok-text)]">{message}</div> : null}
         {error ? <div className="mt-4 rounded-xl bg-[var(--danger-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--danger-text)]">{error}</div> : null}
       </PanelCard>
 
-      <PanelCard title="当前主稿" description="默认只聚焦当前成稿，版本对比和平台稿细节后移。">
-          <div className="grid gap-5">
+      {/* ── Phase 1: Master Copy Workspace ── */}
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <PanelCard title="主稿编辑" description="编辑当前主稿内容，操作按钮就在上方。">
+          <div className="space-y-5">
+            {/* Action buttons colocated with editor */}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => void generatePromotionalCopy()} disabled={pending !== null}>
+                {pending === "promo-copy" ? "AI 正在生成..." : "生成新主稿"}
+              </Button>
+              <Button variant="secondary" onClick={() => void diagnoseAndEnhanceCopy()} disabled={pending !== null || !heroCopy.trim()}>
+                {pending === "enhance-copy" ? "AI 增强中..." : "诊断并增强"}
+              </Button>
+              <Button variant="secondary" onClick={() => void savePromotionalCopyVersion()} disabled={pending !== null || !heroCopy.trim()}>
+                {pending === "save-copy" ? "保存中..." : "另存新版本"}
+              </Button>
+            </div>
+            {!heroCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿内容才能增强或另存</div>}
+
             <div className="grid gap-4 md:grid-cols-[1fr_0.62fr]">
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">版本标题</label>
-                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-[16px] px-4 py-3 text-sm" placeholder="例如：宣传文案主稿 v3" />
+                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder="例如：宣传文案主稿 v3" />
               </div>
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主宣传角度</label>
-                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-[16px] px-4 py-3 text-sm" placeholder="本轮传播要主打的商业角度" />
+                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder="本轮传播要主打的商业角度" />
               </div>
             </div>
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开场摘要</label>
-              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="一段能直接拿去做宣传开头的摘要" />
+              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="一段能直接拿去做宣传开头的摘要" />
             </div>
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">完整宣传主稿</label>
-              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-[22px] px-4 py-4 text-sm leading-8" placeholder="完整宣传文案正文" />
+              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-2xl px-4 py-4 text-sm leading-8" placeholder="完整宣传文案正文" />
             </div>
 
             {selectedVersion ? (() => {
@@ -709,7 +611,7 @@ export function MarketingOpsWorkbench({
               const diagnosis = payload?.quality_diagnosis;
               if (!diagnosis) return null;
               return (
-                <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">质量诊断</div>
@@ -725,25 +627,19 @@ export function MarketingOpsWorkbench({
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前优点</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.strengths ?? []).map((item, idx) => (
-                          <div key={idx}>• {toDisplayString(item)}</div>
-                        ))}
+                        {(diagnosis.strengths ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主要问题</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.issues ?? []).map((item, idx) => (
-                          <div key={idx}>• {toDisplayString(item)}</div>
-                        ))}
+                        {(diagnosis.issues ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">增强重点</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
-                        {(diagnosis.rewrite_focus ?? []).map((item, idx) => (
-                          <div key={idx}>• {toDisplayString(item)}</div>
-                        ))}
+                        {(diagnosis.rewrite_focus ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
                   </div>
@@ -762,26 +658,25 @@ export function MarketingOpsWorkbench({
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题备选</label>
-                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="每行一条标题" />
+                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条标题" />
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">核心卖点 / 证据点</label>
-                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="每行一条证明点或卖点" />
+                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条证明点或卖点" />
                   </div>
                 </div>
-
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">CTA</label>
-                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="引导用户下一步动作" />
+                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="引导用户下一步动作" />
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风险提示</label>
-                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="每行一条风险提示" />
+                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条风险提示" />
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">下一步建议</label>
-                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="每行一条下一步动作" />
+                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条下一步动作" />
                   </div>
                 </div>
               </>
@@ -789,196 +684,209 @@ export function MarketingOpsWorkbench({
           </div>
         </PanelCard>
 
-      <Disclosure
-        className="theme-panel rounded-[24px] p-4"
-        summaryClassName="text-sm font-medium text-[var(--text-1)]"
-        contentClassName="mt-4 space-y-6"
-        title="查看版本对比、平台稿和合规细节"
-      >
-          <PanelCard title="主稿版本栏" description="只在需要比较和回退时再展开。">
+        {/* Version History (right column) */}
+        <PanelCard title="主稿版本" description="点击切换历史版本。">
+          <div className="space-y-3">
+            {versions.length ? (
+              versions.map((item) => {
+                const payload = parsePayload(item.taskJson);
+                const versionNumber = typeof (payload as { version_number?: number } | null)?.version_number === "number"
+                  ? (payload as { version_number: number }).version_number
+                  : null;
+                const active = item.id === selectedVersionId;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedVersionId(item.id)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                      active
+                        ? "border-[var(--accent-strong)] bg-[var(--surface-muted)]"
+                        : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-medium text-[var(--text-1)]">{item.title}</div>
+                      <div className="flex items-center gap-2">
+                        {versionNumber ? <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className={`rounded-full px-2 py-1 text-xs transition cursor-pointer ${
+                            deleteArmedId === item.id
+                              ? "bg-[var(--danger-bg)] text-[var(--danger-text)] font-medium"
+                              : "text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)]"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            if (deleteArmedId !== item.id) {
+                              setDeleteArmedId(item.id);
+                              setTimeout(() => setDeleteArmedId((prev) => prev === item.id ? null : prev), 3000);
+                              return;
+                            }
+                            setDeleteArmedId(null);
+                            void (async () => {
+                              try {
+                                const res = await fetch(`/api/projects/${projectId}/promotional-copy?taskId=${item.id}`, { method: "DELETE" });
+                                const text = await res.text();
+                                let p: { success: boolean; error?: { message?: string } };
+                                try { p = JSON.parse(text); } catch { throw new Error("服务器返回了非 JSON 响应"); }
+                                if (!p.success) throw new Error(p.error?.message ?? "删除失败");
+                                if (selectedVersionId === item.id) setSelectedVersionId(null);
+                                setMessage("版本已删除。");
+                                router.refresh();
+                              } catch (err) {
+                                setError(err instanceof Error ? err.message : "删除失败");
+                              }
+                            })();
+                          }}
+                        >{deleteArmedId === item.id ? "确认删除" : "✕"}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? "暂无摘要"}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
+                      <span>{new Date(item.createdAt).toLocaleString("zh-CN")}</span>
+                      {payload?.generation_source ? <span className="theme-pill rounded-full px-2 py-1 text-[11px] font-medium">{payload.generation_source}</span> : null}
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
+                还没有宣传主稿版本。先点击左侧的{"\"生成新主稿\""}。
+              </div>
+            )}
+          </div>
+        </PanelCard>
+      </div>
+
+      {/* ── Phase 2 & 3: Platform Adaptations & Compliance ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* Left: Platform adaptation list + generate form */}
+        <PanelCard title="平台稿件" description="选择平台并生成，列表即时更新。">
+          <div className="space-y-4">
+            <div className="flex items-end gap-3">
+              <label className="flex-1 space-y-1">
+                <div className="text-xs font-medium text-[var(--text-3)]">目标平台</div>
+                <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                  {platformSurfaceList.map((item) => (<option key={item} value={item}>{getPlatformSurfaceMeta(item, "zh").label}</option>))}
+                </select>
+              </label>
+              <Button onClick={() => void generateAdaptationFromDraft()} disabled={pending !== null || !longFormCopy.trim()} className="shrink-0">
+                {pending === "quick-adapt" ? "生成中..." : "生成"}
+              </Button>
+            </div>
+            {!longFormCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿正文才能派生平台稿</div>}
+
             <div className="space-y-3">
-              {versions.length ? (
-                versions.map((item) => {
-                  const payload = parsePayload(item.taskJson);
-                  const versionNumber = typeof (payload as { version_number?: number } | null)?.version_number === "number"
-                    ? (payload as { version_number: number }).version_number
-                    : null;
-                  const active = item.id === selectedVersionId;
+              {(marketingOverview.platformAdaptations ?? []).length ? (
+                (marketingOverview.platformAdaptations ?? []).map((item) => {
+                  const active = item.id === selectedAdaptationId;
+                  const statusColor = item.status === "APPROVED" ? "bg-[var(--ok-text)]" : item.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]";
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setSelectedVersionId(item.id)}
-                      className={`w-full rounded-[18px] border px-4 py-3 text-left transition ${
+                      onClick={() => setSelectedAdaptationId(item.id)}
+                      className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
                         active
-                          ? "border-[var(--accent-strong)] bg-[var(--surface-muted)]"
+                          ? "border-[var(--accent-strong)] bg-[var(--surface-muted)] ring-1 ring-[var(--accent-strong)]"
                           : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium text-[var(--text-1)]">{item.title}</div>
                         <div className="flex items-center gap-2">
-                          {versionNumber ? <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            className={`rounded-full px-2 py-1 text-xs transition cursor-pointer ${
-                              deleteArmedId === item.id
-                                ? "bg-[var(--danger-bg)] text-[var(--danger-text)] font-medium"
-                                : "text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)]"
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              if (deleteArmedId !== item.id) {
-                                setDeleteArmedId(item.id);
-                                setTimeout(() => setDeleteArmedId((prev) => prev === item.id ? null : prev), 3000);
-                                return;
-                              }
-                              setDeleteArmedId(null);
-                              void (async () => {
-                                try {
-                                  const res = await fetch(`/api/projects/${projectId}/promotional-copy?taskId=${item.id}`, { method: "DELETE" });
-                                  const text = await res.text();
-                                  let p: { success: boolean; error?: { message?: string } };
-                                  try { p = JSON.parse(text); } catch { throw new Error("服务器返回了非 JSON 响应"); }
-                                  if (!p.success) throw new Error(p.error?.message ?? "删除失败");
-                                  if (selectedVersionId === item.id) setSelectedVersionId(null);
-                                  setMessage("版本已删除。");
-                                  router.refresh();
-                                } catch (err) {
-                                  setError(err instanceof Error ? err.message : "删除失败");
-                                }
-                              })();
-                            }}
-                          >{deleteArmedId === item.id ? "确认删除" : "✕"}</span>
+                          <span className={`inline-block size-2 shrink-0 rounded-full ${statusColor}`} />
+                          <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(item.surface as PlatformSurface, "zh").label}</span>
                         </div>
+                        <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, "zh")}</span>
                       </div>
-                      <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? "暂无摘要"}</div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
-                        <span>{new Date(item.createdAt).toLocaleString("zh-CN")}</span>
-                        {payload?.generation_source ? <span className="theme-pill rounded-full px-2 py-1 text-[11px] font-medium">{payload.generation_source}</span> : null}
-                      </div>
+                      <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? "未填写标题或开场句"}</div>
+                      <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || "（暂无正文内容）"}</div>
+                      <div className="mt-2 text-xs text-[var(--text-3)]">{new Date(item.createdAt).toLocaleString("zh-CN")}</div>
                     </button>
                   );
                 })
               ) : (
-                <div className="rounded-[18px] border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
-                  还没有宣传主稿版本。先点击“生成宣传主稿”。
+                <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
+                  还没有平台稿件。请先选择目标平台并点击{"\"生成\""}。
                 </div>
               )}
             </div>
-          </PanelCard>
-
-          <div className="grid gap-6 xl:grid-cols-[0.58fr_0.42fr]">
-            <PanelCard title="平台稿件" description="从主稿派生的各平台版本。选中后可在右侧执行合规检查。">
-              <div className="space-y-4">
-                <div className="grid gap-3">
-                  {(marketingOverview.platformAdaptations ?? []).length ? (
-                    (marketingOverview.platformAdaptations ?? []).map((item) => {
-                      const active = item.id === selectedAdaptationId;
-                      const statusColor = item.status === "APPROVED" ? "bg-[var(--ok-text)]" : item.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]";
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setSelectedAdaptationId(item.id)}
-                          className={`w-full rounded-[18px] border px-4 py-4 text-left transition ${
-                            active
-                              ? "border-[var(--accent-strong)] bg-[var(--surface-muted)] ring-1 ring-[var(--accent-strong)]"
-                              : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                              <span className={`inline-block size-2 shrink-0 rounded-full ${statusColor}`} />
-                              <span className="font-medium text-[var(--text-1)]">
-                                {getPlatformSurfaceMeta(item.surface as PlatformSurface, "zh").label}
-                              </span>
-                            </div>
-                            <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, "zh")}</span>
-                          </div>
-                          <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? "未填写标题或开场句"}</div>
-                          <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || "（暂无正文内容）"}</div>
-                          <div className="mt-2 text-xs text-[var(--text-3)]">{new Date(item.createdAt).toLocaleString("zh-CN")}</div>
-                        </button>
-                      );
-                    })
-                  ) : (
-                    <div className="rounded-[18px] border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
-                      还没有平台稿件。请先在上方 Step ❢ 选择平台并生成。
-                    </div>
-                  )}
-                </div>
-              </div>
-            </PanelCard>
-
-            <PanelCard title="合规检查" description="查看选中平台稿的合规检查结果，标记风险项。">
-              <div className="space-y-4">
-                <div className="theme-panel-muted rounded-[18px] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前选中平台稿</div>
-                  {selectedAdaptation ? (
-                    <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-block size-2 rounded-full ${
-                          selectedAdaptation.status === "APPROVED" ? "bg-[var(--ok-text)]" : selectedAdaptation.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]"
-                        }`} />
-                        <span className="font-medium text-[var(--text-1)]">
-                          {getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}
-                        </span>
-                        <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, "zh")}</span>
-                      </div>
-                      <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? "未填写标题或开场句"}</div>
-                      <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || "（暂无正文内容）"}</div>
-                    </div>
-                  ) : (
-                    <div className="mt-3 text-sm text-[var(--text-2)]">← 请先从左侧选择一条平台稿件，再查看合规结果。</div>
-                  )}
-                </div>
-
-                <div className="theme-panel-muted rounded-[18px] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">最新检查结果</div>
-                    {latestCheckForSelected && (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                        latestCheckForSelected.needsReview
-                          ? "bg-[var(--danger-bg,var(--surface-muted))] text-[var(--danger-text)]"
-                          : "bg-[var(--ok-bg,var(--surface-muted))] text-[var(--ok-text)]"
-                      }`}>
-                        <span className={`inline-block size-1.5 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
-                        {latestCheckForSelected.needsReview ? "需要人工复核" : "暂无风险"}
-                      </span>
-                    )}
-                  </div>
-                  {latestCheckForSelected ? (
-                    <div className="mt-3 space-y-3">
-                      <div className="text-sm leading-7 text-[var(--text-2)]">{latestCheckForSelected.summary ?? "暂无风险总结。"}</div>
-                      {(() => {
-                        const issues = Array.isArray(latestCheckForSelected.flaggedIssues) ? latestCheckForSelected.flaggedIssues : [];
-                        if (!issues.length) return <div className="text-sm text-[var(--text-2)]">✓ 未命中明显风险。</div>;
-                        return (
-                          <div className="space-y-2">
-                            <div className="text-xs font-medium text-[var(--danger-text)]">{issues.length} 条风险项</div>
-                            {(issues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
-                              <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
-                                <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? "风险项")} · {String(item?.text ?? "未命名内容")}</div>
-                                <div className="mt-1">{String(item?.reason ?? "需要人工进一步判断。")}</div>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  ) : (
-                    <div className="mt-3 text-sm text-[var(--text-2)]">
-                      {selectedAdaptation ? "当前平台稿还没有检查记录。请在上方 Step ❢ 执行合规检查。" : "选择平台稿后可查看检查记录。"}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </PanelCard>
           </div>
-      </Disclosure>
+        </PanelCard>
+
+        {/* Right: Selected adaptation detail + compliance */}
+        <PanelCard title="稿件详情与合规" description="查看选中平台稿的内容和合规结果。">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前选中平台稿</div>
+              {selectedAdaptation ? (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block size-2 rounded-full ${
+                      selectedAdaptation.status === "APPROVED" ? "bg-[var(--ok-text)]" : selectedAdaptation.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]"
+                    }`} />
+                    <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}</span>
+                    <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, "zh")}</span>
+                  </div>
+                  <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? "未填写标题或开场句"}</div>
+                  <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || "（暂无正文内容）"}</div>
+                </div>
+              ) : (
+                <div className="mt-3 text-sm text-[var(--text-2)]">← 请先从左侧选择一条平台稿件。</div>
+              )}
+            </div>
+
+            {/* Compliance check button — colocated! */}
+            <Button variant="secondary" onClick={() => void runComplianceCheck()} disabled={pending !== null || !selectedAdaptation} className="w-full justify-center">
+              {pending === "compliance" ? "检查中..." : selectedAdaptation ? `检查「${getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}」合规性` : "请先选中一条平台稿"}
+            </Button>
+
+            {/* Compliance results — colocated! */}
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">合规检查结果</div>
+                {latestCheckForSelected && (
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    latestCheckForSelected.needsReview
+                      ? "bg-[var(--danger-bg,var(--surface-muted))] text-[var(--danger-text)]"
+                      : "bg-[var(--ok-bg,var(--surface-muted))] text-[var(--ok-text)]"
+                  }`}>
+                    <span className={`inline-block size-1.5 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
+                    {latestCheckForSelected.needsReview ? "需要人工复核" : "暂无风险"}
+                  </span>
+                )}
+              </div>
+              {latestCheckForSelected ? (
+                <div className="mt-3 space-y-3">
+                  <div className="text-sm leading-7 text-[var(--text-2)]">{latestCheckForSelected.summary ?? "暂无风险总结。"}</div>
+                  {(() => {
+                    const issues = Array.isArray(latestCheckForSelected.flaggedIssues) ? latestCheckForSelected.flaggedIssues : [];
+                    if (!issues.length) return <div className="text-sm text-[var(--text-2)]">✓ 未命中明显风险。</div>;
+                    return (
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-[var(--danger-text)]">{issues.length} 条风险项</div>
+                        {(issues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
+                          <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
+                            <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? "风险项")} · {String(item?.text ?? "未命名内容")}</div>
+                            <div className="mt-1">{String(item?.reason ?? "需要人工进一步判断。")}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="mt-3 text-sm text-[var(--text-2)]">
+                  {selectedAdaptation ? "当前平台稿还没有检查记录。请点击上方按钮执行合规检查。" : "选择平台稿后可查看检查记录。"}
+                </div>
+              )}
+            </div>
+          </div>
+        </PanelCard>
+      </div>
     </div>
   );
 }
