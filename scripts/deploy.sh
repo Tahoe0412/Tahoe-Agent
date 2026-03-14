@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="$HOME/Tahoe-Agent"
+APP_DIR="/home/ubuntu/Tahoe-Agent"
 
 cd "$APP_DIR"
 
