@@ -394,9 +394,9 @@ export default async function Home({
             </div>
           </div>
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or switch from the recent project bar above." : "创建新项目后会自动跳转；也可以从上方最近项目里切换。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or switch from the recent project bar above." : "创建新项目后会自动跳转；也可以从上方最近项目里切换。"} action={<NextStepLink href="#new-project" label={locale === "en" ? "Create a Project" : "现在创建项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found. Check the link or create a new project." : "当前 `projectId` 没有查到项目数据，请检查链接或重新创建项目。"} />
+          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found. Check the link or create a new project." : "当前 `projectId` 没有查到项目数据，请检查链接或重新创建项目。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "返回总览首页"} />} />
         ) : null}
       </div>
     </WorkspaceLayout>

@@ -73,11 +73,11 @@ export default async function ScenePlannerPage({
         {state && state !== "ready" ? (
           <PageStateView state={state} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view storyboard planning and asset readiness." : "请先选择项目，再查看镜头规划与素材齐备度。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view storyboard planning and asset readiness." : "请先选择项目，再查看镜头规划与素材齐备度。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Storyboard Data Unavailable" : "无法读取场景规划数据"} description={locale === "en" ? "The project does not exist, or there are no usable scenes yet." : "该项目不存在，或项目还没有可用 scene 数据。"} />
+          <ErrorPanel title={locale === "en" ? "Storyboard Data Unavailable" : "无法读取场景规划数据"} description={locale === "en" ? "The project does not exist, or there are no usable scenes yet." : "该项目不存在，或项目还没有可用 scene 数据。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : workspace.scenePlannerRows.length === 0 ? (
-          <EmptyPanel title={locale === "en" ? "No Storyboard Data Yet" : "暂无分镜规划数据"} description={locale === "en" ? "Generate scenes first, then add storyboard frames before using this planner." : "请先生成 scene，并在后续补齐 storyboard frame，再进入此页做镜头编排和素材登记。"} />
+          <EmptyPanel title={locale === "en" ? "No Storyboard Data Yet" : "暂无分镜规划数据"} description={locale === "en" ? "Generate scenes first, then add storyboard frames before using this planner." : "请先生成 scene，并在后续补齐 storyboard frame，再进入此页做镜头编排和素材登记。"} action={<NextStepLink href={`/script-lab?projectId=${projectId}`} label={locale === "en" ? "Go to Script Lab" : "先去 Script Lab"} />} />
         ) : (
           <ScenePlannerWorkbench
             projectId={projectId}

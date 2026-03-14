@@ -79,11 +79,11 @@ export default async function ScriptLabPage({
         {state && state !== "ready" ? (
           <PageStateView state={state} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Script Data Unavailable" : "无法读取脚本实验数据"} description={locale === "en" ? "The project does not exist, or script rewrite has not been generated yet." : "该项目不存在，或还没生成脚本重构结果。"} />
+          <ErrorPanel title={locale === "en" ? "Script Data Unavailable" : "无法读取脚本实验数据"} description={locale === "en" ? "The project does not exist, or script rewrite has not been generated yet." : "该项目不存在，或还没生成脚本重构结果。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : workspace.scriptLabRows.length === 0 ? (
-          <EmptyPanel title={locale === "en" ? "No Scenes Yet" : "暂无 scene 数据"} description={locale === "en" ? "Run the full dashboard workflow or trigger script rewrite first, then return to edit scenes." : "先在 Dashboard 执行全流程，或先触发 script rewrite，再回来编辑 scene。"} />
+          <EmptyPanel title={locale === "en" ? "No Scenes Yet" : "暂无 scene 数据"} description={locale === "en" ? "Run the full dashboard workflow or trigger script rewrite first, then return to edit scenes." : "先在 Dashboard 执行全流程，或先触发 script rewrite，再回来编辑 scene。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Run Workflow First" : "先去总览跑流程"} />} />
         ) : (
           <ScriptLabWorkbench projectId={projectId} rows={workspace.scriptLabRows} />
         )}

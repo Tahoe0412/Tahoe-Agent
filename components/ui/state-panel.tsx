@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { AlertTriangle, DatabaseZap, LoaderCircle } from "lucide-react";
 
 export function LoadingPanel({ label = "加载中..." }: { label?: string }) {
@@ -17,9 +18,11 @@ export function LoadingPanel({ label = "加载中..." }: { label?: string }) {
 export function EmptyPanel({
   title = "暂无数据",
   description = "当前还没有可展示的数据，等待任务执行或接入真实数据源。",
+  action,
 }: {
   title?: string;
   description?: string;
+  action?: ReactNode;
 }) {
   return (
     <div className="theme-panel flex min-h-72 items-center justify-center rounded-[32px] border-dashed p-6">
@@ -30,6 +33,7 @@ export function EmptyPanel({
         <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">Stand by</div>
         <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">{title}</div>
         <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{description}</div>
+        {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
       </div>
     </div>
   );
@@ -38,9 +42,11 @@ export function EmptyPanel({
 export function ErrorPanel({
   title = "读取失败",
   description = "数据请求未成功返回。请检查 API、数据库连接或 mock 配置。",
+  action,
 }: {
   title?: string;
   description?: string;
+  action?: ReactNode;
 }) {
   return (
     <div className="flex min-h-64 items-center justify-center rounded-[32px] border border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--danger-bg)_88%,var(--surface-solid)),rgba(255,255,255,0.32))] p-6 shadow-[0_18px_42px_rgba(128,54,54,0.08)]">
@@ -51,6 +57,7 @@ export function ErrorPanel({
         <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--danger-text)]">Needs attention</div>
         <div className="mt-2 text-2xl font-semibold text-[var(--danger-text)]">{title}</div>
         <div className="mt-3 text-sm leading-7 text-[var(--danger-text)]">{description}</div>
+        {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
       </div>
     </div>
   );

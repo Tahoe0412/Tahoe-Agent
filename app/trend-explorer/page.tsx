@@ -175,16 +175,16 @@ export default async function TrendExplorerPage({
         {state && state !== "ready" ? (
           <PageStateView state={state} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or open Trend Explorer with a projectId." : "请先从总览页创建项目，或带上 `projectId` 进入趋势面板。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or open Trend Explorer with a projectId." : "请先从总览页创建项目，或带上 `projectId` 进入趋势面板。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Trend Data Unavailable" : "无法读取趋势数据"} description={locale === "en" ? "The project was not found, or trend topics have not been generated yet." : "没有找到该项目，或项目还没生成趋势主题。"} />
+          <ErrorPanel title={locale === "en" ? "Trend Data Unavailable" : "无法读取趋势数据"} description={locale === "en" ? "The project was not found, or trend topics have not been generated yet." : "没有找到该项目，或项目还没生成趋势主题。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : (
           <div className="space-y-6">
             <div className="grid gap-6 xl:grid-cols-[1.28fr_0.72fr]">
               <PanelCard title={ui.quickStartTitle} description={ui.quickStartDesc}>
                 <div className="space-y-4">
                   {activeTrendRows.length === 0 ? (
-                    <EmptyPanel title={ui.noPlatformData} description={ui.filterDesc} />
+                    <EmptyPanel title={ui.noPlatformData} description={ui.filterDesc} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Refresh Project Data" : "回总览刷新数据"} />} />
                   ) : (
                     <>
                       <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-muted)] p-5">

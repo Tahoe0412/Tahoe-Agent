@@ -67,9 +67,9 @@ export default async function MarketingOpsPage({
           density="compact"
         />
         {!projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Open a project first before using Marketing Ops." : "请先选择项目，再进入内容运营台。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Open a project first before using Marketing Ops." : "请先选择项目，再进入内容运营台。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found." : "当前 projectId 没有找到项目数据。"} />
+          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found." : "当前 projectId 没有找到项目数据。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : (
           <MarketingOpsWorkbench
             projectId={projectId}

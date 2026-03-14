@@ -88,9 +88,9 @@ export default async function BriefStudioPage({
         />
 
         {!projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create or switch a project from Dashboard before opening Brief Studio." : "请先从总览页创建或切换项目，再进入创意任务单页面。"} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create or switch a project from Dashboard before opening Brief Studio." : "请先从总览页创建或切换项目，再进入创意任务单页面。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "No project matches the current projectId." : "没有找到当前 projectId 对应的项目。"} />
+          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "No project matches the current projectId." : "没有找到当前 projectId 对应的项目。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : (
           <>
             <BriefStudioWorkbench

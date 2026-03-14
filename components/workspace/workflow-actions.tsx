@@ -18,35 +18,39 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
     setPending(mode);
     setMessage(null);
     setDetail(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/workflow/run`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode }),
+      });
 
-    const response = await fetch(`/api/projects/${projectId}/workflow/run`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mode }),
-    });
+      const payload = (await response.json()) as {
+        success: boolean;
+        data?: { scene_count?: number };
+        error?: { message: string; detail?: string };
+      };
+      if (!payload.success) {
+        setMessage(payload.error?.message || "执行失败");
+        setDetail(payload.error?.detail || null);
+        return;
+      }
 
-    const payload = (await response.json()) as {
-      success: boolean;
-      data?: { scene_count?: number };
-      error?: { message: string; detail?: string };
-    };
-    if (!payload.success) {
-      setMessage(payload.error?.message || "执行失败");
-      setDetail(payload.error?.detail || null);
+      setMessage(mode === "full" ? "全流程已执行，已更新项目数据。" : "研究报告已重新生成。");
+      setDetail(null);
+
+      const query = new URLSearchParams(searchParams.toString());
+      query.set("projectId", projectId);
+      router.replace(`${pathname}?${query.toString()}` as Route);
+      router.refresh();
+    } catch (error) {
+      setMessage("流程执行失败");
+      setDetail(error instanceof Error ? error.message : "网络请求未完成，请稍后重试。");
+    } finally {
       setPending(null);
-      return;
     }
-
-    setMessage(mode === "full" ? `全流程已执行，已更新项目数据。` : "研究报告已重新生成。");
-    setDetail(null);
-    setPending(null);
-
-    const query = new URLSearchParams(searchParams.toString());
-    query.set("projectId", projectId);
-    router.replace(`${pathname}?${query.toString()}` as Route);
-    router.refresh();
   }
 
   return (
