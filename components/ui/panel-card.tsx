@@ -13,14 +13,14 @@ export function PanelCard({
   className?: string;
 }) {
   return (
-    <section className={cn("theme-panel rounded-[28px] p-6", className)}>
+    <section className={cn("theme-panel rounded-[28px] p-8", className)}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-[var(--text-1)]">{title}</h3>
-          {description ? <p className="mt-1 text-sm text-[var(--text-2)]">{description}</p> : null}
+          {description ? <p className="mt-1.5 text-sm leading-6 text-[var(--text-2)]">{description}</p> : null}
         </div>
       </div>
-      <div className="mt-5">{children}</div>
+      <div className="mt-6">{children}</div>
     </section>
   );
 }

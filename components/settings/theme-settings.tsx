@@ -51,14 +51,14 @@ export function ThemeSettings() {
               key={option.value}
               type="button"
               onClick={() => updateTheme(option.value)}
-              className={`rounded-[22px] border p-4 text-left transition ${
+              className={`rounded-2xl border p-4 text-left transition-all ${
                 active
-                  ? "theme-panel-strong border-transparent"
-                  : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
+                  ? "border-[var(--border-selected)] bg-[var(--surface-selected)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)] hover:border-[var(--border)]"
               }`}
             >
-              <div className={`text-sm font-semibold ${active ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>{option.label}</div>
-              <div className={`mt-2 text-sm leading-6 ${active ? "text-[color:rgba(246,240,232,0.76)]" : "text-[var(--text-2)]"}`}>{option.hint}</div>
+              <div className={`text-sm font-semibold ${active ? "text-[var(--accent-strong)]" : "text-[var(--text-1)]"}`}>{option.label}</div>
+              <div className={`mt-2 text-sm leading-6 ${active ? "text-[var(--text-2)]" : "text-[var(--text-3)]"}`}>{option.hint}</div>
             </button>
           );
         })}

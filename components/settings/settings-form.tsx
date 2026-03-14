@@ -123,10 +123,13 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {providerStatus.map((provider) => (
-          <div key={provider.key} className="theme-panel-muted rounded-xl p-4">
+          <div key={provider.key} className="theme-panel-muted rounded-xl p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{provider.label}</div>
-            <div className={`mt-3 text-sm font-medium ${provider.ready ? "text-[var(--ok-text)]" : "text-[var(--danger-text)]"}`}>
-              {provider.ready ? "已检测到可用 key" : "未检测到 key"}
+            <div className="mt-3 flex items-center gap-2">
+              <span className={`inline-block h-2 w-2 rounded-full ${provider.ready ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]" : "bg-red-400/60"}`} />
+              <span className="text-sm text-[var(--text-2)]">
+                {provider.ready ? "Key 已就绪" : "未配置"}
+              </span>
             </div>
           </div>
         ))}
