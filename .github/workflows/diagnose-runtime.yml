@@ -64,4 +64,25 @@ jobs:
               echo "-- port ${port} --"
               curl --max-time 8 -s "http://127.0.0.1:${port}/render-lab" | grep -o "/_next/static/css/[^\"]*" | head -n 1 || true
             done
-          '
+          ' | tee diagnose-report.txt
+
+      - name: Publish diagnosis comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const report = fs.readFileSync("diagnose-report.txt", "utf8");
+            const body = [
+              "Tencent runtime diagnosis report:",
+              "",
+              "```text",
+              report.slice(0, 60000),
+              "```",
+            ].join("\n");
+
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body,
+            });
