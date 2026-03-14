@@ -29,11 +29,17 @@ jobs:
             --exclude='node_modules' \
             --exclude='.next' \
             --exclude='.env' \
-            -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
-              sudo mkdir -p /home/ubuntu/Tahoe-Agent
-              sudo tar --overwrite --no-same-owner --no-same-permissions -xzf - -C /home/ubuntu/Tahoe-Agent
-              sudo chown -R "${{ secrets.SERVER_USER }}":"${{ secrets.SERVER_USER }}" /home/ubuntu/Tahoe-Agent
-            '
+            -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "
+              set -e
+              APP_DIR=/home/ubuntu/Tahoe-Agent
+              STAGE_DIR=\$(mktemp -d /tmp/tahoe-release.XXXXXX)
+              trap 'sudo rm -rf \"\$STAGE_DIR\"' EXIT
+              sudo mkdir -p \"\$APP_DIR\"
+              sudo tar --no-same-owner --no-same-permissions -xzf - -C \"\$STAGE_DIR\"
+              sudo find \"\$APP_DIR\" -mindepth 1 -maxdepth 1 ! -name '.env' ! -name '.env.local' ! -name '.git' -exec rm -rf {} +
+              sudo cp -a \"\$STAGE_DIR\"/. \"\$APP_DIR\"/
+              sudo chown -R \"${{ secrets.SERVER_USER }}\":\"${{ secrets.SERVER_USER }}\" \"\$APP_DIR\"
+            "
 
       - name: Deploy over SSH
         run: |

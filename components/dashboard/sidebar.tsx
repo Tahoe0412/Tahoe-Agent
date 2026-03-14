@@ -130,23 +130,23 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
   return (
     <div className="flex h-full flex-col">
       {/* ── Brand Header ── */}
-      <div className={cn("mb-6 flex shrink-0 items-center", collapsed ? "justify-center" : "px-1")}>
+      <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "justify-center" : "px-1")}>
         <div
           className={cn(
             "transition-all",
             collapsed
-              ? "flex size-12 items-center justify-center rounded-[20px] border border-white/8 bg-white/6"
-              : "theme-glow rounded-[28px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4"
+              ? "flex size-12 items-center justify-center rounded-[16px] border border-white/8 bg-white/6"
+              : "rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] px-3 py-3"
           )}
         >
           {!collapsed ? (
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,rgba(183,186,162,0.22),rgba(255,255,255,0.10))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(183,186,162,0.22),rgba(255,255,255,0.10))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div>
-                <div className="theme-kicker text-[11px] font-semibold text-[var(--sidebar-text)] opacity-95">Marketing OS</div>
-                <span className="mt-1 block text-base font-semibold uppercase tracking-[0.28em] text-[var(--sidebar-text-hover)]">
+                <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">Workspace</div>
+                <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.22em] text-[var(--sidebar-text-hover)]">
                   Tahoe
                 </span>
               </div>
@@ -157,7 +157,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
         </div>
       </div>
 
-      <div className={cn("flex flex-1 flex-col gap-6 overflow-y-auto", collapsed && "items-center gap-5")}>
+      <div className={cn("flex flex-1 flex-col gap-5 overflow-y-auto", collapsed && "items-center gap-5")}>
         {groups.map((group) => (
           <nav key={group.key} className="w-full">
             <GroupHeading collapsed={collapsed}>{group.heading}</GroupHeading>
@@ -171,7 +171,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
 
         {/* ── Mode description card ── */}
         {!collapsed && (
-          <div className="theme-glow mt-auto mb-2 rounded-[26px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 shadow-[0_20px_44px_rgba(0,0,0,0.14)]">
+          <div className="mt-auto mb-2 rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.10)]">
             <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">Workspace rhythm</div>
             <div className="mt-2 text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
             <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)] opacity-95">

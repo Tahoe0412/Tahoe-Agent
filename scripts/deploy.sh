@@ -23,11 +23,11 @@ npm ci
 echo "[deploy] Generating Prisma client..."
 npx prisma generate
 
-echo "[deploy] Building application..."
-npm run build
-
 echo "[deploy] Syncing Prisma schema..."
 npx prisma db push
+
+echo "[deploy] Building application..."
+npm run build
 
 echo "[deploy] Reloading application with PM2..."
 if pm2 describe "$APP_NAME" >/dev/null 2>&1; then

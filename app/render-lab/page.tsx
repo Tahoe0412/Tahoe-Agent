@@ -21,12 +21,17 @@ export default async function RenderLabPage({
   const locale = await getLocale();
   const text = copy[locale];
   const { state, projectId } = await searchParams;
-  const recentProjects = await workspaceQueryService.listRecentProjects();
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  const [recentProjectsResult, workspaceResult] = await Promise.allSettled([
+    workspaceQueryService.listRecentProjects(),
+    projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
+  ]);
+  const recentProjects = recentProjectsResult.status === "fulfilled" ? recentProjectsResult.value : [];
+  const workspace = workspaceResult.status === "fulfilled" ? workspaceResult.value : null;
+  const loadFailed = recentProjectsResult.status === "rejected" || workspaceResult.status === "rejected";
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.renderLab.eyebrow}
           title={text.pages.renderLab.title}
@@ -69,7 +74,12 @@ export default async function RenderLabPage({
           density="compact"
         />
 
-        {state && state !== "ready" ? (
+        {loadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Render Lab Is Temporarily Unavailable" : "Render Lab 暂时不可用"}
+            description={locale === "en" ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers." : "当前工作区数据暂时没有成功加载。请稍后刷新，或在服务恢复后重新切换项目。"}
+          />
+        ) : state && state !== "ready" ? (
           <PageStateView state={state} />
         ) : !projectId ? (
           <EmptyPanel

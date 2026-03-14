@@ -230,7 +230,7 @@ export function ProjectContext({
 
   if (density === "compact") {
     return (
-      <div className="theme-panel overflow-hidden rounded-[30px] px-5 py-5 lg:px-6">
+      <div className="theme-panel overflow-hidden rounded-[24px] px-5 py-4 lg:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-3)]">
@@ -240,13 +240,13 @@ export function ProjectContext({
             </div>
             {project ? (
               <>
-                <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
-                  <h3 className="theme-font-display text-[2rem] font-semibold tracking-tight text-[var(--text-1)]">{project.title}</h3>
+                <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-2">
+                  <h3 className="theme-font-display text-[1.8rem] font-semibold tracking-tight text-[var(--text-1)]">{project.title}</h3>
                 </div>
                 {project.topic_query ? <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div> : null}
-                {summaryLine ? <div className="mt-3 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
+                {summaryLine ? <div className="mt-2 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
                 {compactMeta.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {compactMeta.map((item) => (
                       <span key={item} className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
                         {item}
@@ -256,7 +256,7 @@ export function ProjectContext({
                 ) : null}
               </>
             ) : (
-              <div className="mt-4 rounded-[28px] border border-[var(--border-soft)] bg-[linear-gradient(135deg,rgba(183,186,162,0.10),rgba(255,255,255,0.42))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
+              <div className="mt-3 rounded-[22px] border border-[var(--border-soft)] bg-[linear-gradient(135deg,rgba(183,186,162,0.10),rgba(255,255,255,0.42))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl">
                     <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)]">

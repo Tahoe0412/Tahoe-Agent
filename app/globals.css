@@ -233,6 +233,7 @@ textarea::placeholder {
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(18px);
   position: relative;
+  border-left: 1px solid var(--border-soft);
 }
 
 .theme-main::before {
