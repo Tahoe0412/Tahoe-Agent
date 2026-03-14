@@ -30,8 +30,8 @@ jobs:
             --exclude='.next' \
             --exclude='.env' \
             -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
-              mkdir -p /home/ubuntu/Tahoe-Agent
-              tar -xzf - -C /home/ubuntu/Tahoe-Agent
+              sudo mkdir -p /home/ubuntu/Tahoe-Agent
+              sudo tar --overwrite --no-same-owner --no-same-permissions -xzf - -C /home/ubuntu/Tahoe-Agent
             '
 
       - name: Deploy over SSH
