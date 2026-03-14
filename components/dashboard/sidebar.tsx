@@ -68,7 +68,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       style={active && accentBg ? { background: accentBg } : undefined}
     >
       <div
-        className={cn("shrink-0 rounded-xl p-2", active ? "bg-black/5 dark:bg-white/10" : "bg-black/5 dark:bg-white/5")}
+        className={cn("shrink-0 rounded-xl p-2", active ? "bg-white/12" : "bg-white/6")}
         style={accentColor ? { color: accentColor } : undefined}
       >
         <Icon className="size-4" />
@@ -123,6 +123,13 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
 
   return (
     <div className={cn("flex flex-col gap-5", collapsed && "items-center")}>
+      {/* ── Brand mark ── */}
+      {!collapsed && (
+        <div className="px-2 pb-1">
+          <span className="text-xs font-bold uppercase tracking-[0.35em] text-[var(--sidebar-text)] opacity-80">Tahoe</span>
+        </div>
+      )}
+
       {groups.map((group) => (
         <nav key={group.key} className="w-full">
           <GroupHeading collapsed={collapsed}>{group.heading}</GroupHeading>
@@ -136,9 +143,9 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
 
       {/* ── Mode description card ── */}
       {!collapsed && (
-        <div className="rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-5">
-          <div className="text-sm font-medium text-[var(--text-inverse)]">{text.shell.workModeTitle}</div>
-          <p className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.68)]">
+        <div className="rounded-2xl border border-white/6 bg-white/4 p-4">
+          <div className="text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
+          <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)]">
             {text.shell.workModeDesc}
           </p>
         </div>
