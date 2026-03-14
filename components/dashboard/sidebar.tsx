@@ -43,7 +43,7 @@ function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
 function GroupHeading({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
   if (collapsed) return null;
   return (
-    <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[color:rgba(246,240,232,0.42)]">
+    <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--sidebar-text)] opacity-70">
       {children}
     </div>
   );
@@ -62,13 +62,13 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
         "group relative flex items-center gap-3 rounded-2xl transition",
         collapsed ? "justify-center px-0 py-2.5" : "px-3 py-3",
         active
-          ? "text-[var(--text-inverse)]"
-          : "text-[color:rgba(246,240,232,0.78)] hover:bg-[rgba(255,255,255,0.07)] hover:text-[var(--text-inverse)]",
+          ? "bg-[var(--sidebar-item-active-bg)] text-[var(--sidebar-item-active-text)]"
+          : "text-[var(--sidebar-text)] hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
-      style={active ? { background: accentBg || "rgba(255,255,255,0.14)" } : undefined}
+      style={active && accentBg ? { background: accentBg } : undefined}
     >
       <div
-        className={cn("shrink-0 rounded-xl p-2", active ? "bg-[rgba(255,255,255,0.14)]" : "bg-[rgba(255,255,255,0.06)]")}
+        className={cn("shrink-0 rounded-xl p-2", active ? "bg-black/5 dark:bg-white/10" : "bg-black/5 dark:bg-white/5")}
         style={accentColor ? { color: accentColor } : undefined}
       >
         <Icon className="size-4" />
@@ -76,7 +76,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       {!collapsed && (
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium">{item.label}</div>
-          <div className={cn("mt-0.5 truncate text-xs", active ? "text-[color:rgba(246,240,232,0.72)]" : "text-[color:rgba(246,240,232,0.48)]")}>{item.hint}</div>
+          <div className={cn("mt-0.5 truncate text-xs", active ? "opacity-80" : "opacity-60")}>{item.hint}</div>
         </div>
       )}
       <SidebarTooltip label={item.label} show={collapsed} />
