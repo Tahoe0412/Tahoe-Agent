@@ -16,7 +16,10 @@ echo "[deploy] Installing dependencies..."
 npm ci
 
 echo "[deploy] Cleaning stale build cache..."
-rm -rf .next
+if [ -d ".next" ]; then
+  chmod -R u+rwX .next 2>/dev/null || true
+  rm -rf .next
+fi
 
 echo "[deploy] Generating Prisma client..."
 npx prisma generate
@@ -28,10 +31,10 @@ echo "[deploy] Syncing Prisma schema..."
 npx prisma db push
 
 echo "[deploy] Restarting application with PM2..."
-if pm2 describe tahoe-agent >/dev/null 2>&1; then
-  pm2 restart tahoe-agent
+if pm2 describe tahoe >/dev/null 2>&1; then
+  pm2 restart tahoe
 else
-  pm2 start npm --name tahoe-agent -- start
+  pm2 start npm --name tahoe -- start
 fi
 
 echo "[deploy] Saving PM2 process list..."
