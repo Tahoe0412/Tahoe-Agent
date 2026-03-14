@@ -9,7 +9,7 @@ import { SceneClassificationService } from "@/services/scene-classification.serv
 import { ScriptRewriterService } from "@/services/script-rewriter.service";
 import { ScriptService } from "@/services/script.service";
 
-type PlatformValue = "YOUTUBE" | "X" | "TIKTOK";
+type PlatformValue = "YOUTUBE" | "X" | "TIKTOK" | "XHS" | "DOUYIN";
 
 function readRequestedPlatforms(project: { primary_platform: PlatformValue | null; metadata: unknown }): PlatformValue[] {
   const metadata = (project.metadata ?? {}) as { requested_platforms?: PlatformValue[] };

@@ -5,8 +5,8 @@ import { getLocale } from "@/lib/locale";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Video Research Orchestrator",
-  description: "AI 视频前期调研与生产编排 MVP",
+  title: "Tahoe — Marketing Intelligence Workspace",
+  description: "品牌营销策略、内容生产与运营自动化工作台",
   metadataBase: new URL(getAppBaseUrl()),
 };
 

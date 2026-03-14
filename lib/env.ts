@@ -6,6 +6,8 @@ const platformEnvKeys: PlatformEnvKey = {
   YOUTUBE: "YOUTUBE_API_KEY",
   X: "X_BEARER_TOKEN",
   TIKTOK: "TIKTOK_ACCESS_TOKEN",
+  XHS: "XHS_API_KEY",
+  DOUYIN: "DOUYIN_ACCESS_TOKEN",
 };
 
 export function getPlatformApiKey(platform: SupportedPlatform) {

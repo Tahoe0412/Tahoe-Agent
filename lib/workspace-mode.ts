@@ -21,7 +21,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "品牌短视频内容方向",
       sourceScriptDefault:
         "原始脚本：\n我们要围绕一个核心主题，做一条更适合短视频传播的内容，重点强调钩子、节奏、镜头表达和转化动作。",
-      platforms: ["YOUTUBE", "X", "TIKTOK"] satisfies SupportedPlatform[],
+      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["YouTube", "TikTok", "小红书", "抖音"],
     },
     COPYWRITING: {
       label: "文案写作",
@@ -30,7 +31,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "品牌核心信息表达",
       sourceScriptDefault:
         "原始文案需求：\n我们希望把一个核心卖点整理成更适合品牌传播和内容发布的文案，包括标题、正文结构、卖点表达和行动引导。",
-      platforms: ["X", "YOUTUBE"] satisfies SupportedPlatform[],
+      platforms: ["X", "YOUTUBE", "XHS"] satisfies SupportedPlatform[],
+      displayPlatforms: ["小红书", "微信公众号", "X", "YouTube"],
     },
     PROMOTION: {
       label: "宣传推广",
@@ -39,7 +41,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "新品宣传与平台推广",
       sourceScriptDefault:
         "推广需求：\n我们希望围绕一个产品或活动做整套宣传内容，明确目标用户、平台重点、核心卖点、风险边界和发布前准备。",
-      platforms: ["YOUTUBE", "X", "TIKTOK"] satisfies SupportedPlatform[],
+      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["全平台分发"],
     },
   } as const;
 
@@ -51,7 +54,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "Brand short-form direction",
       sourceScriptDefault:
         "Source script:\nWe want to turn one core idea into a short-form video with a stronger hook, cleaner pacing, and clearer visual actions.",
-      platforms: ["YOUTUBE", "X", "TIKTOK"] satisfies SupportedPlatform[],
+      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["YouTube", "TikTok", "Xiaohongshu", "Douyin"],
     },
     COPYWRITING: {
       label: "Copywriting",
@@ -60,7 +64,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "Brand message system",
       sourceScriptDefault:
         "Copy brief:\nWe want to turn one core product or brand message into stronger titles, body copy, supporting points, and a clear CTA.",
-      platforms: ["X", "YOUTUBE"] satisfies SupportedPlatform[],
+      platforms: ["X", "YOUTUBE", "XHS"] satisfies SupportedPlatform[],
+      displayPlatforms: ["Xiaohongshu", "WeChat", "X", "YouTube"],
     },
     PROMOTION: {
       label: "Promotion",
@@ -69,7 +74,8 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "Launch and promotion strategy",
       sourceScriptDefault:
         "Promotion brief:\nWe want to build a full set of messaging around one product or campaign, including audience, key value, platform focus, and publishing prep.",
-      platforms: ["YOUTUBE", "X", "TIKTOK"] satisfies SupportedPlatform[],
+      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["All Platforms"],
     },
   } as const;
 

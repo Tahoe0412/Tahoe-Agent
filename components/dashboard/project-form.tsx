@@ -82,7 +82,7 @@ export function ProjectForm() {
           <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">{modeMeta.label}</div>
           <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{modeMeta.description}</div>
           <div className="mt-5 flex flex-wrap gap-2">
-            {modeMeta.platforms.map((platform) => (
+            {(modeMeta.displayPlatforms || modeMeta.platforms).map((platform) => (
               <span key={platform} className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
                 {platform}
               </span>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const platformEnum = z.enum(["YOUTUBE", "X", "TIKTOK"]);
+export const platformEnum = z.enum(["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"]);
 export const contentTypeEnum = z.enum(["SHORT_VIDEO", "LONG_VIDEO", "THREAD", "POST", "ARTICLE", "LIVE_STREAM"]);
 export const topicCategoryEnum = z.enum([
   "CREATIVE_FORMAT",

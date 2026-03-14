@@ -55,10 +55,7 @@ export function AppShell({
         </button>
 
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--text-3)]">
-            AI Video Ops
-          </span>
-          <span className="text-sm font-semibold text-[var(--text-1)]">
+          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--text-1)]">
             Tahoe
           </span>
         </div>

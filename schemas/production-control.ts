@@ -55,7 +55,7 @@ export const creativeBriefCreateSchema = z.object({
   objective: briefObjectiveSchema,
   primary_tone: briefToneSchema,
   audience_awareness: audienceAwarenessSchema.optional(),
-  target_platforms: z.array(z.enum(["YOUTUBE", "X", "TIKTOK"])).min(1).max(3),
+  target_platforms: z.array(z.enum(["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"])).min(1).max(5),
   key_message: z.string().min(10).max(4000),
   call_to_action: z.string().max(240).optional(),
   target_audience: z.string().max(240).optional(),

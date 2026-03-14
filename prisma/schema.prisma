@@ -12,6 +12,8 @@ enum Platform {
   YOUTUBE
   X
   TIKTOK
+  XHS
+  DOUYIN
 }
 
 enum LlmProvider {

@@ -2,7 +2,7 @@ import { ok } from "@/lib/api-response";
 
 export async function GET() {
   return ok({
-    platforms: ["YOUTUBE", "X", "TIKTOK"],
+    platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"],
     shotCharacterTypes: ["HUMAN", "NON_HUMAN", "NONE"],
     shotMotionTypes: ["ACTION", "STATIC"],
     shotDialogueTypes: ["DIALOGUE", "SILENT"],

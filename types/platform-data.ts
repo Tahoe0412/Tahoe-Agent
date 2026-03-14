@@ -1,4 +1,4 @@
-export type SupportedPlatform = "YOUTUBE" | "X" | "TIKTOK";
+export type SupportedPlatform = "YOUTUBE" | "X" | "TIKTOK" | "XHS" | "DOUYIN";
 
 export type ConnectorMode = "mock" | "live";
 

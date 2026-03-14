@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { searchLatestNews } from "@/services/news-search";
 import { TrendScoringEngine } from "@/services/trend-scoring";
 import { getPlatformConnector } from "@/services/platform-connectors";
+import type { SupportedPlatform } from "@/types/platform-data";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
@@ -13,7 +14,7 @@ export class ResearchJobService {
 
   async createJob(params: {
     projectId: string;
-    platforms: ("YOUTUBE" | "X" | "TIKTOK")[];
+    platforms: SupportedPlatform[];
     topicQuery: string;
     mockMode?: boolean;
   }) {

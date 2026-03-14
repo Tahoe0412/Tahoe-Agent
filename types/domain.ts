@@ -1,4 +1,4 @@
-export type SupportedPlatform = "YOUTUBE" | "X" | "TIKTOK";
+export type SupportedPlatform = "YOUTUBE" | "X" | "TIKTOK" | "XHS" | "DOUYIN";
 
 export type ShotCharacterType = "HUMAN" | "NON_HUMAN" | "NONE";
 export type ShotMotionType = "ACTION" | "STATIC";

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const platformSchema = z.enum(["YOUTUBE", "X", "TIKTOK"]);
+const platformSchema = z.enum(["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"]);
 const workspaceModeSchema = z.enum(["SHORT_VIDEO", "COPYWRITING", "PROMOTION"]);
 const writingModeSchema = z.enum(["BRAND_INTRO", "PRODUCT_PROMO", "CAMPAIGN_PROMO", "RECRUITMENT"]);
 const styleTemplateSchema = z.enum(["RATIONAL_PRO", "WARM_HEALING", "LIGHT_LUXURY", "HIGH_CONVERSION", "FOUNDER_VOICE", "STORE_TRUST"]);
