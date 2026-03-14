@@ -79,24 +79,26 @@ export function AppShell({
         {/* ── Sidebar ── */}
         <aside
           className={cn(
-            "theme-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[92vw] flex-col overflow-y-auto p-4 transition-all duration-300 ease-in-out",
+            "theme-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[92vw] flex-col p-4 transition-all duration-300 ease-in-out",
             // Mobile
             mobileOpen ? "translate-x-0" : "-translate-x-full",
             // Desktop: always visible, but collapsed = mini
             collapsed ? "xl:translate-x-0 xl:theme-sidebar-mini" : "xl:translate-x-0",
           )}
         >
-          {/* Close button (mobile only) */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            className="mb-3 inline-flex self-end rounded-full border border-white/10 bg-white/5 p-2 text-[var(--text-inverse)] transition hover:bg-white/12 xl:hidden"
-            aria-label={text.shell.closeSidebar}
-          >
-            <X className="size-5" />
-          </button>
+          {/* Close button — fixed top-right corner of sidebar (mobile only) */}
+          {mobileOpen ? (
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="absolute right-3 top-3 z-10 inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/8 text-white/80 transition hover:bg-white/16 xl:hidden"
+              aria-label={text.shell.closeSidebar}
+            >
+              <X className="size-4" />
+            </button>
+          ) : null}
 
-          <div className="flex-1">{sidebar}</div>
+          <div className="flex-1 overflow-y-auto">{sidebar}</div>
         </aside>
 
         {/* ── Right Content Wrapper ── */}

@@ -61,14 +61,17 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       href={href}
       className={cn(
         "group relative flex items-center gap-3 overflow-hidden rounded-[24px] border transition-all duration-200",
-        collapsed ? "justify-center px-0 py-3" : "px-3 py-3.5",
+        collapsed ? "mx-auto w-[56px] justify-center px-0 py-3" : "px-3 py-3.5",
         active
-          ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
+          ? cn(
+              "border-white/10 text-[var(--sidebar-item-active-text)]",
+              collapsed ? "shadow-[0_8px_20px_rgba(0,0,0,0.12)]" : "shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
+            )
           : "border-transparent text-[var(--sidebar-text)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
       style={active ? { background: accentBg ?? "var(--sidebar-item-active-bg)" } : undefined}
     >
-      {active ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
+      {active && !collapsed ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
       <div
         className={cn(
           "shrink-0 rounded-2xl p-2.5 transition-all duration-200",
