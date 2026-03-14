@@ -510,7 +510,7 @@ export class PromotionalCopyService {
       trendSummaries,
     });
 
-    let output: PromotionalCopyOutput;
+    let output;
     const route = settings.llmRouting.PROMOTIONAL_COPY;
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       const styleInsightText = context?.styleReferenceInsight
@@ -863,7 +863,7 @@ export class PromotionalCopyService {
         recommended_next_steps: input.recommended_next_steps ?? [],
       });
 
-    let output: PromotionalCopyOutput;
+    let output;
     if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       // Truncate long inputs to reduce token count and speed up LLM response
       const truncatedBrief = creativeBrief.length > 800
