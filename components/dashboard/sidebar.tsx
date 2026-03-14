@@ -35,7 +35,7 @@ type NavItem = {
 function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
   if (!show) return null;
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
       {label}
     </span>
   );
@@ -44,7 +44,7 @@ function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
 function GroupHeading({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
   if (collapsed) return null;
   return (
-    <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--sidebar-text)] opacity-70">
+    <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--sidebar-text)] opacity-95">
       {children}
     </div>
   );
@@ -60,16 +60,20 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3 rounded-2xl transition",
-        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-3",
+        "group relative flex items-center gap-3 overflow-hidden rounded-[24px] border transition-all duration-200",
+        collapsed ? "justify-center px-0 py-3" : "px-3 py-3.5",
         active
-          ? "bg-[var(--sidebar-item-active-bg)] text-[var(--sidebar-item-active-text)]"
-          : "text-[var(--sidebar-text)] hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
+          ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
+          : "border-transparent text-[var(--sidebar-text)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
-      style={active && accentBg ? { background: accentBg } : undefined}
+      style={active ? { background: accentBg ?? "var(--sidebar-item-active-bg)" } : undefined}
     >
+      {active ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
       <div
-        className={cn("shrink-0 rounded-xl p-2", active ? "bg-white/12" : "bg-white/6")}
+        className={cn(
+          "shrink-0 rounded-2xl p-2.5 transition-all duration-200",
+          active ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "bg-white/8 group-hover:bg-white/12"
+        )}
         style={accentColor ? { color: accentColor } : undefined}
       >
         <Icon className="size-4" />
@@ -77,7 +81,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       {!collapsed && (
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium">{item.label}</div>
-          <div className={cn("mt-0.5 truncate text-xs", active ? "opacity-80" : "opacity-60")}>{item.hint}</div>
+          <div className={cn("mt-1 truncate text-xs", active ? "opacity-95" : "opacity-82")}>{item.hint}</div>
         </div>
       )}
       <SidebarTooltip label={item.label} show={collapsed} />
@@ -85,26 +89,27 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
   );
 }
 
-export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { locale: Locale; workspaceMode?: WorkspaceMode }) {
+export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHORT_VIDEO" }: { locale: Locale; workspaceMode?: WorkspaceMode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const text = copy[locale];
   const { collapsed } = useSidebar();
+  void _workspaceMode;
 
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [
-    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(122,139,114,0.16)", accentColor: "var(--sage)" },
-    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(122,137,152,0.16)", accentColor: "var(--slate-blue)" },
-    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(154,130,146,0.16)", accentColor: "var(--plum)" },
+    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
+    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
+    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
   ];
 
   /* ── Group 2: 生产车间 (Build) ── */
   const buildItems: NavItem[] = [
-    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "rgba(122,137,152,0.16)", accentColor: "var(--slate-blue)" },
-    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "rgba(122,139,114,0.16)", accentColor: "var(--sage)" },
-    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "rgba(176,125,106,0.16)", accentColor: "var(--terracotta)" },
-    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "rgba(154,130,146,0.16)", accentColor: "var(--plum)" },
+    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
+    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
+    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "rgba(200,166,145,0.18)", accentColor: "var(--terracotta)" },
+    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
   ];
 
   /* ── Group 3: 资产与配置 (Manage) ── */
@@ -125,19 +130,29 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
   return (
     <div className="flex h-full flex-col">
       {/* ── Brand Header ── */}
-      <div className={cn("mb-6 flex shrink-0 items-center", collapsed ? "justify-center" : "px-2")}>
-        <div className={cn("flex items-center transition-all", collapsed ? "size-10 justify-center rounded-xl bg-white/5" : "gap-3")}>
+      <div className={cn("mb-6 flex shrink-0 items-center", collapsed ? "justify-center" : "px-1")}>
+        <div
+          className={cn(
+            "transition-all",
+            collapsed
+              ? "flex size-12 items-center justify-center rounded-[20px] border border-white/8 bg-white/6"
+              : "theme-glow rounded-[28px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4"
+          )}
+        >
           {!collapsed ? (
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/5">
-              <GalleryVerticalEnd className="size-4 text-[var(--sidebar-text-hover)]" />
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,rgba(183,186,162,0.22),rgba(255,255,255,0.10))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+                <GalleryVerticalEnd className="size-4" />
+              </div>
+              <div>
+                <div className="theme-kicker text-[11px] font-semibold text-[var(--sidebar-text)] opacity-95">Marketing OS</div>
+                <span className="mt-1 block text-base font-semibold uppercase tracking-[0.28em] text-[var(--sidebar-text-hover)]">
+                  Tahoe
+                </span>
+              </div>
             </div>
           ) : (
             <GalleryVerticalEnd className="size-5 text-[var(--sidebar-text-hover)]" />
-          )}
-          {!collapsed && (
-            <span className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--sidebar-text-hover)]">
-              Tahoe
-            </span>
           )}
         </div>
       </div>
@@ -156,9 +171,10 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
 
         {/* ── Mode description card ── */}
         {!collapsed && (
-          <div className="mt-auto mb-2 rounded-2xl border border-white/6 bg-white/4 p-4">
-            <div className="text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
-            <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)]">
+          <div className="theme-glow mt-auto mb-2 rounded-[26px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 shadow-[0_20px_44px_rgba(0,0,0,0.14)]">
+            <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">Workspace rhythm</div>
+            <div className="mt-2 text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
+            <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)] opacity-95">
               {text.shell.workModeDesc}
             </p>
           </div>

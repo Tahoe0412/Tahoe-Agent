@@ -2,10 +2,13 @@ import { AlertTriangle, DatabaseZap, LoaderCircle } from "lucide-react";
 
 export function LoadingPanel({ label = "加载中..." }: { label?: string }) {
   return (
-    <div className="flex min-h-56 items-center justify-center rounded-[28px] border border-dashed border-[var(--border)] bg-[var(--surface-solid)]">
-      <div className="flex items-center gap-3 text-sm text-[var(--text-2)]">
-        <LoaderCircle className="size-4 animate-spin" />
-        {label}
+    <div className="theme-panel flex min-h-64 items-center justify-center rounded-[32px] p-6">
+      <div className="max-w-sm text-center">
+        <div className="mx-auto flex size-14 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.7))] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+          <LoaderCircle className="size-5 animate-spin" />
+        </div>
+        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-3)]">Working</div>
+        <div className="mt-2 text-base font-medium text-[var(--text-1)]">{label}</div>
       </div>
     </div>
   );
@@ -19,11 +22,14 @@ export function EmptyPanel({
   description?: string;
 }) {
   return (
-    <div className="flex min-h-56 items-center justify-center rounded-[28px] border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-6">
+    <div className="theme-panel flex min-h-72 items-center justify-center rounded-[32px] border-dashed p-6">
       <div className="max-w-sm text-center">
-        <DatabaseZap className="mx-auto size-5 text-[var(--text-3)]" />
-        <div className="mt-3 text-sm font-medium text-[var(--text-1)]">{title}</div>
-        <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{description}</div>
+        <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,var(--slate-blue-soft),rgba(255,255,255,0.72))] text-[var(--slate-blue)] shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
+          <DatabaseZap className="size-6" />
+        </div>
+        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">Stand by</div>
+        <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">{title}</div>
+        <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{description}</div>
       </div>
     </div>
   );
@@ -37,11 +43,14 @@ export function ErrorPanel({
   description?: string;
 }) {
   return (
-    <div className="flex min-h-56 items-center justify-center rounded-[28px] border border-[color:color-mix(in_srgb,var(--danger-text)_36%,transparent)] bg-[var(--danger-bg)] p-6">
+    <div className="flex min-h-64 items-center justify-center rounded-[32px] border border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--danger-bg)_88%,var(--surface-solid)),rgba(255,255,255,0.32))] p-6 shadow-[0_18px_42px_rgba(128,54,54,0.08)]">
       <div className="max-w-sm text-center">
-        <AlertTriangle className="mx-auto size-5 text-[var(--danger-text)]" />
-        <div className="mt-3 text-sm font-medium text-[var(--danger-text)]">{title}</div>
-        <div className="mt-2 text-sm leading-6 text-[var(--danger-text)]">{description}</div>
+        <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-[rgba(255,255,255,0.38)] text-[var(--danger-text)]">
+          <AlertTriangle className="size-6" />
+        </div>
+        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--danger-text)]">Needs attention</div>
+        <div className="mt-2 text-2xl font-semibold text-[var(--danger-text)]">{title}</div>
+        <div className="mt-3 text-sm leading-7 text-[var(--danger-text)]">{description}</div>
       </div>
     </div>
   );

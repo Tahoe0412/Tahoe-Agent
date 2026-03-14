@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight, FolderKanban, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
 import type { StyleReferenceInsight } from "@/lib/style-reference";
@@ -229,33 +230,93 @@ export function ProjectContext({
 
   if (density === "compact") {
     return (
-      <div className="rounded-[22px] border border-[var(--border-soft)] bg-[color-mix(in_srgb,var(--surface-solid)_78%,transparent)] px-5 py-4 shadow-[0_10px_28px_rgba(89,89,89,0.04)]">
+      <div className="theme-panel overflow-hidden rounded-[30px] px-5 py-5 lg:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--text-3)]">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-3)]">
               <span>当前项目</span>
               {modeLabel ? <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] text-[var(--text-2)] normal-case tracking-normal">{modeLabel}</span> : null}
               {project ? <span className="text-[10px] tracking-[0.12em] text-[var(--text-3)]">{project.id}</span> : null}
             </div>
-            <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-2">
-              <h3 className="text-[1.75rem] font-semibold tracking-tight text-[var(--text-1)]">{project?.title ?? "未选择项目"}</h3>
-            </div>
-            {project?.topic_query ? <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div> : null}
-            {summaryLine ? <div className="mt-3 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
-            {compactMeta.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {compactMeta.map((item) => (
-                  <span key={item} className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
-                    {item}
-                  </span>
-                ))}
+            {project ? (
+              <>
+                <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
+                  <h3 className="theme-font-display text-[2rem] font-semibold tracking-tight text-[var(--text-1)]">{project.title}</h3>
+                </div>
+                {project.topic_query ? <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div> : null}
+                {summaryLine ? <div className="mt-3 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
+                {compactMeta.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {compactMeta.map((item) => (
+                      <span key={item} className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className="mt-4 rounded-[28px] border border-[var(--border-soft)] bg-[linear-gradient(135deg,rgba(183,186,162,0.10),rgba(255,255,255,0.42))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)]">
+                      <Sparkles className="size-3.5" />
+                      Ready for a fresh brief
+                    </div>
+                    <h3 className="theme-font-display mt-4 text-[2rem] font-semibold tracking-tight text-[var(--text-1)]">还没有选中项目</h3>
+                    <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--text-2)]">
+                      先从总览页新建一个项目，或者去项目中心挑一个继续做。选中之后，这里会立刻变成你的任务摘要、边界条件和下一步入口。
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:min-w-[220px]">
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] shadow-[0_18px_38px_rgba(196,111,66,0.22)] transition hover:-translate-y-0.5"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Plus className="size-4" />
+                        去总览新建项目
+                      </span>
+                      <ArrowRight className="size-4" />
+                    </Link>
+                    <Link
+                      href="/project-hub"
+                      className="inline-flex items-center justify-between rounded-[20px] border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_92%,transparent)] px-4 py-3 text-sm font-medium text-[var(--text-1)] transition hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border))]"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <FolderKanban className="size-4 text-[var(--accent-strong)]" />
+                        去项目中心切换
+                      </span>
+                      <ArrowRight className="size-4 text-[var(--text-3)]" />
+                    </Link>
+                  </div>
+                </div>
+                {recentProjects.length > 0 ? (
+                  <div className="mt-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">最近项目</div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {recentProjects.slice(0, 3).map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/brief-studio?projectId=${item.id}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border-soft))] hover:text-[var(--text-1)]"
+                        >
+                          <span className="font-medium">{item.title}</span>
+                          <ArrowRight className="size-3.5 text-[var(--text-3)]" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
+            )}
             <div className="mt-4 flex flex-wrap items-center gap-2.5">
-              <Button type="button" variant="ghost" onClick={() => setIsEditing((value) => !value)}>
-                {isEditing ? "收起编辑" : "编辑项目信息"}
-              </Button>
-              {!isEditing && (project?.introduction || project?.coreIdea || project?.originalScript || project?.styleReferenceSample || project?.styleReferenceInsight) ? (
+              {project ? (
+                <Button type="button" variant="ghost" onClick={() => setIsEditing((value) => !value)}>
+                  {isEditing ? "收起编辑" : "编辑项目信息"}
+                </Button>
+              ) : null}
+              {project && !isEditing && (project.introduction || project.coreIdea || project.originalScript || project.styleReferenceSample || project.styleReferenceInsight) ? (
                 <Disclosure
                   title={<span className="text-sm font-medium text-[var(--text-2)]">查看项目背景</span>}
                   defaultOpen={false}
@@ -265,11 +326,11 @@ export function ProjectContext({
                 </Disclosure>
               ) : null}
               {message ? <div className="text-sm text-[var(--accent-strong)]">{message}</div> : null}
-              {error ? <div className="text-sm text-[var(--danger)]">{error}</div> : null}
+              {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
             </div>
           </div>
         </div>
-        {isEditing ? (
+        {project && isEditing ? (
           <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
             <div className="grid gap-4 xl:grid-cols-2">
               <label className="space-y-2">
@@ -422,7 +483,7 @@ export function ProjectContext({
                     {isEditing ? "收起编辑" : "编辑项目信息"}
                   </Button>
                   {message ? <div className="text-sm text-[var(--accent-strong)]">{message}</div> : null}
-                  {error ? <div className="text-sm text-[var(--danger)]">{error}</div> : null}
+                  {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
                 </div>
                 {isEditing ? (
                   <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
