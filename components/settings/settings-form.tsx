@@ -124,7 +124,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {providerStatus.map((provider) => (
-          <div key={provider.key} className="theme-panel-muted rounded-[18px] p-4">
+          <div key={provider.key} className="theme-panel-muted rounded-xl p-4">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{provider.label}</div>
             <div className={`mt-3 text-sm font-medium ${provider.ready ? "text-[var(--ok-text)]" : "text-[var(--danger-text)]"}`}>
               {provider.ready ? "已检测到可用 key" : "未检测到 key"}
@@ -133,7 +133,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         ))}
       </div>
 
-      <label className="theme-panel-muted flex items-center gap-3 rounded-[18px] px-4 py-3 text-sm text-[var(--text-2)]">
+      <label className="theme-panel-muted flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--text-2)]">
         <input
           type="checkbox"
           checked={form.llm_mock_mode}
@@ -148,7 +148,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <input
             value={form.openai_api_key}
             onChange={(event) => setForm((current) => ({ ...current, openai_api_key: event.target.value }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
             placeholder="sk-..."
           />
           <div className="text-xs text-[var(--text-3)]">{form.openai_api_key.trim() ? "已填写" : "未填写"}</div>
@@ -159,7 +159,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <input
             value={form.gemini_api_key}
             onChange={(event) => setForm((current) => ({ ...current, gemini_api_key: event.target.value }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
             placeholder="AIza..."
           />
           <div className="text-xs text-[var(--text-3)]">{form.gemini_api_key.trim() ? "已填写" : "未填写"}</div>
@@ -169,7 +169,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <input
             value={form.deepseek_api_key}
             onChange={(event) => setForm((current) => ({ ...current, deepseek_api_key: event.target.value }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
             placeholder="sk-..."
           />
           <div className="text-xs text-[var(--text-3)]">{form.deepseek_api_key.trim() ? "已填写" : "未填写"}</div>
@@ -180,14 +180,14 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <input
             value={form.qwen_api_key}
             onChange={(event) => setForm((current) => ({ ...current, qwen_api_key: event.target.value }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
             placeholder="sk-..."
           />
           <div className="text-xs text-[var(--text-3)]">{form.qwen_api_key.trim() ? "已填写" : "未填写"}</div>
         </label>
       </div>
 
-      <div className="theme-panel-muted rounded-[18px] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         本地如果是通过 `.env.local` 修改 API key，改完后必须重启 `npm run dev`。Next.js 不会在运行中自动重新读取这些环境变量。
       </div>
 
@@ -196,7 +196,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         <div className="text-sm leading-6 text-[var(--text-2)]">这里才是日常真正会生效的模型分配。不同步骤可以选各自最合适的模型。</div>
         <div className="grid gap-4">
           {modelRouteKeys.map((key) => (
-            <div key={key} className="theme-panel-muted grid gap-3 rounded-[18px] p-4 md:grid-cols-[0.95fr_0.7fr_1fr]">
+            <div key={key} className="theme-panel-muted grid gap-3 rounded-xl p-4 md:grid-cols-[0.95fr_0.7fr_1fr]">
               <div>
                 <div className="text-sm font-medium text-[var(--text-1)]">
                   {{
@@ -219,7 +219,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
               <select
                 value={route.provider}
                 onChange={(event) => updateRouteProvider(key, event.target.value as LlmProvider)}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                className="theme-input rounded-xl px-4 py-3 text-sm"
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="GEMINI">Gemini</option>
@@ -247,7 +247,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                       },
                     }));
                   }}
-                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                  className="theme-input rounded-xl px-4 py-3 text-sm"
                 >
                   {routeOptions.map((model) => (
                     <option key={model} value={model}>
@@ -271,7 +271,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                         },
                       }))
                     }
-                    className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                    className="theme-input rounded-xl px-4 py-3 text-sm"
                     placeholder={getDefaultModelForProvider(route.provider)}
                   />
                 ) : null}
@@ -295,7 +295,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         </div>
       </div>
 
-      <div className="theme-panel-muted rounded-[22px] p-4">
+      <div className="theme-panel-muted rounded-xl p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-[var(--text-1)]">全局兜底模型（高级）</div>
@@ -315,7 +315,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
               <select
                 value={form.llm_provider}
                 onChange={(event) => updateMainProvider(event.target.value as LlmProvider)}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                className="theme-input rounded-xl px-4 py-3 text-sm"
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="GEMINI">Google Gemini</option>
@@ -337,7 +337,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                   setMainModelCustom(false);
                   setForm((current) => ({ ...current, llm_model: value }));
                 }}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                className="theme-input rounded-xl px-4 py-3 text-sm"
               >
                 {mainModelOptions.map((model) => (
                   <option key={model} value={model}>
@@ -350,7 +350,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                 <input
                   value={form.llm_model}
                   onChange={(event) => setForm((current) => ({ ...current, llm_model: event.target.value }))}
-                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                  className="theme-input rounded-xl px-4 py-3 text-sm"
                   placeholder={getDefaultModelForProvider(form.llm_provider)}
                 />
               ) : null}
@@ -366,7 +366,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <select
             value={form.news_search_provider}
             onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "TAVILY" }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
           >
             <option value="MOCK">Mock</option>
             <option value="TAVILY">Tavily</option>
@@ -378,13 +378,13 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <input
             value={form.tavily_api_key}
             onChange={(event) => setForm((current) => ({ ...current, tavily_api_key: event.target.value }))}
-            className="theme-input rounded-[16px] px-4 py-3 text-sm"
+            className="theme-input rounded-xl px-4 py-3 text-sm"
             placeholder="tvly-..."
           />
         </label>
       </div>
 
-      <label className="theme-panel-muted flex items-center gap-3 rounded-[18px] px-4 py-3 text-sm text-[var(--text-2)]">
+      <label className="theme-panel-muted flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--text-2)]">
         <input
           type="checkbox"
           checked={form.news_search_mock_mode}
@@ -398,7 +398,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         <input
           value={form.app_base_url}
           onChange={(event) => setForm((current) => ({ ...current, app_base_url: event.target.value }))}
-          className="theme-input rounded-[16px] px-4 py-3 text-sm"
+          className="theme-input rounded-xl px-4 py-3 text-sm"
           placeholder="http://localhost:3001"
         />
       </label>
@@ -411,7 +411,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
       </div>
 
-      <div className="theme-panel-muted rounded-[18px] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         当前有效模型路径：
         {form.llm_mock_mode
           ? " LLM mock 模式已开启，真实模型不会被调用。"
