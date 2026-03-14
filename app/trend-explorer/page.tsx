@@ -89,6 +89,19 @@ export default async function TrendExplorerPage({
     sourceStatusTitle: locale === "en" ? "Current Data Sources" : "当前数据情况",
     sourceStatusConnected: locale === "en" ? "Connected" : "已接通",
     sourceStatusPlanned: locale === "en" ? "Planned" : "下一步计划",
+    leadTopicTitle: locale === "en" ? "Lead Topic: " : "主推主题：",
+    reachLabel: locale === "en" ? "Reach" : "触达范围",
+    engagementLabel: locale === "en" ? "Engagement" : "互动留存",
+    velocityLabel: locale === "en" ? "Velocity" : "传播速度",
+    scoreRingLead: locale === "en" ? "Lead Topic" : "优先主题",
+    leadTopicAdvice: locale === "en" ? "Focus on this topic for the cover, title, hook, or first post. Avoid spreading across multiple directions simultaneously." : "先围绕这一个主题做封面、标题、开场或首条内容，不要同时铺开多个方向。",
+    altOptionPrefix: locale === "en" ? "Alternative " : "备选 ",
+    altScoreLabel: locale === "en" ? "Score" : "分数",
+    altAdviceGood: locale === "en" ? "If the lead topic doesn't fit, use this as the second choice." : "如果主推主题不合适，再用这个作为第二选择。",
+    altAdviceWait: locale === "en" ? "Keep on watchlist. Not recommended as immediate lead." : "先放着观察，不建议这轮立刻主推。",
+    viewMoreTrends: (count: number) => locale === "en" ? `View remaining ${count} trends` : `查看其余 ${count} 个趋势主题`,
+    noConnectedSources: locale === "en" ? "No data sources connected yet." : "当前还没有来源数据。",
+    emptyPrimaryLabel: locale === "en" ? "Select a topic first" : "先选一个主题",
   };
 
   const connectedPlatforms = ((workspace?.platformCoverage.connected ?? []) as string[]).filter(Boolean);
@@ -197,7 +210,7 @@ export default async function TrendExplorerPage({
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-2">
-                          {connectedPlatforms.length ? connectedPlatforms.map((item) => <MetaPill key={item}>{item}</MetaPill>) : <span className="text-sm text-[var(--text-2)]">当前还没有来源数据。</span>}
+                          {connectedPlatforms.length ? connectedPlatforms.map((item) => <MetaPill key={item}>{item}</MetaPill>) : <span className="text-sm text-[var(--text-2)]">{ui.noConnectedSources}</span>}
                           {plannedPlatforms.map((item) => (
                             <span key={item} className="rounded-full border border-dashed border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-3)]">
                               {item}
@@ -213,7 +226,7 @@ export default async function TrendExplorerPage({
                         </div>
                         <div>
                           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep2}</div>
-                          <div className="mt-2 text-sm text-[var(--text-2)]">{primaryTrend ? primaryTrend.label : "先选一个主题"}</div>
+                          <div className="mt-2 text-sm text-[var(--text-2)]">{primaryTrend ? primaryTrend.label : ui.emptyPrimaryLabel}</div>
                         </div>
                         <div>
                           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep3}</div>
@@ -225,7 +238,7 @@ export default async function TrendExplorerPage({
                           <div className="min-w-0">
                             <div className="flex items-center gap-3">
                               <div className="grid size-8 place-items-center rounded-full bg-[var(--surface-strong)] text-xs font-semibold text-[var(--text-inverse)]">1</div>
-                              <div className="text-lg font-semibold text-[var(--text-1)]">主推主题：{primaryTrend.label}</div>
+                              <div className="text-lg font-semibold text-[var(--text-1)]">{ui.leadTopicTitle}{primaryTrend.label}</div>
                             </div>
                             <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{primaryTrend.topic}</div>
                             <div className="mt-4 flex flex-wrap gap-2">
@@ -239,17 +252,17 @@ export default async function TrendExplorerPage({
                           </div>
 
                           <div className="space-y-3">
-                            <ScoreBar label="reach" value={primaryTrend.reach} />
-                            <ScoreBar label="engagement" value={primaryTrend.engagement} />
-                            <ScoreBar label="velocity" value={primaryTrend.velocity} />
+                            <ScoreBar label={ui.reachLabel} value={primaryTrend.reach} />
+                            <ScoreBar label={ui.engagementLabel} value={primaryTrend.engagement} />
+                            <ScoreBar label={ui.velocityLabel} value={primaryTrend.velocity} />
                           </div>
 
                           <div className="space-y-3">
                             <div className="theme-panel-muted rounded-[20px] p-3">
-                              <ScoreRing value={primaryTrend.total} label="优先主题" />
+                              <ScoreRing value={primaryTrend.total} label={ui.scoreRingLead} />
                             </div>
                             <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-3 text-sm leading-6 text-[var(--text-2)]">
-                              先围绕这一个主题做封面、标题、开场或首条内容，不要同时铺开多个方向。
+                              {ui.leadTopicAdvice}
                             </div>
                           </div>
                         </div>
@@ -261,17 +274,17 @@ export default async function TrendExplorerPage({
                             <div key={row.topic} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
                               <div className="flex items-center justify-between gap-3">
                                 <div>
-                                  <div className="text-sm font-semibold text-[var(--text-1)]">备选 {index + 2}</div>
+                                  <div className="text-sm font-semibold text-[var(--text-1)]">{ui.altOptionPrefix}{index + 2}</div>
                                   <div className="mt-1 text-base font-medium text-[var(--text-1)]">{row.label}</div>
                                 </div>
-                                <ScoreRing value={row.total} label="分数" />
+                                <ScoreRing value={row.total} label={ui.altScoreLabel} />
                               </div>
                               <div className="mt-3 flex flex-wrap gap-2">
                                 <MetaPill>{row.platforms}</MetaPill>
                                 <MetaPill>{row.evidence} {ui.evidenceLabel}</MetaPill>
                               </div>
                               <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">
-                                {row.crossPlatform >= 60 ? "如果主推主题不合适，再用这个作为第二选择。" : "先放着观察，不建议这轮立刻主推。"}
+                                {row.crossPlatform >= 60 ? ui.altAdviceGood : ui.altAdviceWait}
                               </div>
                             </div>
                           ))}
@@ -283,7 +296,7 @@ export default async function TrendExplorerPage({
                           className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4"
                           summaryClassName="text-sm font-medium text-[var(--text-1)]"
                           contentClassName="mt-4 space-y-3"
-                          title={`查看其余 ${secondaryTrends.length} 个趋势主题`}
+                          title={ui.viewMoreTrends(secondaryTrends.length)}
                         >
                             {secondaryTrends.map((row, index) => (
                               <div key={row.topic} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
