@@ -146,8 +146,21 @@ textarea::placeholder {
   color: var(--text-1);
 }
 
+.theme-header {
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.theme-drawer-backdrop {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
 .theme-sidebar {
-  border: 1px solid var(--sidebar-border);
+  border-right: 1px solid var(--sidebar-border);
   background: linear-gradient(180deg, var(--sidebar-1) 0%, var(--sidebar-2) 100%);
   box-shadow: var(--shadow-strong);
 }

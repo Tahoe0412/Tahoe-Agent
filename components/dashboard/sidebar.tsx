@@ -42,17 +42,7 @@ export function DashboardSidebar({ locale, workspaceMode = "SHORT_VIDEO" }: { lo
   ];
 
   return (
-    <div className="space-y-10">
-      <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-3)]">AI Video Ops</p>
-        <div>
-          <h1 className="font-serif text-3xl tracking-tight text-[var(--text-inverse)]">{text.shell.appName}</h1>
-          <p className="mt-2 text-sm leading-6 text-[color:rgba(246,240,232,0.76)]">
-            {text.shell.appDesc}
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <nav className="space-y-4">
         <div className="px-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[color:rgba(246,240,232,0.5)]">
           当前最常用
