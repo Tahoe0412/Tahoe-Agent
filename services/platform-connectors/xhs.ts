@@ -4,15 +4,19 @@ import type { ContentItem, Creator, PlatformCollectInput } from "@/types/platfor
 export class XhsConnector extends BasePlatformConnector {
   readonly platform = "XHS" as const;
 
-  protected async fetchLive(_input: PlatformCollectInput, _apiKey: string): Promise<Record<string, never>> {
+  protected async fetchLive(input: PlatformCollectInput, apiKey: string): Promise<Record<string, never>> {
+    void input;
+    void apiKey;
     return {};
   }
 
-  protected transformCreators(_payload: unknown): Creator[] {
+  protected transformCreators(payload: unknown): Creator[] {
+    void payload;
     return [];
   }
 
-  protected transformContentItems(_payload: unknown): ContentItem[] {
+  protected transformContentItems(payload: unknown): ContentItem[] {
+    void payload;
     return [];
   }
 }
