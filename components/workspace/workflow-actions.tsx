@@ -4,6 +4,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { Route } from "next";
 import { Button } from "@/components/ui/button";
+import { ErrorNotice } from "@/components/ui/error-notice";
+import { apiRequest } from "@/lib/client-api";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
 
 export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { projectId: string; workspaceMode?: WorkspaceMode }) {
@@ -11,15 +13,17 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, setPending] = useState<"full" | "report" | null>(null);
+  const [lastAction, setLastAction] = useState<"full" | "report" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [detail, setDetail] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   async function run(mode: "full" | "report") {
     setPending(mode);
+    setLastAction(mode);
     setMessage(null);
-    setDetail(null);
+    setError(null);
     try {
-      const response = await fetch(`/api/projects/${projectId}/workflow/run`, {
+      await apiRequest<{ scene_count?: number }>(`/api/projects/${projectId}/workflow/run`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -27,27 +31,14 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
         body: JSON.stringify({ mode }),
       });
 
-      const payload = (await response.json()) as {
-        success: boolean;
-        data?: { scene_count?: number };
-        error?: { message: string; detail?: string };
-      };
-      if (!payload.success) {
-        setMessage(payload.error?.message || "执行失败");
-        setDetail(payload.error?.detail || null);
-        return;
-      }
-
       setMessage(mode === "full" ? "全流程已执行，已更新项目数据。" : "研究报告已重新生成。");
-      setDetail(null);
 
       const query = new URLSearchParams(searchParams.toString());
       query.set("projectId", projectId);
       router.replace(`${pathname}?${query.toString()}` as Route);
       router.refresh();
-    } catch (error) {
-      setMessage("流程执行失败");
-      setDetail(error instanceof Error ? error.message : "网络请求未完成，请稍后重试。");
+    } catch (requestError) {
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -86,7 +77,7 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
         </div>
       ) : null}
       {message ? <div className="mt-3 text-sm text-[var(--text-2)]">{message}</div> : null}
-      {detail ? <div className="theme-chip-danger mt-2 rounded-2xl px-3 py-2 text-sm">{detail}</div> : null}
+      {error ? <div className="mt-3"><ErrorNotice error={error} onRetry={lastAction ? () => void run(lastAction) : undefined} /></div> : null}
     </div>
   );
 }

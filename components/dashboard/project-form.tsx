@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ErrorNotice } from "@/components/ui/error-notice";
 import { ProjectModePicker } from "@/components/dashboard/project-mode-picker";
+import { apiRequest } from "@/lib/client-api";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
 import { getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
@@ -20,6 +22,7 @@ export function ProjectForm({ locale = "zh" }: { locale?: Locale }) {
   const [usageScenario, setUsageScenario] = useState<UsageScenario>("XIAOHONGSHU_POST");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const modeMeta = useMemo(() => getWorkspaceModeMeta(workspaceMode, locale), [locale, workspaceMode]);
   const writingMeta = useMemo(() => getWritingModeMeta(writingMode, locale), [locale, writingMode]);
   const styleMeta = useMemo(() => getStyleTemplateMeta(styleTemplate, locale), [locale, styleTemplate]);
@@ -106,6 +109,7 @@ export function ProjectForm({ locale = "zh" }: { locale?: Locale }) {
   async function handleSubmit(formData: FormData) {
     setSubmitting(true);
     setMessage(null);
+    setSubmitError(null);
 
     const payload = {
       title: String(formData.get("title") || ""),
@@ -122,24 +126,22 @@ export function ProjectForm({ locale = "zh" }: { locale?: Locale }) {
       workspaceMode,
     };
 
-    const response = await fetch("/api/projects", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = (await response.json()) as { success: boolean; data?: { project: { id: string } }; error?: { message: string } };
-
-    if (result.success && result.data) {
-      setMessage(ui.created(result.data.project.id));
-      router.push(`/?projectId=${result.data.project.id}`);
-    } else {
-      setMessage(result.error?.message || ui.requestFailed);
+    try {
+      const result = await apiRequest<{ project: { id: string } }>("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      setMessage(ui.created(result.project.id));
+      router.push(`/?projectId=${result.project.id}`);
+    } catch (error) {
+      setSubmitError(error);
+      setMessage(null);
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   }
 
   return (
@@ -364,6 +366,7 @@ export function ProjectForm({ locale = "zh" }: { locale?: Locale }) {
             </Button>
             {message ? <p className="text-sm text-[var(--text-2)]">{message}</p> : null}
           </div>
+          {submitError ? <ErrorNotice error={submitError} locale={locale} /> : null}
         </div>
       </div>
     </form>

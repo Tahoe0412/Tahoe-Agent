@@ -23,6 +23,7 @@ describe("http-error helpers", () => {
     expect(classifyRouteError(new Error("Project not found."))).toEqual({
       status: 404,
       detail: "Project not found.",
+      code: "NOT_FOUND",
     });
   });
 

@@ -5,8 +5,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
+import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ScoreBar } from "@/components/ui/score-bar";
+import { apiRequest } from "@/lib/client-api";
 
 type ScenePlannerRow = {
   id: string;
@@ -93,17 +95,6 @@ function PlannerStat({
   );
 }
 
-async function parseResponse(response: Response) {
-  const payload = (await response.json()) as {
-    success: boolean;
-    error?: { message?: string };
-  };
-
-  if (!payload.success) {
-    throw new Error(payload.error?.message || "请求失败。");
-  }
-}
-
 export function ScenePlannerWorkbench({
   projectId,
   rows,
@@ -120,8 +111,9 @@ export function ScenePlannerWorkbench({
   const [assetType, setAssetType] = useState<(typeof assetTypeOptions)[number]>("CHARACTER_BASE");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pending, setPending] = useState<"classify" | "assets" | "upload" | null>(null);
+  const [lastAction, setLastAction] = useState<"classify" | "assets" | "upload" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
@@ -135,23 +127,22 @@ export function ScenePlannerWorkbench({
     }
 
     setPending("classify");
+    setLastAction("classify");
     setMessage(null);
     setError(null);
 
     try {
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/classify`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}),
-        }),
-      );
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}/classify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
       setMessage("该镜头的分类已更新。");
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "分类失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -163,19 +154,18 @@ export function ScenePlannerWorkbench({
     }
 
     setPending("assets");
+    setLastAction("assets");
     setMessage(null);
     setError(null);
 
     try {
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
-          method: "POST",
-        }),
-      );
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
+        method: "POST",
+      });
       setMessage("该镜头的素材依赖已更新。");
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "素材分析失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -192,6 +182,7 @@ export function ScenePlannerWorkbench({
     }
 
     setPending("upload");
+    setLastAction("upload");
     setMessage(null);
     setError(null);
 
@@ -202,23 +193,19 @@ export function ScenePlannerWorkbench({
       formData.set("script_scene_id", selectedScene.id);
       formData.set("continuity_group", selectedScene.continuityGroup);
 
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/assets/upload`, {
-          method: "POST",
-          body: formData,
-        }),
-      );
+      await apiRequest(`/api/projects/${projectId}/assets/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
-          method: "POST",
-        }),
-      );
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
+        method: "POST",
+      });
       setMessage("素材已上传并回写到当前镜头。");
       setSelectedFile(null);
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "保存素材失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -460,7 +447,20 @@ export function ScenePlannerWorkbench({
           ) : null}
 
           {message ? <div className="theme-chip-ok rounded-2xl px-3 py-2 text-sm">{message}</div> : null}
-          {error ? <div className="theme-chip-danger rounded-2xl px-3 py-2 text-sm">{error}</div> : null}
+          {error ? (
+            <ErrorNotice
+              error={error}
+              onRetry={
+                lastAction === "classify"
+                  ? () => void rerunClassification()
+                  : lastAction === "assets"
+                    ? () => void rerunAssets()
+                    : lastAction === "upload"
+                      ? () => void saveAssetMetadata()
+                      : undefined
+              }
+            />
+          ) : null}
         </DetailPanel>
       </div>
     </div>

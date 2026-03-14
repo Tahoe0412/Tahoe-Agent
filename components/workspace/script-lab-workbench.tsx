@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
+import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
+import { apiRequest } from "@/lib/client-api";
 
 type ScriptLabRow = {
   id: string;
@@ -60,17 +62,6 @@ function StatCard({ label, value, caption }: { label: string; value: string; cap
   );
 }
 
-async function parseResponse(response: Response) {
-  const payload = (await response.json()) as {
-    success: boolean;
-    error?: { message?: string };
-  };
-
-  if (!payload.success) {
-    throw new Error(payload.error?.message || "请求失败。");
-  }
-}
-
 export function ScriptLabWorkbench({
   projectId,
   rows,
@@ -87,8 +78,9 @@ export function ScriptLabWorkbench({
   const [continuityGroup, setContinuityGroup] = useState(rows[0]?.continuityGroup ?? "");
   const [durationSec, setDurationSec] = useState(rows[0]?.durationSec ?? 6);
   const [pending, setPending] = useState<"save" | "classify" | "assets" | null>(null);
+  const [lastAction, setLastAction] = useState<"save" | "classify" | "assets" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
@@ -116,37 +108,36 @@ export function ScriptLabWorkbench({
     }
 
     setPending("save");
+    setLastAction("save");
     setMessage(null);
     setError(null);
 
     try {
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rewritten_for_ai: rewritten,
-            shot_goal: shotGoal,
-            continuity_group: continuityGroup,
-            duration_sec: durationSec,
-            visual_priority: visualPriority
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean),
-            avoid: avoid
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean),
-          }),
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rewritten_for_ai: rewritten,
+          shot_goal: shotGoal,
+          continuity_group: continuityGroup,
+          duration_sec: durationSec,
+          visual_priority: visualPriority
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          avoid: avoid
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
         }),
-      );
+      });
 
       setMessage("Scene 已保存。");
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "保存失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -158,26 +149,25 @@ export function ScriptLabWorkbench({
     }
 
     setPending("classify");
+    setLastAction("classify");
     setMessage(null);
     setError(null);
 
     try {
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/classify`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rewritten_for_ai: rewritten,
-          }),
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}/classify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rewritten_for_ai: rewritten,
         }),
-      );
+      });
 
       setMessage("分类已重跑。");
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "分类失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -189,20 +179,19 @@ export function ScriptLabWorkbench({
     }
 
     setPending("assets");
+    setLastAction("assets");
     setMessage(null);
     setError(null);
 
     try {
-      await parseResponse(
-        await fetch(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
-          method: "POST",
-        }),
-      );
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}/assets/analyze`, {
+        method: "POST",
+      });
 
       setMessage("素材依赖已重算。");
       router.refresh();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "素材分析失败。");
+      setError(requestError);
     } finally {
       setPending(null);
     }
@@ -312,7 +301,20 @@ export function ScriptLabWorkbench({
               </div>
 
               {message ? <div className="theme-chip-ok rounded-2xl px-3 py-2 text-sm">{message}</div> : null}
-              {error ? <div className="theme-chip-danger rounded-2xl px-3 py-2 text-sm">{error}</div> : null}
+              {error ? (
+                <ErrorNotice
+                  error={error}
+                  onRetry={
+                    lastAction === "save"
+                      ? () => void saveScene()
+                      : lastAction === "classify"
+                        ? () => void rerunClassification()
+                        : lastAction === "assets"
+                          ? () => void rerunAssets()
+                          : undefined
+                  }
+                />
+              ) : null}
 
               {showAdvanced ? (
                 <>

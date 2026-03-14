@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ErrorNotice } from "@/components/ui/error-notice";
+import { apiRequest } from "@/lib/client-api";
 import { defaultModelRoutes, getDefaultModelForProvider, modelRouteKeys, providerModelOptions, type ModelRouteKey } from "@/lib/model-routing";
 
 type SettingsPayload = {
@@ -53,7 +55,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
   const [routeModelCustom, setRouteModelCustom] = useState<Record<ModelRouteKey, boolean>>(initialRouteCustom);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const providerStatus = [
     { key: "OPENAI", label: "OpenAI", ready: Boolean(form.openai_api_key.trim()) },
     { key: "GEMINI", label: "Gemini", ready: Boolean(form.gemini_api_key.trim()) },
@@ -101,23 +103,20 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     setMessage(null);
     setError(null);
 
-    const response = await fetch("/api/settings", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
-
-    const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
-    if (!payload.success) {
-      setError(payload.error?.detail || payload.error?.message || "保存失败。");
+    try {
+      await apiRequest("/api/settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+      setMessage("设置已保存。重启 dev server 后，新的 provider / key 会立即生效。");
+    } catch (requestError) {
+      setError(requestError);
+    } finally {
       setPending(false);
-      return;
     }
-
-    setMessage("设置已保存。重启 dev server 后，新的 provider / key 会立即生效。");
-    setPending(false);
   }
 
   return (
@@ -408,8 +407,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           {pending ? "保存中..." : "保存设置"}
         </Button>
         {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
-        {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
       </div>
+      {error ? <ErrorNotice error={error} /> : null}
 
       <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         当前有效模型路径：
