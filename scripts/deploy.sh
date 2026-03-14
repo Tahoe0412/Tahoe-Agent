@@ -12,14 +12,14 @@ else
   echo "[deploy] Skipping git pull because code was uploaded by CI."
 fi
 
+echo "[deploy] Stopping application..."
+pm2 stop tahoe 2>/dev/null || true
+
 echo "[deploy] Installing dependencies..."
 npm ci
 
 echo "[deploy] Cleaning stale build cache..."
-if [ -d ".next" ]; then
-  chmod -R u+rwX .next 2>/dev/null || true
-  rm -rf .next
-fi
+rm -rf .next 2>/dev/null || true
 
 echo "[deploy] Generating Prisma client..."
 npx prisma generate
