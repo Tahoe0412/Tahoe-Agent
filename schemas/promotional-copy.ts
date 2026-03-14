@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { platformSurfaceSchema } from "@/schemas/production-control";
 
 export const promotionalCopyDiagnosisSchema = z.object({
   overall_score: z.number().min(0).max(100),

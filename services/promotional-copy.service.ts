@@ -16,10 +16,33 @@ function compactLines(items: Array<string | null | undefined>) {
   return items.map((item) => (item ?? "").trim()).filter(Boolean);
 }
 
+function normalizeDisplayText(value: unknown): string {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeDisplayText(item)).filter(Boolean).join("；");
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, item]) => `${key}：${normalizeDisplayText(item)}`)
+      .filter(Boolean)
+      .join("；");
+  }
+
+  return "";
+}
+
 function normalizeStringList(value: unknown) {
   if (Array.isArray(value)) {
     return value
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .map((item) => normalizeDisplayText(item))
       .filter(Boolean);
   }
 
@@ -31,6 +54,22 @@ function normalizeStringList(value: unknown) {
   }
 
   return [];
+}
+
+function normalizeDiagnosis(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const source = value as Record<string, unknown>;
+  return {
+    ...source,
+    overall_score: typeof source.overall_score === "number" ? source.overall_score : undefined,
+    strengths: normalizeStringList(source.strengths),
+    issues: normalizeStringList(source.issues),
+    rewrite_focus: normalizeStringList(source.rewrite_focus),
+    summary: normalizeDisplayText(source.summary),
+  };
 }
 
 function normalizeRichText(value: unknown) {
@@ -181,15 +220,7 @@ function normalizePromotionalCopyOutput(value: unknown, fallbackSurfaces: Platfo
     risk_notes: normalizeStringList(source.risk_notes),
     recommended_next_steps: normalizeStringList(source.recommended_next_steps),
     platform_adaptations: normalizePlatformAdaptations(source.platform_adaptations, fallbackSurfaces),
-    quality_diagnosis:
-      source.quality_diagnosis && typeof source.quality_diagnosis === "object"
-        ? {
-            ...((source.quality_diagnosis as Record<string, unknown>) ?? {}),
-            strengths: normalizeStringList((source.quality_diagnosis as Record<string, unknown>).strengths),
-            issues: normalizeStringList((source.quality_diagnosis as Record<string, unknown>).issues),
-            rewrite_focus: normalizeStringList((source.quality_diagnosis as Record<string, unknown>).rewrite_focus),
-          }
-        : source.quality_diagnosis,
+    quality_diagnosis: normalizeDiagnosis(source.quality_diagnosis),
   };
 }
 
@@ -302,59 +333,6 @@ function buildRestrainedSpatialRewritePrompt(params: {
     "- 只输出主稿，不要输出平台稿。",
   ].join("\n");
 }
-
-const promotionalCopyEnhancementSchema = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    master_angle: { type: "string" },
-    headline_options: { type: "array", items: { type: "string" } },
-    hero_copy: { type: "string" },
-    long_form_copy: { type: "string" },
-    proof_points: { type: "array", items: { type: "string" } },
-    call_to_action: { type: "string" },
-    risk_notes: { type: "array", items: { type: "string" } },
-    platform_adaptations: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          platform_surface: { type: "string" },
-          title_text: { type: "string" },
-          body_text: { type: "string" },
-          hook_text: { type: "string" },
-          cover_copy: { type: "string" },
-          interaction_prompt: { type: "string" },
-        },
-        required: ["platform_surface", "body_text"],
-      },
-    },
-    recommended_next_steps: { type: "array", items: { type: "string" } },
-    quality_diagnosis: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        overall_score: { type: "number" },
-        strengths: { type: "array", items: { type: "string" } },
-        issues: { type: "array", items: { type: "string" } },
-        rewrite_focus: { type: "array", items: { type: "string" } },
-        summary: { type: "string" },
-      },
-      required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
-    },
-  },
-  required: [
-    "master_angle",
-    "headline_options",
-    "hero_copy",
-    "long_form_copy",
-    "proof_points",
-    "call_to_action",
-    "recommended_next_steps",
-    "quality_diagnosis",
-  ],
-} as const;
 
 function buildMockCopy(params: {
   projectTitle: string;
@@ -678,7 +656,7 @@ export class PromotionalCopyService {
             await prisma.strategyTask.update({
               where: { id: taskId },
               data: {
-                task_json: toJson({ ...existingJson, quality_diagnosis: diagnosisResult }),
+                task_json: toJson({ ...existingJson, quality_diagnosis: normalizeDiagnosis(diagnosisResult) }),
               },
             });
           }
@@ -1012,10 +990,12 @@ export class PromotionalCopyService {
         long_form_copy_changed: rewriteResult.long_form_copy !== currentDraft.long_form_copy,
       });
 
-      const pickStr = (llm: unknown, fallback: string) =>
-        typeof llm === "string" && llm.trim().length > 0 ? llm.trim() : fallback;
+      const pickStr = (llm: unknown, fallback: string) => {
+        const value = normalizeDisplayText(llm);
+        return value.length > 0 ? value : fallback;
+      };
       const pickArr = (llm: unknown, fallback: string[]) =>
-        Array.isArray(llm) && llm.length > 0 ? llm as string[] : fallback;
+        normalizeStringList(llm).length > 0 ? normalizeStringList(llm) : fallback;
 
       output = {
         master_angle: pickStr(rewriteResult.master_angle, currentDraft.master_angle),
@@ -1026,7 +1006,7 @@ export class PromotionalCopyService {
         call_to_action: pickStr(rewriteResult.call_to_action, currentDraft.call_to_action),
         risk_notes: pickArr(rewriteResult.risk_notes, currentDraft.risk_notes ?? []),
         recommended_next_steps: pickArr(rewriteResult.recommended_next_steps, []),
-        quality_diagnosis: diagnosis,
+        quality_diagnosis: normalizeDiagnosis(diagnosis),
       };
     } else if (settings.llmMockMode) {
       output = {
@@ -1057,7 +1037,7 @@ export class PromotionalCopyService {
     // The merge already guarantees every field meets minimum requirements
     // (each field individually falls back to currentDraft if the LLM output is insufficient).
     // No need for a second Zod pass that could reject the entire merged output.
-    const validated = output;
+    const validated = normalizePromotionalCopyOutput(output, surfaces) as PromotionalCopyOutput;
 
     const versionNumber = await this.getNextVersionNumber(projectId);
     const created = await prisma.strategyTask.create({

@@ -116,10 +116,12 @@ function toLines(value: string[] | undefined) {
 
 /** Safely render any value as a display string — handles objects from older schema versions. */
 function toDisplayString(value: unknown): string {
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map((item) => toDisplayString(item)).filter(Boolean).join("；");
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>);
-    return entries.map(([k, v]) => `${k}：${String(v ?? "")}`).join("；");
+    return entries.map(([k, v]) => `${k}：${toDisplayString(v)}`).filter(Boolean).join("；");
   }
   return String(value ?? "");
 }
@@ -133,7 +135,7 @@ function fromLines(value: string) {
 
 function normalizeStringList(value: unknown) {
   if (Array.isArray(value)) {
-    return value.map((item) => (typeof item === "string" ? item : "")).filter(Boolean);
+    return value.map((item) => toDisplayString(item)).filter(Boolean);
   }
 
   if (typeof value === "string") {
@@ -160,9 +162,21 @@ function parsePayload(value: unknown): PromotionalCopyPayload | null {
   }
 
   const source = value as Record<string, unknown>;
+  const diagnosisSource =
+    source.quality_diagnosis && typeof source.quality_diagnosis === "object"
+      ? (source.quality_diagnosis as Record<string, unknown>)
+      : null;
   return {
     generation_source: typeof source.generation_source === "string" ? source.generation_source : undefined,
-    quality_diagnosis: source.quality_diagnosis as PromotionalCopyPayload["quality_diagnosis"],
+    quality_diagnosis: diagnosisSource
+      ? {
+          overall_score: typeof diagnosisSource.overall_score === "number" ? diagnosisSource.overall_score : undefined,
+          strengths: Array.isArray(diagnosisSource.strengths) ? diagnosisSource.strengths.map((item) => toDisplayString(item)).filter(Boolean) : [],
+          issues: Array.isArray(diagnosisSource.issues) ? diagnosisSource.issues.map((item) => toDisplayString(item)).filter(Boolean) : [],
+          rewrite_focus: Array.isArray(diagnosisSource.rewrite_focus) ? diagnosisSource.rewrite_focus.map((item) => toDisplayString(item)).filter(Boolean) : [],
+          summary: typeof diagnosisSource.summary === "string" ? diagnosisSource.summary : toDisplayString(diagnosisSource.summary),
+        }
+      : undefined,
     master_angle: typeof source.master_angle === "string" ? source.master_angle : undefined,
     headline_options: normalizeStringList(source.headline_options),
     hero_copy: normalizeRichText(source.hero_copy),

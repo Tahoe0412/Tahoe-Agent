@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
