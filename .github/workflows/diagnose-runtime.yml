@@ -35,23 +35,26 @@ jobs:
 
             echo "== app dir =="
             pwd
-            ls -la /home/ubuntu/Tahoe-Agent | sed -n "1,120p"
+            ls -ld /home/ubuntu/Tahoe-Agent
+            stat -c "%n %y %U:%G" /home/ubuntu/Tahoe-Agent/components/layout/app-shell.tsx /home/ubuntu/Tahoe-Agent/app/render-lab/page.tsx /home/ubuntu/Tahoe-Agent/.next 2>/dev/null || true
 
             echo "== git state =="
             git -C /home/ubuntu/Tahoe-Agent rev-parse HEAD || true
-            git -C /home/ubuntu/Tahoe-Agent status --short || true
+            git -C /home/ubuntu/Tahoe-Agent status --short | sed -n "1,40p" || true
 
             echo "== app-shell source markers =="
             grep -nE "w-\\[248px\\]|h-\\[64px\\]|p-4 lg:p-6 xl:p-7" /home/ubuntu/Tahoe-Agent/components/layout/app-shell.tsx || true
 
-            echo "== .next markers =="
-            find /home/ubuntu/Tahoe-Agent/.next -maxdepth 3 -type f | sed -n "1,120p"
-            grep -R -nE "w-\\[248px\\]|h-\\[64px\\]|p-4 lg:p-6 xl:p-7|space-y-6 xl:space-y-5" /home/ubuntu/Tahoe-Agent/.next 2>/dev/null | sed -n "1,80p" || true
+            echo "== build markers =="
+            cat /home/ubuntu/Tahoe-Agent/.next/BUILD_ID 2>/dev/null || true
+            ls -1 /home/ubuntu/Tahoe-Agent/.next/static/css 2>/dev/null || true
+            grep -R -m 1 -nE "space-y-6 xl:space-y-5" /home/ubuntu/Tahoe-Agent/.next/server/app/render-lab/page.js 2>/dev/null || true
+            grep -R -m 1 -nE "w-\\[248px\\]|h-\\[64px\\]" /home/ubuntu/Tahoe-Agent/.next/static/chunks 2>/dev/null || true
 
             echo "== pm2 =="
             pm2 list || true
-            pm2 describe tahoe || true
-            pm2 logs tahoe --lines 120 --nostream || true
+            pm2 describe tahoe | sed -n "1,120p" || true
+            pm2 logs tahoe --lines 60 --nostream | tail -n 80 || true
 
             echo "== listening ports =="
             sudo ss -ltnp | grep -E ":80|:443|:3000|:3001|:3002|:3003" || true
@@ -79,7 +82,7 @@ jobs:
               "Tencent runtime diagnosis report:",
               "",
               "```text",
-              report.slice(0, 60000),
+              report.slice(0, 40000),
               "```",
             ].join("\n");
 
