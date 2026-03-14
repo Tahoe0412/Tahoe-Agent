@@ -2,6 +2,7 @@
 set -euo pipefail
 
 APP_DIR="/home/ubuntu/Tahoe-Agent"
+APP_NAME="tahoe"
 
 cd "$APP_DIR"
 
@@ -9,20 +10,15 @@ cd "$APP_DIR"
 sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
 
 if [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
-  echo "[deploy] Pulling latest code from main..."
-  git pull origin main
+  echo "[deploy] Fetching latest code from origin/main..."
+  git fetch --prune origin main
+  git reset --hard origin/main
 else
   echo "[deploy] Skipping git pull because code was uploaded by CI."
 fi
 
-echo "[deploy] Stopping application..."
-pm2 stop tahoe 2>/dev/null || true
-
 echo "[deploy] Installing dependencies..."
 npm ci
-
-echo "[deploy] Cleaning stale build cache..."
-rm -rf .next 2>/dev/null || true
 
 echo "[deploy] Generating Prisma client..."
 npx prisma generate
@@ -33,11 +29,11 @@ npm run build
 echo "[deploy] Syncing Prisma schema..."
 npx prisma db push
 
-echo "[deploy] Restarting application with PM2..."
-if pm2 describe tahoe >/dev/null 2>&1; then
-  pm2 restart tahoe
+echo "[deploy] Reloading application with PM2..."
+if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+  pm2 reload "$APP_NAME" || pm2 restart "$APP_NAME"
 else
-  pm2 start npm --name tahoe -- start
+  pm2 start npm --name "$APP_NAME" -- start
 fi
 
 echo "[deploy] Saving PM2 process list..."

@@ -8,7 +8,7 @@ This project is deployed on Tencent Cloud Lighthouse and is no longer dependent 
 - Public IP: `111.229.24.208`
 - App directory: `/home/ubuntu/Tahoe-Agent`
 - Runtime user: `ubuntu`
-- Process manager: `pm2`
+- Process manager: `pm2` (`tahoe`)
 - Reverse proxy: `nginx`
 - Database: local PostgreSQL
 - Database name: `ai_video_mvp`
@@ -69,13 +69,19 @@ scripts/deploy.sh
 It performs:
 
 ```bash
-git pull origin main          # skipped in CI deploy when SKIP_GIT_PULL=1
+git fetch --prune origin main # skipped in CI deploy when SKIP_GIT_PULL=1
+git reset --hard origin/main
 npm ci
 npm run build
 npx prisma db push
-pm2 restart tahoe-agent
+pm2 reload tahoe || pm2 restart tahoe
 pm2 save
 ```
+
+Important:
+
+- `scripts/deploy.sh` no longer stops `pm2` before install/build. If deploy fails mid-way, the current app process stays online.
+- Prefer GitHub Actions for production releases. It uploads code over SSH and runs `SKIP_GIT_PULL=1 /home/ubuntu/Tahoe-Agent/scripts/deploy.sh`, which avoids server-side GitHub TLS failures.
 
 ## Server Environment
 
@@ -103,7 +109,7 @@ Commands:
 cd /home/ubuntu/Tahoe-Agent
 nano .env
 npm run build
-pm2 restart tahoe-agent
+pm2 restart tahoe
 pm2 save
 ```
 
@@ -118,13 +124,13 @@ pm2 status
 View app logs:
 
 ```bash
-pm2 logs tahoe-agent
+pm2 logs tahoe
 ```
 
 Restart app:
 
 ```bash
-pm2 restart tahoe-agent
+pm2 restart tahoe
 ```
 
 Check nginx:
@@ -162,6 +168,28 @@ From a browser:
 http://111.229.24.208
 ```
 
+## Emergency Recovery
+
+If a manual server deploy fails with a GitHub TLS error such as `GnuTLS recv error (-110)`, do not stop `pm2` first. Use this order instead:
+
+1. Restore the current process immediately if it is down:
+
+```bash
+pm2 restart tahoe
+```
+
+2. Push the fix to `main` from local.
+
+3. Trigger the GitHub Actions deploy workflow, or push to `main` and let the workflow deploy automatically.
+
+4. Re-check service health:
+
+```bash
+pm2 status
+curl http://127.0.0.1:3000/api/health
+curl http://127.0.0.1
+```
+
 ## First Things To Do Next
 
 1. Bind a real domain name.
@@ -173,4 +201,4 @@ http://111.229.24.208
 
 - `scripts/deploy.sh` supports `SKIP_GIT_PULL=1` for CI-driven deployments.
 - Production currently uses the server's local PostgreSQL instance, not Supabase.
-- If GitHub Actions succeeds but the site looks stale, check `pm2 logs tahoe-agent` and rerun the latest workflow.
+- If GitHub Actions succeeds but the site looks stale, check `pm2 logs tahoe` and rerun the latest workflow.
