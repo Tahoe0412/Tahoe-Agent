@@ -79,15 +79,15 @@ export default async function Home({
       ? text.pages.dashboard
       : workspace?.workspaceMode === "COPYWRITING"
         ? {
-            eyebrow: locale === "en" ? "Copywriting Workflow" : "文案工作流",
-            title: locale === "en" ? "Copy Project Overview" : "文案项目总览",
-            description: locale === "en" ? "Confirm the brief first, then generate the master copy, then do platform rewrites and compliance checks." : "先确认任务，再生成主稿，再做平台改写与合规检查，不必一开始打开全部模块。",
+            eyebrow: "COPYWRITING",
+            title: locale === "en" ? "Copy Studio" : "文案工作台",
+            description: locale === "en" ? "Brief → master copy → platform rewrites → compliance." : "从任务单到主稿，再到平台改写与合规检查。",
           }
         : workspace?.workspaceMode === "PROMOTION"
           ? {
-              eyebrow: locale === "en" ? "Promotion Workflow" : "推广工作流",
-              title: locale === "en" ? "Promotion Project Overview" : "推广项目总览",
-              description: locale === "en" ? "Gather inputs around one promotion goal, generate copy, derive platform versions, and complete checks before publishing." : "围绕一个推广目标收集信息、生成宣传主稿、派生平台稿，并在发布前完成检查。",
+              eyebrow: "PROMOTION",
+              title: locale === "en" ? "Campaign Hub" : "推广枢纽",
+              description: locale === "en" ? "One goal, one brief, multiple platform outputs." : "一个目标、一份任务单、多个平台产出。",
             }
           : text.pages.dashboard;
   const nextStep = getDashboardNextStep(workspace, locale);

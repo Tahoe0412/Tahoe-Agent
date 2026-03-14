@@ -53,9 +53,9 @@ export const copy = {
     },
     pages: {
       dashboard: {
-        eyebrow: "研究总览",
-        title: "总览",
-        description: "总览趋势研究、脚本实验、镜头分类与素材齐备情况。风格克制，强调可读性和决策速度。",
+        eyebrow: "WORKSPACE",
+        title: "控制台",
+        description: "汇聚洞察与草稿。在此确认方向，随后深入执行。",
       },
       projectHub: {
         eyebrow: "项目管理",
@@ -98,9 +98,9 @@ export const copy = {
         description: "把镜头、提示词、素材准备和生成任务放进同一条制作工作流，先把第一版画面和视频任务跑起来。",
       },
       marketingOps: {
-        eyebrow: "宣传与运营",
-        title: "宣传文案与运营",
-        description: "把宣传主稿、平台改写、合规检查和复盘优化放在同一个项目执行界面里。",
+        eyebrow: "OPERATIONS",
+        title: "文案与运营",
+        description: "主稿生成、平台改写、合规检查与优化复盘。",
       },
       settings: {
         eyebrow: "系统设置",
@@ -163,9 +163,9 @@ export const copy = {
     },
     pages: {
       dashboard: {
-        eyebrow: "Research Workflow",
-        title: "Dashboard",
-        description: "See trend research, script iteration, shot classification, and asset readiness in one place.",
+        eyebrow: "WORKSPACE",
+        title: "Console",
+        description: "Insights and drafts converge here. Confirm direction, then execute.",
       },
       projectHub: {
         eyebrow: "Project Operations",
@@ -208,9 +208,9 @@ export const copy = {
         description: "Bring scenes, prompts, asset prep, and generation jobs into one production flow so the first image and video pass can move fast.",
       },
       marketingOps: {
-        eyebrow: "Operations Layer",
+        eyebrow: "OPERATIONS",
         title: "Marketing Ops",
-        description: "Run content matrix planning, platform adaptations, compliance checks, and optimization reviews inside one project workspace.",
+        description: "Master copy, platform rewrites, compliance, and post-campaign review.",
       },
       settings: {
         eyebrow: "Control Plane",
