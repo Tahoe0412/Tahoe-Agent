@@ -136,11 +136,12 @@ export default async function TrendExplorerPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.trend.eyebrow}
           title={text.pages.trend.title}
           description={text.pages.trend.description}
+          locale={locale}
           action={projectId ? <NextStepLink href={nextHref} label={nextLabel} /> : null}
         />
         <ProjectContext
@@ -173,7 +174,7 @@ export default async function TrendExplorerPage({
         />
 
         {state && state !== "ready" ? (
-          <PageStateView state={state} />
+          <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or open Trend Explorer with a projectId." : "请先从总览页创建项目，或带上 `projectId` 进入趋势面板。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (

@@ -106,11 +106,12 @@ export default async function HelpCenterPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.help.eyebrow}
           title={text.pages.help.title}
           description={text.pages.help.description}
+          locale={locale}
         />
 
         {/* ── Getting Started ── */}

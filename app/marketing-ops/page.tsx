@@ -24,11 +24,12 @@ export default async function MarketingOpsPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.marketingOps.eyebrow}
           title={text.pages.marketingOps.title}
           description={text.pages.marketingOps.description}
+          locale={locale}
           action={
             projectId ? (
               <NextStepLink
@@ -74,6 +75,7 @@ export default async function MarketingOpsPage({
           <MarketingOpsWorkbench
             projectId={projectId}
             marketingOverview={workspace.marketingOverview}
+            locale={locale}
             projectConfig={{
               writingMode: workspace.projectSummary.writingMode as never,
               styleTemplate: workspace.projectSummary.styleTemplate as never,

@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect, createContext, useContext } from "rea
 import Link from "next/link";
 import { Menu, X, Settings, PanelLeftClose, PanelLeftOpen, GalleryVerticalEnd } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { copy, type Locale } from "@/lib/locale-copy";
 
 type SidebarContextValue = { collapsed: boolean };
 const SidebarContext = createContext<SidebarContextValue>({ collapsed: false });
@@ -15,12 +16,15 @@ export function useSidebar() {
 export function AppShell({
   children,
   sidebar,
+  locale,
 }: {
   children: ReactNode;
   sidebar: ReactNode;
+  locale: Locale;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const text = copy[locale];
 
   const toggle = useCallback(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
@@ -71,7 +75,7 @@ export function AppShell({
             type="button"
             onClick={() => setMobileOpen(false)}
             className="mb-3 inline-flex self-end rounded-full border border-white/10 bg-white/5 p-2 text-[var(--text-inverse)] transition hover:bg-white/12 xl:hidden"
-            aria-label="Close sidebar"
+            aria-label={text.shell.closeSidebar}
           >
             <X className="size-5" />
           </button>
@@ -93,36 +97,36 @@ export function AppShell({
                 type="button"
                 onClick={toggle}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)] px-3 text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_38%,var(--border))] hover:text-[var(--text-1)]"
-                aria-label="Toggle sidebar"
+                aria-label={text.shell.toggleSidebar}
               >
                 {collapsed ? <PanelLeftOpen className="size-5 hidden xl:block" /> : <PanelLeftClose className="size-5 hidden xl:block" />}
                 <Menu className="size-5 xl:hidden" />
-                <span className="theme-kicker hidden text-[10px] font-semibold text-[var(--text-3)] md:inline xl:hidden">Menu</span>
+                <span className="theme-kicker hidden text-[10px] font-semibold text-[var(--text-3)] md:inline xl:hidden">{text.shell.menuLabel}</span>
               </button>
 
               <Link
                 href="/"
-                className="group inline-flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-solid)_74%,transparent)] px-3.5 py-2 text-[var(--text-1)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_34%,var(--border-soft))] hover:bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)]"
+                className="group inline-flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-solid)_74%,transparent)] px-3 py-2 text-[var(--text-1)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_34%,var(--border-soft))] hover:bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)] sm:px-3.5"
               >
                 <span className="inline-flex size-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.72))] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
                   <GalleryVerticalEnd className="size-4" />
                 </span>
-                <span className="theme-kicker text-sm font-semibold tracking-[0.28em]">Tahoe</span>
+                <span className="theme-kicker truncate text-sm font-semibold tracking-[0.22em] sm:tracking-[0.28em]">Tahoe</span>
               </Link>
             </div>
 
             <Link
               href="/settings"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-solid)_78%,transparent)] text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_34%,var(--border-soft))] hover:text-[var(--accent-strong)]"
-              aria-label="Settings"
+              aria-label={text.shell.openSettings}
             >
               <Settings className="size-4" />
             </Link>
           </header>
 
           {/* ── Main Content ── */}
-          <main className="theme-main flex-1 p-4 lg:p-6 xl:p-7">
-            <div className="relative z-[1]">{children}</div>
+          <main className="theme-main flex-1 px-4 py-4 sm:px-5 lg:px-6 lg:py-6 xl:px-8 xl:py-7 2xl:px-10">
+            <div className="relative z-[1] mx-auto w-full max-w-[1680px] min-[1900px]:max-w-[1820px]">{children}</div>
           </main>
         </div>
       </div>

@@ -5,5 +5,5 @@ import type { Locale } from "@/lib/locale-copy";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
 
 export function WorkspaceLayout({ children, locale, workspaceMode }: { children: ReactNode; locale: Locale; workspaceMode?: WorkspaceMode }) {
-  return <AppShell sidebar={<DashboardSidebar locale={locale} workspaceMode={workspaceMode} />}>{children}</AppShell>;
+  return <AppShell locale={locale} sidebar={<DashboardSidebar locale={locale} workspaceMode={workspaceMode} />}>{children}</AppShell>;
 }

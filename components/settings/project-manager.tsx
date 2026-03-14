@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ProjectModePicker } from "@/components/dashboard/project-mode-picker";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
+import type { Locale } from "@/lib/locale-copy";
 import { getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
 import { getWritingModeMeta, type WritingMode, writingModeList } from "@/lib/writing-mode";
 import { getWorkspaceModeMeta, type WorkspaceMode } from "@/lib/workspace-mode";
@@ -42,11 +43,13 @@ export function ProjectManager({
   brandProfiles = [],
   industryTemplates = [],
   showBulkActions = false,
+  locale = "zh",
 }: {
   initialProjects: ProjectSummary[];
   brandProfiles?: SimpleBrandProfile[];
   industryTemplates?: SimpleIndustryTemplate[];
   showBulkActions?: boolean;
+  locale?: Locale;
 }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
@@ -67,9 +70,158 @@ export function ProjectManager({
   const [bulkPending, setBulkPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const modeMeta = useMemo(() => getWorkspaceModeMeta(workspaceMode, "zh"), [workspaceMode]);
-  const writingMeta = useMemo(() => getWritingModeMeta(writingMode, "zh"), [writingMode]);
-  const styleMeta = useMemo(() => getStyleTemplateMeta(styleTemplate, "zh"), [styleTemplate]);
+  const modeMeta = useMemo(() => getWorkspaceModeMeta(workspaceMode, locale), [locale, workspaceMode]);
+  const writingMeta = useMemo(() => getWritingModeMeta(writingMode, locale), [locale, writingMode]);
+  const styleMeta = useMemo(() => getStyleTemplateMeta(styleTemplate, locale), [locale, styleTemplate]);
+  const ui = locale === "en"
+    ? {
+        createFailed: "Could not create the project.",
+        updateFailed: "Could not update the project.",
+        bulkFailed: "Bulk update failed.",
+        selectFirst: "Select at least one project first.",
+        created: (id: string) => `Project ${id} created.`,
+        archived: "Project archived.",
+        restored: "Project restored.",
+        pinned: "Project pinned.",
+        unpinned: "Project unpinned.",
+        updatedCount: (count: number) => `${count} projects updated.`,
+        count: (all: number, visible: number) => visible !== all ? `${all} projects total, ${visible} in the current view.` : `${all} projects total.`,
+        refresh: "Refresh List",
+        createDisclosure: "Create Project",
+        projectName: "Project Name",
+        topic: "Topic",
+        sourceShortVideo: "Source Script / Core Idea",
+        sourceCopy: "Copy Brief / Core Message",
+        sourcePromo: "Campaign Need / Promotion Goal",
+        advanced: "Advanced settings (writing mode, style, length, use case, overview...)",
+        projectIntro: "Project Overview",
+        projectIntroPlaceholder: "Who is this project for, what problem does it solve, and what stage is it in?",
+        coreIdea: "Core Message",
+        coreIdeaPlaceholder: "Describe the one message this round needs to land.",
+        writingMode: "Writing Mode",
+        currentWritingMode: "Current writing mode",
+        copyLength: "Copy Length",
+        usageScenario: "Use Case",
+        outputStyle: "Output Style",
+        currentStyle: "Current style",
+        styleReference: "Style Reference / Sample Copy",
+        styleReferencePlaceholder: "Paste one or more strong examples. The system learns tone and structure without copying the text directly.",
+        defaultPlatforms: "Default platforms",
+        currentMode: "Current mode",
+        creating: "Creating...",
+        createProject: "Create Project",
+        searchPlaceholder: "Search by project name, topic, tag, or ID",
+        allStatuses: "All statuses",
+        completed: "Completed",
+        running: "In progress",
+        failed: "Failed",
+        archivedStatus: "Archived",
+        allModes: "All modes",
+        shortVideo: "Short Video",
+        copywriting: "Copywriting",
+        promotion: "Promotion",
+        sortRecent: "Pinned and recently opened",
+        sortNewest: "Newest first",
+        sortTitle: "Title",
+        sortTrends: "Trend count",
+        sortScenes: "Scene count",
+        archiveHint: "Archive older projects first so brand assets, trend evidence, and scripts are not lost by mistake.",
+        bulk: (count: number) => `Bulk actions · ${count} selected`,
+        clearSelectAll: "Clear selection",
+        selectAll: "Select all in view",
+        bulkArchive: "Archive selected",
+        bindBrand: "Assign brand profile",
+        bindIndustry: "Assign industry template",
+        appendTags: "Append tags, comma-separated",
+        bind: "Apply",
+        addTags: "Add Tags",
+        pinnedLabel: "Pinned",
+        trends: "trends",
+        scenes: "scenes",
+        open: "Open",
+        pin: "Pin",
+        unpin: "Unpin",
+        restore: "Restore",
+        archive: "Archive",
+        emptyFiltered: "No projects match the current filters. Adjust the search, mode, or status filters and try again.",
+      }
+    : {
+        createFailed: "项目创建失败。",
+        updateFailed: "项目更新失败。",
+        bulkFailed: "批量更新失败。",
+        selectFirst: "请先选择至少一个项目。",
+        created: (id: string) => `已创建项目 ${id}`,
+        archived: "项目已归档。",
+        restored: "项目已恢复。",
+        pinned: "项目已置顶。",
+        unpinned: "项目已取消置顶。",
+        updatedCount: (count: number) => `已更新 ${count} 个项目。`,
+        count: (all: number, visible: number) => visible !== all ? `共 ${all} 个项目，当前筛选显示 ${visible} 个` : `共 ${all} 个项目`,
+        refresh: "刷新列表",
+        createDisclosure: "创建新项目",
+        projectName: "项目名称",
+        topic: "选题主题",
+        sourceShortVideo: "原始脚本 / 核心想法",
+        sourceCopy: "文案需求 / 核心表达",
+        sourcePromo: "推广需求 / 宣传目标",
+        advanced: "展开高级设置（写作模式、风格、长度、场景、项目介绍…）",
+        projectIntro: "项目介绍",
+        projectIntroPlaceholder: "这个项目服务谁、解决什么问题、当前阶段如何。",
+        coreIdea: "核心想法",
+        coreIdeaPlaceholder: "一句话写清本轮内容最想打中的表达。",
+        writingMode: "写作模式",
+        currentWritingMode: "当前写作模式",
+        copyLength: "文案长度",
+        usageScenario: "使用场景",
+        outputStyle: "输出风格",
+        currentStyle: "当前输出风格",
+        styleReference: "风格参照 / 参考样稿",
+        styleReferencePlaceholder: "可粘贴多段你喜欢的宣传文案，系统只学习风格与结构，不照抄内容。",
+        defaultPlatforms: "默认平台",
+        currentMode: "当前模式",
+        creating: "创建中...",
+        createProject: "创建新项目",
+        searchPlaceholder: "搜索项目名、主题、标签或 ID",
+        allStatuses: "全部状态",
+        completed: "已完成",
+        running: "进行中",
+        failed: "失败",
+        archivedStatus: "已归档",
+        allModes: "全部模式",
+        shortVideo: "短视频",
+        copywriting: "文案写作",
+        promotion: "宣传推广",
+        sortRecent: "按置顶与最近打开",
+        sortNewest: "按最近创建",
+        sortTitle: "按名称",
+        sortTrends: "按趋势数",
+        sortScenes: "按场景数",
+        archiveHint: "历史项目先归档，避免直接删除造成品牌资产、趋势证据和脚本数据丢失。",
+        bulk: (count: number) => `批量操作 · 已选 ${count} 个`,
+        clearSelectAll: "取消全选",
+        selectAll: "全选当前列表",
+        bulkArchive: "批量归档",
+        bindBrand: "批量绑定品牌",
+        bindIndustry: "批量绑定行业模板",
+        appendTags: "批量追加标签，逗号分隔",
+        bind: "绑定",
+        addTags: "加标签",
+        pinnedLabel: "置顶",
+        trends: "trends",
+        scenes: "scenes",
+        open: "打开",
+        pin: "置顶",
+        unpin: "取消置顶",
+        restore: "恢复",
+        archive: "归档",
+        emptyFiltered: "当前筛选条件下没有项目。可以调整搜索词、模式或状态筛选。",
+      };
+  const sourceLabel =
+    workspaceMode === "SHORT_VIDEO"
+      ? ui.sourceShortVideo
+      : workspaceMode === "COPYWRITING"
+        ? ui.sourceCopy
+        : ui.sourcePromo;
 
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -93,12 +245,12 @@ export function ProjectManager({
         const bOpened = b.last_opened_at ? new Date(b.last_opened_at).getTime() : 0;
         if (aOpened !== bOpened) return bOpened - aOpened;
       }
-      if (sortBy === "title") return a.title.localeCompare(b.title, "zh-Hans-CN");
+      if (sortBy === "title") return a.title.localeCompare(b.title, locale === "en" ? "en-US" : "zh-Hans-CN");
       if (sortBy === "trends") return b.trend_count - a.trend_count;
       if (sortBy === "scenes") return b.scene_count - a.scene_count;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [modeFilter, projects, query, sortBy, statusFilter]);
+  }, [locale, modeFilter, projects, query, sortBy, statusFilter]);
 
   async function refreshProjects() {
     const response = await fetch("/api/projects");
@@ -142,12 +294,12 @@ export function ProjectManager({
     };
 
     if (!result.success || !result.data) {
-      setError(result.error?.detail || result.error?.message || "项目创建失败。");
+      setError(result.error?.detail || result.error?.message || ui.createFailed);
       setSubmitting(false);
       return;
     }
 
-    setMessage(`已创建项目 ${result.data.project.id}`);
+    setMessage(ui.created(result.data.project.id));
     setSubmitting(false);
     await refreshProjects();
     router.push(`/?projectId=${result.data.project.id}`);
@@ -166,11 +318,11 @@ export function ProjectManager({
     const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
 
     if (!payload.success) {
-      setError(payload.error?.detail || payload.error?.message || "项目更新失败。");
+      setError(payload.error?.detail || payload.error?.message || ui.updateFailed);
       return;
     }
 
-    setMessage(status === "ARCHIVED" ? "项目已归档。" : "项目已恢复。");
+    setMessage(status === "ARCHIVED" ? ui.archived : ui.restored);
     await refreshProjects();
     router.refresh();
   }
@@ -187,11 +339,11 @@ export function ProjectManager({
     const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
 
     if (!payload.success) {
-      setError(payload.error?.detail || payload.error?.message || "项目更新失败。");
+      setError(payload.error?.detail || payload.error?.message || ui.updateFailed);
       return;
     }
 
-    setMessage(nextPinned ? "项目已置顶。" : "项目已取消置顶。");
+    setMessage(nextPinned ? ui.pinned : ui.unpinned);
     await refreshProjects();
     router.refresh();
   }
@@ -214,7 +366,7 @@ export function ProjectManager({
     merge_tags?: boolean;
   }) {
     if (selectedIds.length === 0) {
-      setError("请先选择至少一个项目。");
+      setError(ui.selectFirst);
       return;
     }
 
@@ -234,12 +386,12 @@ export function ProjectManager({
     const payload = (await response.json()) as { success: boolean; data?: { updated_count: number }; error?: { message?: string; detail?: string } };
 
     if (!payload.success) {
-      setError(payload.error?.detail || payload.error?.message || "批量更新失败。");
+      setError(payload.error?.detail || payload.error?.message || ui.bulkFailed);
       setBulkPending(false);
       return;
     }
 
-    setMessage(`已更新 ${payload.data?.updated_count ?? selectedIds.length} 个项目。`);
+    setMessage(ui.updatedCount(payload.data?.updated_count ?? selectedIds.length));
     setBulkPending(false);
     await refreshProjects();
     router.refresh();
@@ -250,64 +402,64 @@ export function ProjectManager({
       {/* ── Toolbar: project count + actions ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-sm text-[var(--text-2)]">
-          共 {projects.length} 个项目{visibleProjects.length !== projects.length ? `，当前筛选显示 ${visibleProjects.length} 个` : ""}
+          {ui.count(projects.length, visibleProjects.length)}
         </div>
         <Button type="button" variant="ghost" onClick={() => void refreshProjects()}>
-          刷新列表
+          {ui.refresh}
         </Button>
       </div>
 
       {/* ── Create form: collapsed by default ── */}
       <Disclosure
-        title={<span className="text-sm font-semibold text-[var(--text-1)]">创建新项目</span>}
+        title={<span className="text-sm font-semibold text-[var(--text-1)]">{ui.createDisclosure}</span>}
         className="theme-panel-muted rounded-2xl p-4"
         summaryClassName="py-1"
         contentClassName="mt-4 space-y-5"
       >
         <form action={createProject} className="space-y-5">
-          <ProjectModePicker value={workspaceMode} locale="zh" onChange={setWorkspaceMode} />
+          <ProjectModePicker value={workspaceMode} locale={locale} onChange={setWorkspaceMode} />
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">项目名称</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.projectName}</span>
               <input name="title" key={`${workspaceMode}-title`} defaultValue={modeMeta.titleDefault} className="theme-input rounded-xl px-4 py-3 text-sm" />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">选题主题</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.topic}</span>
               <input name="topic" key={`${workspaceMode}-topic`} defaultValue={modeMeta.topicDefault} className="theme-input rounded-xl px-4 py-3 text-sm" />
             </label>
           </div>
 
           <label className="grid gap-2">
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
-              {workspaceMode === "SHORT_VIDEO" ? "原始脚本 / 核心想法" : workspaceMode === "COPYWRITING" ? "文案需求 / 核心表达" : "推广需求 / 宣传目标"}
+              {sourceLabel}
             </span>
             <textarea name="sourceScript" rows={4} key={`${workspaceMode}-script`} defaultValue={modeMeta.sourceScriptDefault} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
           </label>
 
           {/* ── Advanced settings: collapsed by default ── */}
           <Disclosure
-            title={<span className="text-xs font-medium text-[var(--text-2)]">展开高级设置（写作模式、风格、长度、场景、项目介绍…）</span>}
+            title={<span className="text-xs font-medium text-[var(--text-2)]">{ui.advanced}</span>}
             className="theme-panel rounded-xl p-3"
             summaryClassName="py-1"
             contentClassName="mt-3 space-y-4"
           >
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">项目介绍</span>
-              <textarea name="projectIntroduction" rows={3} placeholder="这个项目服务谁、解决什么问题、当前阶段如何。" className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.projectIntro}</span>
+              <textarea name="projectIntroduction" rows={3} placeholder={ui.projectIntroPlaceholder} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">核心想法</span>
-              <textarea name="coreIdea" rows={2} placeholder="一句话写清本轮内容最想打中的表达。" className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.coreIdea}</span>
+              <textarea name="coreIdea" rows={2} placeholder={ui.coreIdeaPlaceholder} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
             </label>
 
             {(workspaceMode === "COPYWRITING" || workspaceMode === "PROMOTION") ? (
               <>
                 <div className="space-y-3">
-                  <div className="text-sm font-medium text-[var(--text-2)]">写作模式</div>
+                  <div className="text-sm font-medium text-[var(--text-2)]">{ui.writingMode}</div>
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     {writingModeList.map((mode) => {
-                      const meta = getWritingModeMeta(mode, "zh");
+                      const meta = getWritingModeMeta(mode, locale);
                       const active = writingMode === mode;
                       return (
                         <button
@@ -327,26 +479,26 @@ export function ProjectManager({
                       );
                     })}
                   </div>
-                  <div className="text-xs text-[var(--text-3)]">当前写作模式：{writingMeta.label}</div>
+                  <div className="text-xs text-[var(--text-3)]">{ui.currentWritingMode}: {writingMeta.label}</div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="space-y-2">
-                    <span className="text-sm font-medium text-[var(--text-2)]">文案长度</span>
+                    <span className="text-sm font-medium text-[var(--text-2)]">{ui.copyLength}</span>
                     <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-xl px-4 py-3 text-sm">
                       {copyLengthList.map((item) => (
                         <option key={item} value={item}>
-                          {getCopyLengthMeta(item, "zh").label}
+                          {getCopyLengthMeta(item, locale).label}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="space-y-2">
-                    <span className="text-sm font-medium text-[var(--text-2)]">使用场景</span>
+                    <span className="text-sm font-medium text-[var(--text-2)]">{ui.usageScenario}</span>
                     <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-xl px-4 py-3 text-sm">
                       {usageScenarioList.map((item) => (
                         <option key={item} value={item}>
-                          {getUsageScenarioMeta(item, "zh").label}
+                          {getUsageScenarioMeta(item, locale).label}
                         </option>
                       ))}
                     </select>
@@ -354,10 +506,10 @@ export function ProjectManager({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="text-sm font-medium text-[var(--text-2)]">输出风格</div>
+                  <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputStyle}</div>
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {styleTemplateList.map((style) => {
-                      const meta = getStyleTemplateMeta(style, "zh");
+                      const meta = getStyleTemplateMeta(style, locale);
                       const active = styleTemplate === style;
                       return (
                         <button
@@ -377,15 +529,15 @@ export function ProjectManager({
                       );
                     })}
                   </div>
-                  <div className="text-xs text-[var(--text-3)]">当前输出风格：{styleMeta.label}</div>
+                  <div className="text-xs text-[var(--text-3)]">{ui.currentStyle}: {styleMeta.label}</div>
                 </div>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风格参照 / 参考样稿</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.styleReference}</span>
                   <textarea
                     name="styleReferenceSample"
                     rows={4}
-                    placeholder="可粘贴多段你喜欢的宣传文案，系统只学习风格与结构，不照抄内容。"
+                    placeholder={ui.styleReferencePlaceholder}
                     className="theme-input rounded-xl px-4 py-3 text-sm leading-7"
                   />
                 </label>
@@ -394,12 +546,12 @@ export function ProjectManager({
           </Disclosure>
 
           <div className="flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
-            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">默认平台：{modeMeta.platforms.join(" / ")}</span>
-            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">当前模式：{modeMeta.label}</span>
+            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">{ui.defaultPlatforms}: {modeMeta.platforms.join(" / ")}</span>
+            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">{ui.currentMode}: {modeMeta.label}</span>
           </div>
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={submitting}>
-              {submitting ? "创建中..." : "创建新项目"}
+              {submitting ? ui.creating : ui.createProject}
             </Button>
             {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
             {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
@@ -410,51 +562,51 @@ export function ProjectManager({
       {/* ── Search & Filter bar ── */}
       <div className="theme-panel-muted space-y-3 rounded-2xl p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_160px_160px]">
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索项目名、主题、标签或 ID" className="theme-input rounded-xl px-4 py-2.5 text-sm" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={ui.searchPlaceholder} className="theme-input rounded-xl px-4 py-2.5 text-sm" />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
-            <option value="ALL">全部状态</option>
-            <option value="COMPLETED">已完成</option>
-            <option value="RUNNING">进行中</option>
-            <option value="FAILED">失败</option>
-            <option value="ARCHIVED">已归档</option>
+            <option value="ALL">{ui.allStatuses}</option>
+            <option value="COMPLETED">{ui.completed}</option>
+            <option value="RUNNING">{ui.running}</option>
+            <option value="FAILED">{ui.failed}</option>
+            <option value="ARCHIVED">{ui.archivedStatus}</option>
           </select>
           <select value={modeFilter} onChange={(event) => setModeFilter(event.target.value as typeof modeFilter)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
-            <option value="ALL">全部模式</option>
-            <option value="SHORT_VIDEO">短视频</option>
-            <option value="COPYWRITING">文案写作</option>
-            <option value="PROMOTION">宣传推广</option>
+            <option value="ALL">{ui.allModes}</option>
+            <option value="SHORT_VIDEO">{ui.shortVideo}</option>
+            <option value="COPYWRITING">{ui.copywriting}</option>
+            <option value="PROMOTION">{ui.promotion}</option>
           </select>
           <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
-            <option value="recent">按置顶与最近打开</option>
-            <option value="newest">按最近创建</option>
-            <option value="title">按名称</option>
-            <option value="trends">按趋势数</option>
-            <option value="scenes">按场景数</option>
+            <option value="recent">{ui.sortRecent}</option>
+            <option value="newest">{ui.sortNewest}</option>
+            <option value="title">{ui.sortTitle}</option>
+            <option value="trends">{ui.sortTrends}</option>
+            <option value="scenes">{ui.sortScenes}</option>
           </select>
         </div>
         <div className="text-xs text-[var(--text-3)]">
-          历史项目先归档，避免直接删除造成品牌资产、趋势证据和脚本数据丢失。
+          {ui.archiveHint}
         </div>
       </div>
 
       {showBulkActions ? (
         <Disclosure
-          title={<span className="text-sm font-medium text-[var(--text-1)]">批量操作 · 已选 {selectedIds.length} 个</span>}
+          title={<span className="text-sm font-medium text-[var(--text-1)]">{ui.bulk(selectedIds.length)}</span>}
           className="theme-panel rounded-2xl p-4"
           summaryClassName="py-1"
           contentClassName="mt-3 space-y-3"
         >
           <div className="flex items-center gap-3">
             <Button type="button" variant="ghost" onClick={toggleSelectAll}>
-              {visibleProjects.length > 0 && visibleProjects.every((project) => selectedIds.includes(project.id)) ? "取消全选" : "全选当前列表"}
+              {visibleProjects.length > 0 && visibleProjects.every((project) => selectedIds.includes(project.id)) ? ui.clearSelectAll : ui.selectAll}
             </Button>
             <Button type="button" variant="secondary" disabled={bulkPending} onClick={() => void runBulkUpdate({ status: "ARCHIVED" })}>
-              批量归档
+              {ui.bulkArchive}
             </Button>
           </div>
           <div className="grid gap-3 xl:grid-cols-[200px_200px_minmax(0,1fr)_auto]">
             <select value={bulkBrandId} onChange={(event) => setBulkBrandId(event.target.value)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
-              <option value="">批量绑定品牌</option>
+              <option value="">{ui.bindBrand}</option>
               {brandProfiles.map((profile) => (
                 <option key={profile.id} value={profile.id}>
                   {profile.brand_name}
@@ -462,14 +614,14 @@ export function ProjectManager({
               ))}
             </select>
             <select value={bulkIndustryId} onChange={(event) => setBulkIndustryId(event.target.value)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
-              <option value="">批量绑定行业模板</option>
+              <option value="">{ui.bindIndustry}</option>
               {industryTemplates.map((template) => (
                 <option key={template.id} value={template.id}>
                   {template.industry_name}
                 </option>
               ))}
             </select>
-            <input value={bulkTags} onChange={(event) => setBulkTags(event.target.value)} placeholder="批量追加标签，逗号分隔" className="theme-input rounded-xl px-3 py-2.5 text-sm" />
+            <input value={bulkTags} onChange={(event) => setBulkTags(event.target.value)} placeholder={ui.appendTags} className="theme-input rounded-xl px-3 py-2.5 text-sm" />
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -482,7 +634,7 @@ export function ProjectManager({
                   })
                 }
               >
-                绑定
+                {ui.bind}
               </Button>
               <Button
                 type="button"
@@ -498,7 +650,7 @@ export function ProjectManager({
                   })
                 }
               >
-                加标签
+                {ui.addTags}
               </Button>
             </div>
           </div>
@@ -516,9 +668,9 @@ export function ProjectManager({
               <div className="flex flex-wrap items-center gap-2">
                 <div className="text-sm font-semibold text-[var(--text-1)]">{project.title}</div>
                 <span className="theme-chip rounded-full px-2 py-0.5 text-xs font-medium">{project.status}</span>
-                {project.is_pinned ? <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--accent-strong)]">置顶</span> : null}
+                {project.is_pinned ? <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--accent-strong)]">{ui.pinnedLabel}</span> : null}
                 <span className={cn("rounded-full border px-2 py-0.5 text-xs font-medium text-[var(--text-2)]", project.workspace_mode === "SHORT_VIDEO" ? "theme-chip-ok" : "border-[var(--border)]")}>
-                  {getWorkspaceModeMeta(project.workspace_mode ?? "SHORT_VIDEO", "zh").label}
+                  {getWorkspaceModeMeta(project.workspace_mode ?? "SHORT_VIDEO", locale).label}
                 </span>
               </div>
               <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div>
@@ -530,29 +682,29 @@ export function ProjectManager({
                 ))}
               </div>
               <div className="mt-2 text-xs text-[var(--text-3)]">
-                {project.id} · trends {project.trend_count} · scenes {project.scene_count}
+                {project.id} · {ui.trends} {project.trend_count} · {ui.scenes} {project.scene_count}
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="secondary" onClick={() => router.push(`/?projectId=${project.id}`)}>
-                打开
+                {ui.open}
               </Button>
               <Button type="button" variant="ghost" onClick={() => void togglePinned(project.id, !project.is_pinned)}>
-                {project.is_pinned ? "取消置顶" : "置顶"}
+                {project.is_pinned ? ui.unpin : ui.pin}
               </Button>
               {project.status === "ARCHIVED" ? (
                 <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "COMPLETED")}>
-                  恢复
+                  {ui.restore}
                 </Button>
               ) : (
                 <Button type="button" variant="ghost" onClick={() => void updateProjectStatus(project.id, "ARCHIVED")}>
-                  归档
+                  {ui.archive}
                 </Button>
               )}
             </div>
           </div>
         ))}
-        {visibleProjects.length === 0 ? <div className="theme-panel rounded-2xl px-5 py-4 text-sm text-[var(--text-2)]">当前筛选条件下没有项目。可以调整搜索词、模式或状态筛选。</div> : null}
+        {visibleProjects.length === 0 ? <div className="theme-panel rounded-2xl px-5 py-4 text-sm text-[var(--text-2)]">{ui.emptyFiltered}</div> : null}
       </div>
     </div>
   );

@@ -122,9 +122,9 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
   ];
 
   const groups = [
-    { key: "explore", heading: collapsed ? "" : "探索", items: exploreItems },
-    { key: "build", heading: collapsed ? "" : "生产", items: buildItems },
-    { key: "manage", heading: collapsed ? "" : "管理", items: manageItems },
+    { key: "explore", heading: collapsed ? "" : text.nav.exploreLabel, items: exploreItems },
+    { key: "build", heading: collapsed ? "" : text.nav.buildLabel, items: buildItems },
+    { key: "manage", heading: collapsed ? "" : text.nav.manageLabel, items: manageItems },
   ] as const;
 
   return (
@@ -145,7 +145,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div>
-                <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">Workspace</div>
+                <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
                 <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.22em] text-[var(--sidebar-text-hover)]">
                   Tahoe
                 </span>
@@ -172,7 +172,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
         {/* ── Mode description card ── */}
         {!collapsed && (
           <div className="mt-auto mb-2 rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.10)]">
-            <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">Workspace rhythm</div>
+            <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
             <div className="mt-2 text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
             <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)] opacity-95">
               {text.shell.workModeDesc}

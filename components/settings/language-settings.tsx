@@ -4,14 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LOCALE_COOKIE_KEY, LOCALE_STORAGE_KEY, type Locale } from "@/lib/locale-copy";
 
-const options: Array<{ value: Locale; label: string; hint: string }> = [
-  { value: "zh", label: "中文", hint: "默认以中文展示，少量保留必要英文术语。" },
-  { value: "en", label: "English", hint: "Switch the main workspace copy to English." },
-];
-
 export function LanguageSettings({ initialLocale }: { initialLocale: Locale }) {
   const router = useRouter();
   const [locale, setLocale] = useState<Locale>(initialLocale);
+  const options: Array<{ value: Locale; label: string; hint: string }> = initialLocale === "en"
+    ? [
+        { value: "zh", label: "Chinese", hint: "Show the workspace primarily in Chinese while keeping a few necessary product terms in English." },
+        { value: "en", label: "English", hint: "Use a full English workspace with more natural product and operations copy." },
+      ]
+    : [
+        { value: "zh", label: "中文", hint: "默认以中文展示，少量保留必要英文术语。" },
+        { value: "en", label: "English", hint: "将主要工作台文案切换为自然流畅的英文表达。" },
+      ];
+  const footer =
+    initialLocale === "en"
+      ? "Your language preference is saved in this browser and will refresh the main pages and navigation copy after switching."
+      : "语言偏好会保存在当前浏览器，并在刷新后同步到主要页面和导航文案。";
 
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -53,7 +61,7 @@ export function LanguageSettings({ initialLocale }: { initialLocale: Locale }) {
         })}
       </div>
       <div className="theme-panel-muted rounded-[18px] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
-        语言偏好会保存在当前浏览器，并在刷新后同步到主要页面和导航文案。
+        {footer}
       </div>
     </div>
   );

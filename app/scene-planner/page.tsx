@@ -27,11 +27,12 @@ export default async function ScenePlannerPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.storyboard.eyebrow}
           title={text.pages.storyboard.title}
           description={text.pages.storyboard.description}
+          locale={locale}
           action={
             projectId ? (
               <NextStepLink
@@ -71,7 +72,7 @@ export default async function ScenePlannerPage({
         />
 
         {state && state !== "ready" ? (
-          <PageStateView state={state} />
+          <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view storyboard planning and asset readiness." : "请先选择项目，再查看镜头规划与素材齐备度。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (

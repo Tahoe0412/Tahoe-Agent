@@ -150,11 +150,12 @@ export default async function Home({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={headerCopy.eyebrow}
           title={headerCopy.title}
           description={headerCopy.description}
+          locale={locale}
           action={<NextStepLink href={nextStep.href} label={nextStep.label} />}
         />
 
@@ -372,7 +373,7 @@ export default async function Home({
                 ) : null}
 
                 <div id="new-project">
-                  <ProjectForm />
+                  <ProjectForm locale={locale} />
                 </div>
             </Disclosure>
           </div>
@@ -382,7 +383,7 @@ export default async function Home({
         {!workspace ? (
           <div className="space-y-6">
             <div id="new-project">
-              <ProjectForm />
+              <ProjectForm locale={locale} />
             </div>
             <div className="rounded-2xl bg-[var(--surface-muted)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
               <div className="font-medium text-[var(--text-1)]">{ui.tipsTitle}</div>

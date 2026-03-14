@@ -40,11 +40,12 @@ export default async function ScriptLabPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.script.eyebrow}
           title={text.pages.script.title}
           description={text.pages.script.description}
+          locale={locale}
           action={projectId ? <NextStepLink href={nextHref} label={nextLabel} /> : null}
         />
         <ProjectContext
@@ -77,7 +78,7 @@ export default async function ScriptLabPage({
         />
 
         {state && state !== "ready" ? (
-          <PageStateView state={state} />
+          <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (

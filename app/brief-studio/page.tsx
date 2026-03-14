@@ -43,11 +43,12 @@ export default async function BriefStudioPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={pageCopy.eyebrow}
           title={pageCopy.title}
           description={pageCopy.description}
+          locale={locale}
           action={
             projectId ? (
               <NextStepLink

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
+import type { Locale } from "@/lib/locale-copy";
 import { getAdaptationStatusLabel, getPlatformSurfaceMeta, platformSurfaceList, type PlatformSurface } from "@/lib/platform-surface";
 import type { StyleReferenceInsight } from "@/lib/style-reference";
 import { getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
@@ -192,6 +193,7 @@ export function MarketingOpsWorkbench({
   projectId,
   marketingOverview,
   projectConfig,
+  locale = "zh",
 }: {
   projectId: string;
   marketingOverview: MarketingOverview;
@@ -203,6 +205,7 @@ export function MarketingOpsWorkbench({
     styleReferenceSample?: string;
     styleReferenceInsight?: StyleReferenceInsight | null;
   };
+  locale?: Locale;
 }) {
   const router = useRouter();
   const [adaptSurface, setAdaptSurface] = useState<PlatformSurface>("XIAOHONGSHU_POST");
@@ -229,10 +232,218 @@ export function MarketingOpsWorkbench({
 
   const activeBrandId = marketingOverview.brandProfile?.id;
   const activeSprintId = marketingOverview.latestSprint?.id;
-  const writingMeta = getWritingModeMeta(writingMode, "zh");
-  const styleMeta = getStyleTemplateMeta(styleTemplate, "zh");
-  const copyLengthMeta = getCopyLengthMeta(copyLength, "zh");
-  const usageScenarioMeta = getUsageScenarioMeta(usageScenario, "zh");
+  const writingMeta = getWritingModeMeta(writingMode, locale);
+  const styleMeta = getStyleTemplateMeta(styleTemplate, locale);
+  const copyLengthMeta = getCopyLengthMeta(copyLength, locale);
+  const usageScenarioMeta = getUsageScenarioMeta(usageScenario, locale);
+  const timeLocale = locale === "en" ? "en-US" : "zh-CN";
+  const ui = locale === "en"
+    ? {
+        nonJson: "The server returned a non-JSON response.",
+        timeout: "The AI request took too long and was interrupted. Try shortening the input or switching to a faster model.",
+        updateWritingMode: (label: string) => `Writing mode switched to "${label}".`,
+        updateStyle: (label: string) => `Style switched to "${label}".`,
+        updateLength: (label: string) => `Copy length switched to "${label}".`,
+        updateScenario: (label: string) => `Use case switched to "${label}".`,
+        generatedMaster: "A new master draft has been generated.",
+        needDraftBeforeEnhance: "Generate or draft a master copy first, then run diagnosis and enhancement.",
+        enhanced: "Diagnosis complete. A stronger new version has been created.",
+        savedVersion: "The current draft has been saved as a new version.",
+        needMasterForAdaptation: "Create or paste the long-form master copy first before generating channel versions.",
+        generatedAdaptation: "The channel version has been generated.",
+        chooseAdaptation: "Select a channel draft first.",
+        complianceDone: "Compliance review completed.",
+        headerTitle: "Marketing Operations",
+        headerDesc: "Master copy -> channel adaptation -> compliance review",
+        unboundBrand: "No brand profile linked",
+        unboundTemplate: "No industry template linked",
+        summary: (versions: number, adaptations: number, checks: number) => `${versions} master versions · ${adaptations} channel drafts · ${checks} compliance checks`,
+        bindWarning: "This project is still missing either a brand profile or an industry template. Without those constraints, the copy is more likely to sound generic and the tone is harder to keep stable.",
+        adjustConfig: "Adjust generation settings",
+        writingMode: "Writing Mode",
+        outputStyle: "Output Style",
+        copyLength: "Copy Length",
+        usageScenario: "Use Case",
+        styleReference: "Style reference",
+        styleReferenceDesc: "A reference sample is already attached to this project. New drafts will learn its tone, pacing, and structure.",
+        titleStyle: "Title style",
+        openingStyle: "Opening pattern",
+        bodyRhythm: "Body rhythm",
+        editorTitle: "Master Copy Editor",
+        editorDesc: "Edit the current master draft. All primary actions stay close to the editor.",
+        generating: "AI is drafting...",
+        generateMaster: "Generate Master Draft",
+        enhancing: "AI is refining...",
+        diagnose: "Diagnose & Improve",
+        saving: "Saving...",
+        saveVersion: "Save as New Version",
+        needCopy: "You need a master draft before you can improve it or save another version.",
+        versionTitle: "Version Title",
+        versionTitlePlaceholder: "For example: Master campaign copy v3",
+        masterAngle: "Primary Message Angle",
+        masterAnglePlaceholder: "The commercial angle this round should lead with",
+        heroCopy: "Opening Summary",
+        heroCopyPlaceholder: "A short opening paragraph ready to lead the campaign piece",
+        longForm: "Long-Form Master Copy",
+        longFormPlaceholder: "The full master marketing draft",
+        diagnosisTitle: "Quality diagnosis",
+        diagnosisFallback: "A quality diagnosis is available for this version.",
+        scoreLabel: "Score",
+        strengths: "Strengths",
+        issues: "Key issues",
+        focus: "Improvement focus",
+        collapseAdvanced: "Hide advanced fields",
+        expandAdvanced: "Show advanced fields",
+        headlineOptions: "Headline Options",
+        headlinePlaceholder: "One option per line",
+        proofPoints: "Proof Points",
+        proofPlaceholder: "One proof point per line",
+        cta: "CTA",
+        ctaPlaceholder: "What should the audience do next?",
+        riskNotes: "Risk Notes",
+        riskPlaceholder: "One note per line",
+        nextSteps: "Recommended Next Steps",
+        nextStepsPlaceholder: "One action per line",
+        versionsTitle: "Master Versions",
+        versionsDesc: "Switch between historical versions here.",
+        confirmDelete: "Confirm delete",
+        deleteMark: "✕",
+        deleteFailed: "Delete failed",
+        deleted: "Version deleted.",
+        untitled: "No title or opening line yet",
+        noSummary: "No summary yet",
+        noVersions: "There are no master versions yet. Start by generating the first draft on the left.",
+        channelTitle: "Channel Drafts",
+        channelDesc: "Choose a platform and generate a version. The list refreshes right away.",
+        targetPlatform: "Target Platform",
+        generatingShort: "Generating...",
+        generate: "Generate",
+        needLongForm: "You need a long-form master draft before creating channel versions.",
+        noChannelTitle: "No title or opening line yet",
+        noChannelBody: "(No body copy yet)",
+        noChannelDrafts: "No channel drafts yet. Pick a platform and click Generate.",
+        detailTitle: "Selected Draft & Compliance",
+        detailDesc: "Review the chosen channel draft and its compliance result.",
+        selectedDraft: "Selected channel draft",
+        chooseLeft: "Choose a channel draft from the left first.",
+        runComplianceIdle: "Select a channel draft first",
+        runningCompliance: "Checking...",
+        runCompliance: (label: string) => `Run compliance check for ${label}`,
+        complianceResult: "Compliance result",
+        needsReview: "Needs manual review",
+        noRisk: "No obvious risk found",
+        noRiskSummary: "No risk summary available.",
+        cleanHit: "No obvious risk items were flagged.",
+        issueCount: (count: number) => `${count} risk item${count === 1 ? "" : "s"}`,
+        issueTypeFallback: "Risk item",
+        unnamedContent: "Unnamed content",
+        issueReasonFallback: "This item needs human review.",
+        noCheckYetSelected: "There is no compliance record for this draft yet. Run the check from the button above.",
+        noCheckYet: "Choose a draft to view its compliance history.",
+      }
+    : {
+        nonJson: "服务器返回了非 JSON 响应。",
+        timeout: "AI 模型生成时间过长，请求已中断。建议缩短输入内容或切换更快的模型后重试。",
+        updateWritingMode: (label: string) => `写作模式已切换为“${label}”。`,
+        updateStyle: (label: string) => `输出风格已切换为“${label}”。`,
+        updateLength: (label: string) => `文案长度已切换为“${label}”。`,
+        updateScenario: (label: string) => `使用场景已切换为“${label}”。`,
+        generatedMaster: "宣传主稿已生成。",
+        needDraftBeforeEnhance: "请先有一版主稿，再执行诊断与增强。",
+        enhanced: "主稿诊断与增强已完成，已生成新版本。",
+        savedVersion: "宣传主稿已另存为新版本。",
+        needMasterForAdaptation: "请先生成或填写宣传主稿正文，再做平台改写。",
+        generatedAdaptation: "平台版本已生成。",
+        chooseAdaptation: "请先选择一条平台稿件。",
+        complianceDone: "合规检查已完成。",
+        headerTitle: "内容运营台",
+        headerDesc: "主稿生产 -> 平台分发 -> 合规风控",
+        unboundBrand: "未绑定品牌",
+        unboundTemplate: "未绑定模板",
+        summary: (versions: number, adaptations: number, checks: number) => `${versions} 版主稿 · ${adaptations} 篇平台稿 · ${checks} 条合规`,
+        bindWarning: "当前项目还没有完整绑定品牌档案或行业模板。生成的主稿会更容易泛化，风格也更难稳定。建议先补齐品牌定位、语气和行业边界。",
+        adjustConfig: "调整生成配置",
+        writingMode: "写作模式",
+        outputStyle: "输出风格",
+        copyLength: "文案长度",
+        usageScenario: "使用场景",
+        styleReference: "风格参照",
+        styleReferenceDesc: "当前项目已附带参考样稿。生成主稿时会学习它的语气、节奏和结构。",
+        titleStyle: "标题风格",
+        openingStyle: "开头风格",
+        bodyRhythm: "正文节奏",
+        editorTitle: "主稿编辑",
+        editorDesc: "编辑当前主稿内容，操作按钮就在上方。",
+        generating: "AI 正在生成...",
+        generateMaster: "生成新主稿",
+        enhancing: "AI 增强中...",
+        diagnose: "诊断并增强",
+        saving: "保存中...",
+        saveVersion: "另存新版本",
+        needCopy: "需要先有主稿内容才能增强或另存",
+        versionTitle: "版本标题",
+        versionTitlePlaceholder: "例如：宣传文案主稿 v3",
+        masterAngle: "主宣传角度",
+        masterAnglePlaceholder: "本轮传播要主打的商业角度",
+        heroCopy: "开场摘要",
+        heroCopyPlaceholder: "一段能直接拿去做宣传开头的摘要",
+        longForm: "完整宣传主稿",
+        longFormPlaceholder: "完整宣传文案正文",
+        diagnosisTitle: "质量诊断",
+        diagnosisFallback: "当前版本已有质量诊断。",
+        scoreLabel: "质量分",
+        strengths: "当前优点",
+        issues: "主要问题",
+        focus: "增强重点",
+        collapseAdvanced: "收起高级编辑",
+        expandAdvanced: "展开高级编辑",
+        headlineOptions: "标题备选",
+        headlinePlaceholder: "每行一条标题",
+        proofPoints: "核心卖点 / 证据点",
+        proofPlaceholder: "每行一条证明点或卖点",
+        cta: "CTA",
+        ctaPlaceholder: "引导用户下一步动作",
+        riskNotes: "风险提示",
+        riskPlaceholder: "每行一条风险提示",
+        nextSteps: "下一步建议",
+        nextStepsPlaceholder: "每行一条下一步动作",
+        versionsTitle: "主稿版本",
+        versionsDesc: "点击切换历史版本。",
+        confirmDelete: "确认删除",
+        deleteMark: "✕",
+        deleteFailed: "删除失败",
+        deleted: "版本已删除。",
+        untitled: "未填写标题或开场句",
+        noSummary: "暂无摘要",
+        noVersions: "还没有宣传主稿版本。先点击左侧的“生成新主稿”。",
+        channelTitle: "平台稿件",
+        channelDesc: "选择平台并生成，列表即时更新。",
+        targetPlatform: "目标平台",
+        generatingShort: "生成中...",
+        generate: "生成",
+        needLongForm: "需要先有主稿正文才能派生平台稿",
+        noChannelTitle: "未填写标题或开场句",
+        noChannelBody: "（暂无正文内容）",
+        noChannelDrafts: "还没有平台稿件。请先选择目标平台并点击“生成”。",
+        detailTitle: "稿件详情与合规",
+        detailDesc: "查看选中平台稿的内容和合规结果。",
+        selectedDraft: "当前选中平台稿",
+        chooseLeft: "← 请先从左侧选择一条平台稿件。",
+        runComplianceIdle: "请先选中一条平台稿",
+        runningCompliance: "检查中...",
+        runCompliance: (label: string) => `检查「${label}」合规性`,
+        complianceResult: "合规检查结果",
+        needsReview: "需要人工复核",
+        noRisk: "暂无风险",
+        noRiskSummary: "暂无风险总结。",
+        cleanHit: "✓ 未命中明显风险。",
+        issueCount: (count: number) => `${count} 条风险项`,
+        issueTypeFallback: "风险项",
+        unnamedContent: "未命名内容",
+        issueReasonFallback: "需要人工进一步判断。",
+        noCheckYetSelected: "当前平台稿还没有检查记录。请点击上方按钮执行合规检查。",
+        noCheckYet: "选择平台稿后可查看检查记录。",
+      };
   const styleReferenceSample = projectConfig.styleReferenceSample?.trim() ?? "";
   const styleReferenceInsight = projectConfig.styleReferenceInsight ?? null;
 
@@ -291,7 +502,7 @@ export function MarketingOpsWorkbench({
       try {
         payload = JSON.parse(text) as typeof payload;
       } catch {
-        throw new Error(response.ok ? "服务器返回了非 JSON 响应。" : `服务器返回了错误 (${response.status})，可能是请求超时。请稍后重试。`);
+        throw new Error(response.ok ? ui.nonJson : `服务器返回了错误 (${response.status})，可能是请求超时。请稍后重试。`);
       }
       if (!payload.success) {
         throw new Error(payload.error?.detail || payload.error?.message || "操作失败。");
@@ -302,9 +513,7 @@ export function MarketingOpsWorkbench({
     } catch (requestError) {
       const raw = requestError instanceof Error ? requestError.message : "操作失败。";
       const isAbort = requestError instanceof Error && (requestError.name === "AbortError" || raw.includes("aborted"));
-      const friendly = isAbort
-        ? "AI 模型生成时间过长，请求已中断。建议缩短输入内容或切换更快的模型后重试。"
-        : raw;
+      const friendly = isAbort ? ui.timeout : raw;
       setError(friendly);
       return null;
     } finally {
@@ -322,7 +531,7 @@ export function MarketingOpsWorkbench({
         body: JSON.stringify({ writing_mode: next }),
       },
       "writing-mode",
-      `写作模式已切换为“${getWritingModeMeta(next, "zh").label}”。`,
+      ui.updateWritingMode(getWritingModeMeta(next, locale).label),
     );
   }
 
@@ -336,7 +545,7 @@ export function MarketingOpsWorkbench({
         body: JSON.stringify({ style_template: next }),
       },
       "style-template",
-      `输出风格已切换为“${getStyleTemplateMeta(next, "zh").label}”。`,
+      ui.updateStyle(getStyleTemplateMeta(next, locale).label),
     );
   }
 
@@ -350,7 +559,7 @@ export function MarketingOpsWorkbench({
         body: JSON.stringify({ copy_length: next }),
       },
       "copy-length",
-      `文案长度已切换为“${getCopyLengthMeta(next, "zh").label}”。`,
+      ui.updateLength(getCopyLengthMeta(next, locale).label),
     );
   }
 
@@ -364,12 +573,12 @@ export function MarketingOpsWorkbench({
         body: JSON.stringify({ usage_scenario: next }),
       },
       "usage-scenario",
-      `使用场景已切换为“${getUsageScenarioMeta(next, "zh").label}”。`,
+      ui.updateScenario(getUsageScenarioMeta(next, locale).label),
     );
   }
 
   async function generatePromotionalCopy() {
-    const result = await request(`/api/projects/${projectId}/promotional-copy`, { method: "POST" }, "promo-copy", "宣传主稿已生成。");
+    const result = await request(`/api/projects/${projectId}/promotional-copy`, { method: "POST" }, "promo-copy", ui.generatedMaster);
     if (result) {
       setSelectedVersionId(null);
     }
@@ -377,7 +586,7 @@ export function MarketingOpsWorkbench({
 
   async function diagnoseAndEnhanceCopy() {
     if (!masterAngle.trim() || !heroCopy.trim() || !longFormCopy.trim()) {
-      setError("请先有一版主稿，再执行诊断与增强。");
+      setError(ui.needDraftBeforeEnhance);
       return;
     }
 
@@ -401,7 +610,7 @@ export function MarketingOpsWorkbench({
         }),
       },
       "enhance-copy",
-      "主稿诊断与增强已完成，已生成新版本。",
+      ui.enhanced,
     );
     if (result) {
       setSelectedVersionId(null);
@@ -428,7 +637,7 @@ export function MarketingOpsWorkbench({
         }),
       },
       "save-copy",
-      "宣传主稿已另存为新版本。",
+      ui.savedVersion,
     );
     if (result) {
       setSelectedVersionId(null);
@@ -437,7 +646,7 @@ export function MarketingOpsWorkbench({
 
   async function generateAdaptationFromDraft() {
     if (!longFormCopy.trim()) {
-      setError("请先生成或填写宣传主稿正文，再做平台改写。");
+      setError(ui.needMasterForAdaptation);
       return;
     }
 
@@ -461,13 +670,13 @@ export function MarketingOpsWorkbench({
         }),
       },
       "quick-adapt",
-      "平台版本已生成。",
+      ui.generatedAdaptation,
     );
   }
 
   async function runComplianceCheck() {
     if (!selectedAdaptation) {
-      setError("请先选择一条平台稿件。");
+      setError(ui.chooseAdaptation);
       return;
     }
 
@@ -487,23 +696,23 @@ export function MarketingOpsWorkbench({
         }),
       },
       "compliance",
-      "合规检查已完成。",
+      ui.complianceDone,
     );
   }
 
   return (
     <div className="space-y-6">
       {/* ── Header: Project Context & Config ── */}
-      <PanelCard title="内容运营台" description="主稿生产 → 平台分发 → 合规风控">
+      <PanelCard title={ui.headerTitle} description={ui.headerDesc}>
         <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
-          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.brandProfile?.brandName ?? "未绑定品牌"}</span>
-          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.industryTemplate?.industryName ?? "未绑定模板"}</span>
-          <span className="text-[var(--text-3)]">{versions.length} 版主稿 · {(marketingOverview.platformAdaptations ?? []).length} 篇平台稿 · {(marketingOverview.complianceChecks ?? []).length} 条合规</span>
+          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.brandProfile?.brandName ?? ui.unboundBrand}</span>
+          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.industryTemplate?.industryName ?? ui.unboundTemplate}</span>
+          <span className="text-[var(--text-3)]">{ui.summary(versions.length, (marketingOverview.platformAdaptations ?? []).length, (marketingOverview.complianceChecks ?? []).length)}</span>
         </div>
 
         {!marketingOverview.brandProfile || !marketingOverview.industryTemplate ? (
           <div className="mb-4 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm leading-7 text-[var(--warning-text)]">
-            当前项目还没有完整绑定品牌档案或行业模板。生成的主稿会更容易泛化，风格也更难稳定。建议先补齐品牌定位、语气和行业边界。
+            {ui.bindWarning}
           </div>
         ) : null}
 
@@ -511,56 +720,56 @@ export function MarketingOpsWorkbench({
           className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4"
           summaryClassName="text-sm font-medium text-[var(--text-1)]"
           contentClassName="mt-4 space-y-4"
-          title="调整生成配置"
+          title={ui.adjustConfig}
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <div className="text-sm font-medium text-[var(--text-2)]">写作模式</div>
+              <div className="text-sm font-medium text-[var(--text-2)]">{ui.writingMode}</div>
               <select value={writingMode} onChange={(event) => void updateWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
-                {writingModeList.map((mode) => (<option key={mode} value={mode}>{getWritingModeMeta(mode, "zh").label}</option>))}
+                {writingModeList.map((mode) => (<option key={mode} value={mode}>{getWritingModeMeta(mode, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{writingMeta.description}</div>
             </label>
             <label className="space-y-2">
-              <div className="text-sm font-medium text-[var(--text-2)]">输出风格</div>
+              <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputStyle}</div>
               <select value={styleTemplate} onChange={(event) => void updateStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
-                {styleTemplateList.map((style) => (<option key={style} value={style}>{getStyleTemplateMeta(style, "zh").label}</option>))}
+                {styleTemplateList.map((style) => (<option key={style} value={style}>{getStyleTemplateMeta(style, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{styleMeta.description}</div>
             </label>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <div className="text-sm font-medium text-[var(--text-2)]">文案长度</div>
+              <div className="text-sm font-medium text-[var(--text-2)]">{ui.copyLength}</div>
               <select value={copyLength} onChange={(event) => void updateCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
-                {copyLengthList.map((item) => (<option key={item} value={item}>{getCopyLengthMeta(item, "zh").label}</option>))}
+                {copyLengthList.map((item) => (<option key={item} value={item}>{getCopyLengthMeta(item, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{copyLengthMeta.description}</div>
             </label>
             <label className="space-y-2">
-              <div className="text-sm font-medium text-[var(--text-2)]">使用场景</div>
+              <div className="text-sm font-medium text-[var(--text-2)]">{ui.usageScenario}</div>
               <select value={usageScenario} onChange={(event) => void updateUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
-                {usageScenarioList.map((item) => (<option key={item} value={item}>{getUsageScenarioMeta(item, "zh").label}</option>))}
+                {usageScenarioList.map((item) => (<option key={item} value={item}>{getUsageScenarioMeta(item, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{usageScenarioMeta.description}</div>
             </label>
           </div>
           {styleReferenceSample ? (
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风格参照</div>
-              <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">当前项目已附带参考样稿。生成主稿时会学习它的语气、节奏和结构。</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.styleReference}</div>
+              <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.styleReferenceDesc}</div>
               {styleReferenceInsight ? (
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                   <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题风格</div>
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.titleStyle}</div>
                     {(styleReferenceInsight.titleStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
                   <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开头风格</div>
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.openingStyle}</div>
                     {(styleReferenceInsight.openingStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
                   <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">正文节奏</div>
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.bodyRhythm}</div>
                     {(styleReferenceInsight.bodyRhythmLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
                 </div>
@@ -583,41 +792,41 @@ export function MarketingOpsWorkbench({
 
       {/* ── Phase 1: Master Copy Workspace ── */}
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <PanelCard title="主稿编辑" description="编辑当前主稿内容，操作按钮就在上方。">
+        <PanelCard title={ui.editorTitle} description={ui.editorDesc}>
           <div className="space-y-5">
             {/* Action buttons colocated with editor */}
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => void generatePromotionalCopy()} disabled={pending !== null}>
-                {pending === "promo-copy" ? "AI 正在生成..." : "生成新主稿"}
+                {pending === "promo-copy" ? ui.generating : ui.generateMaster}
               </Button>
               <Button variant="secondary" onClick={() => void diagnoseAndEnhanceCopy()} disabled={pending !== null || !heroCopy.trim()}>
-                {pending === "enhance-copy" ? "AI 增强中..." : "诊断并增强"}
+                {pending === "enhance-copy" ? ui.enhancing : ui.diagnose}
               </Button>
               <Button variant="secondary" onClick={() => void savePromotionalCopyVersion()} disabled={pending !== null || !heroCopy.trim()}>
-                {pending === "save-copy" ? "保存中..." : "另存新版本"}
+                {pending === "save-copy" ? ui.saving : ui.saveVersion}
               </Button>
             </div>
-            {!heroCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿内容才能增强或另存</div>}
+            {!heroCopy.trim() && <div className="text-xs text-[var(--text-3)]">{ui.needCopy}</div>}
 
             <div className="grid gap-4 md:grid-cols-[1fr_0.62fr]">
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">版本标题</label>
-                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder="例如：宣传文案主稿 v3" />
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.versionTitle}</label>
+                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder={ui.versionTitlePlaceholder} />
               </div>
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主宣传角度</label>
-                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder="本轮传播要主打的商业角度" />
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.masterAngle}</label>
+                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder={ui.masterAnglePlaceholder} />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">开场摘要</label>
-              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="一段能直接拿去做宣传开头的摘要" />
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.heroCopy}</label>
+              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.heroCopyPlaceholder} />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">完整宣传主稿</label>
-              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-2xl px-4 py-4 text-sm leading-8" placeholder="完整宣传文案正文" />
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.longForm}</label>
+              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-2xl px-4 py-4 text-sm leading-8" placeholder={ui.longFormPlaceholder} />
             </div>
 
             {selectedVersion ? (() => {
@@ -628,30 +837,30 @@ export function MarketingOpsWorkbench({
                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">质量诊断</div>
-                      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{diagnosis.summary ?? "当前版本已有质量诊断。"}</div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.diagnosisTitle}</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{diagnosis.summary ?? ui.diagnosisFallback}</div>
                     </div>
                     {typeof diagnosis.overall_score === "number" ? (
                       <div className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">
-                        质量分 {diagnosis.overall_score}
+                        {ui.scoreLabel} {diagnosis.overall_score}
                       </div>
                     ) : null}
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前优点</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.strengths}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.strengths ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">主要问题</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.issues}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.issues ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
                     <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">增强重点</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.focus}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.rewrite_focus ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
@@ -663,7 +872,7 @@ export function MarketingOpsWorkbench({
 
             <div className="flex flex-wrap gap-3">
               <Button variant="secondary" type="button" onClick={() => setShowAdvanced((value) => !value)}>
-                {showAdvanced ? "收起高级编辑" : "展开高级编辑"}
+                {showAdvanced ? ui.collapseAdvanced : ui.expandAdvanced}
               </Button>
             </div>
 
@@ -671,26 +880,26 @@ export function MarketingOpsWorkbench({
               <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">标题备选</label>
-                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条标题" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.headlineOptions}</label>
+                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.headlinePlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">核心卖点 / 证据点</label>
-                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条证明点或卖点" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.proofPoints}</label>
+                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.proofPlaceholder} />
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">CTA</label>
-                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="引导用户下一步动作" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.cta}</label>
+                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.ctaPlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风险提示</label>
-                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条风险提示" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.riskNotes}</label>
+                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.riskPlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">下一步建议</label>
-                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder="每行一条下一步动作" />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.nextSteps}</label>
+                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.nextStepsPlaceholder} />
                   </div>
                 </div>
               </>
@@ -699,7 +908,7 @@ export function MarketingOpsWorkbench({
         </PanelCard>
 
         {/* Version History (right column) */}
-        <PanelCard title="主稿版本" description="点击切换历史版本。">
+        <PanelCard title={ui.versionsTitle} description={ui.versionsDesc}>
           <div className="space-y-3">
             {versions.length ? (
               versions.map((item) => {
@@ -745,22 +954,22 @@ export function MarketingOpsWorkbench({
                                 const res = await fetch(`/api/projects/${projectId}/promotional-copy?taskId=${item.id}`, { method: "DELETE" });
                                 const text = await res.text();
                                 let p: { success: boolean; error?: { message?: string } };
-                                try { p = JSON.parse(text); } catch { throw new Error("服务器返回了非 JSON 响应"); }
-                                if (!p.success) throw new Error(p.error?.message ?? "删除失败");
+                                try { p = JSON.parse(text); } catch { throw new Error(ui.nonJson); }
+                                if (!p.success) throw new Error(p.error?.message ?? ui.deleteFailed);
                                 if (selectedVersionId === item.id) setSelectedVersionId(null);
-                                setMessage("版本已删除。");
+                                setMessage(ui.deleted);
                                 router.refresh();
                               } catch (err) {
-                                setError(err instanceof Error ? err.message : "删除失败");
+                                setError(err instanceof Error ? err.message : ui.deleteFailed);
                               }
                             })();
                           }}
-                        >{deleteArmedId === item.id ? "确认删除" : "✕"}</span>
+                        >{deleteArmedId === item.id ? ui.confirmDelete : ui.deleteMark}</span>
                       </div>
                     </div>
-                    <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? "暂无摘要"}</div>
+                    <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? ui.noSummary}</div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
-                      <span>{new Date(item.createdAt).toLocaleString("zh-CN")}</span>
+                      <span>{new Date(item.createdAt).toLocaleString(timeLocale)}</span>
                       {payload?.generation_source ? <span className="theme-pill rounded-full px-2 py-1 text-[11px] font-medium">{payload.generation_source}</span> : null}
                     </div>
                   </button>
@@ -768,7 +977,7 @@ export function MarketingOpsWorkbench({
               })
             ) : (
               <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
-                还没有宣传主稿版本。先点击左侧的{"\"生成新主稿\""}。
+                {ui.noVersions}
               </div>
             )}
           </div>
@@ -778,20 +987,20 @@ export function MarketingOpsWorkbench({
       {/* ── Phase 2 & 3: Platform Adaptations & Compliance ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Left: Platform adaptation list + generate form */}
-        <PanelCard title="平台稿件" description="选择平台并生成，列表即时更新。">
+        <PanelCard title={ui.channelTitle} description={ui.channelDesc}>
           <div className="space-y-4">
             <div className="flex items-end gap-3">
               <label className="flex-1 space-y-1">
-                <div className="text-xs font-medium text-[var(--text-3)]">目标平台</div>
+                <div className="text-xs font-medium text-[var(--text-3)]">{ui.targetPlatform}</div>
                 <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
-                  {platformSurfaceList.map((item) => (<option key={item} value={item}>{getPlatformSurfaceMeta(item, "zh").label}</option>))}
+                  {platformSurfaceList.map((item) => (<option key={item} value={item}>{getPlatformSurfaceMeta(item, locale).label}</option>))}
                 </select>
               </label>
               <Button onClick={() => void generateAdaptationFromDraft()} disabled={pending !== null || !longFormCopy.trim()} className="shrink-0">
-                {pending === "quick-adapt" ? "生成中..." : "生成"}
+                {pending === "quick-adapt" ? ui.generatingShort : ui.generate}
               </Button>
             </div>
-            {!longFormCopy.trim() && <div className="text-xs text-[var(--text-3)]">需要先有主稿正文才能派生平台稿</div>}
+            {!longFormCopy.trim() && <div className="text-xs text-[var(--text-3)]">{ui.needLongForm}</div>}
 
             <div className="space-y-3">
               {(marketingOverview.platformAdaptations ?? []).length ? (
@@ -812,19 +1021,19 @@ export function MarketingOpsWorkbench({
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <span className={`inline-block size-2 shrink-0 rounded-full ${statusColor}`} />
-                          <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(item.surface as PlatformSurface, "zh").label}</span>
+                          <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(item.surface as PlatformSurface, locale).label}</span>
                         </div>
-                        <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, "zh")}</span>
+                        <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, locale)}</span>
                       </div>
-                      <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? "未填写标题或开场句"}</div>
-                      <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || "（暂无正文内容）"}</div>
-                      <div className="mt-2 text-xs text-[var(--text-3)]">{new Date(item.createdAt).toLocaleString("zh-CN")}</div>
+                      <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? ui.noChannelTitle}</div>
+                      <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || ui.noChannelBody}</div>
+                      <div className="mt-2 text-xs text-[var(--text-3)]">{new Date(item.createdAt).toLocaleString(timeLocale)}</div>
                     </button>
                   );
                 })
               ) : (
                 <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
-                  还没有平台稿件。请先选择目标平台并点击{"\"生成\""}。
+                  {ui.noChannelDrafts}
                 </div>
               )}
             </div>
@@ -832,36 +1041,36 @@ export function MarketingOpsWorkbench({
         </PanelCard>
 
         {/* Right: Selected adaptation detail + compliance */}
-        <PanelCard title="稿件详情与合规" description="查看选中平台稿的内容和合规结果。">
+        <PanelCard title={ui.detailTitle} description={ui.detailDesc}>
           <div className="space-y-4">
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">当前选中平台稿</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.selectedDraft}</div>
               {selectedAdaptation ? (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <span className={`inline-block size-2 rounded-full ${
                       selectedAdaptation.status === "APPROVED" ? "bg-[var(--ok-text)]" : selectedAdaptation.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]"
                     }`} />
-                    <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}</span>
-                    <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, "zh")}</span>
+                    <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, locale).label}</span>
+                    <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, locale)}</span>
                   </div>
-                  <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? "未填写标题或开场句"}</div>
-                  <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || "（暂无正文内容）"}</div>
+                  <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? ui.noChannelTitle}</div>
+                  <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || ui.noChannelBody}</div>
                 </div>
               ) : (
-                <div className="mt-3 text-sm text-[var(--text-2)]">← 请先从左侧选择一条平台稿件。</div>
+                <div className="mt-3 text-sm text-[var(--text-2)]">{ui.chooseLeft}</div>
               )}
             </div>
 
             {/* Compliance check button — colocated! */}
             <Button variant="secondary" onClick={() => void runComplianceCheck()} disabled={pending !== null || !selectedAdaptation} className="w-full justify-center">
-              {pending === "compliance" ? "检查中..." : selectedAdaptation ? `检查「${getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, "zh").label}」合规性` : "请先选中一条平台稿"}
+              {pending === "compliance" ? ui.runningCompliance : selectedAdaptation ? ui.runCompliance(getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, locale).label) : ui.runComplianceIdle}
             </Button>
 
             {/* Compliance results — colocated! */}
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">合规检查结果</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.complianceResult}</div>
                 {latestCheckForSelected && (
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
                     latestCheckForSelected.needsReview
@@ -869,23 +1078,23 @@ export function MarketingOpsWorkbench({
                       : "bg-[var(--ok-bg,var(--surface-muted))] text-[var(--ok-text)]"
                   }`}>
                     <span className={`inline-block size-1.5 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
-                    {latestCheckForSelected.needsReview ? "需要人工复核" : "暂无风险"}
+                    {latestCheckForSelected.needsReview ? ui.needsReview : ui.noRisk}
                   </span>
                 )}
               </div>
               {latestCheckForSelected ? (
                 <div className="mt-3 space-y-3">
-                  <div className="text-sm leading-7 text-[var(--text-2)]">{latestCheckForSelected.summary ?? "暂无风险总结。"}</div>
+                  <div className="text-sm leading-7 text-[var(--text-2)]">{latestCheckForSelected.summary ?? ui.noRiskSummary}</div>
                   {(() => {
                     const issues = Array.isArray(latestCheckForSelected.flaggedIssues) ? latestCheckForSelected.flaggedIssues : [];
-                    if (!issues.length) return <div className="text-sm text-[var(--text-2)]">✓ 未命中明显风险。</div>;
+                    if (!issues.length) return <div className="text-sm text-[var(--text-2)]">{ui.cleanHit}</div>;
                     return (
                       <div className="space-y-2">
-                        <div className="text-xs font-medium text-[var(--danger-text)]">{issues.length} 条风险项</div>
+                        <div className="text-xs font-medium text-[var(--danger-text)]">{ui.issueCount(issues.length)}</div>
                         {(issues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
                           <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
-                            <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? "风险项")} · {String(item?.text ?? "未命名内容")}</div>
-                            <div className="mt-1">{String(item?.reason ?? "需要人工进一步判断。")}</div>
+                            <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? ui.issueTypeFallback)} · {String(item?.text ?? ui.unnamedContent)}</div>
+                            <div className="mt-1">{String(item?.reason ?? ui.issueReasonFallback)}</div>
                           </div>
                         ))}
                       </div>
@@ -894,7 +1103,7 @@ export function MarketingOpsWorkbench({
                 </div>
               ) : (
                 <div className="mt-3 text-sm text-[var(--text-2)]">
-                  {selectedAdaptation ? "当前平台稿还没有检查记录。请点击上方按钮执行合规检查。" : "选择平台稿后可查看检查记录。"}
+                  {selectedAdaptation ? ui.noCheckYetSelected : ui.noCheckYet}
                 </div>
               )}
             </div>

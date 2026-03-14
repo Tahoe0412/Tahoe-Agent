@@ -26,11 +26,12 @@ export default async function SettingsPage() {
 
   return (
     <WorkspaceLayout locale={locale}>
-      <div className="space-y-8">
+      <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.settings.eyebrow}
           title={text.pages.settings.title}
           description={text.pages.settings.description}
+          locale={locale}
         />
 
         {/* ── Row 1: Theme & Language (lightweight, equal halves) ── */}
@@ -123,6 +124,7 @@ export default async function SettingsPage() {
             initialProjects={projects}
             brandProfiles={brandProfiles.map((item) => ({ id: item.id, brand_name: item.brand_name }))}
             industryTemplates={industryTemplates.map((item) => ({ id: item.id, industry_name: item.industry_name }))}
+            locale={locale}
           />
         </PanelCard>
       </div>

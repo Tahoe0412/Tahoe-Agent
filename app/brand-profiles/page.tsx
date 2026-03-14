@@ -25,8 +25,8 @@ export default async function BrandProfilesPage({
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
-      <div className="space-y-8">
-        <PageHeader eyebrow={text.pages.brands.eyebrow} title={text.pages.brands.title} description={text.pages.brands.description} />
+      <div className="space-y-6 xl:space-y-5">
+        <PageHeader eyebrow={text.pages.brands.eyebrow} title={text.pages.brands.title} description={text.pages.brands.description} locale={locale} />
         <ProjectContext
           project={
             workspace

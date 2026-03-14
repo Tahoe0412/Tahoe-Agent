@@ -36,6 +36,7 @@ export default async function RenderLabPage({
           eyebrow={text.pages.renderLab.eyebrow}
           title={text.pages.renderLab.title}
           description={text.pages.renderLab.description}
+          locale={locale}
           action={
             projectId ? (
               <NextStepLink
@@ -81,7 +82,7 @@ export default async function RenderLabPage({
             action={<NextStepLink href={projectId ? `/render-lab?projectId=${projectId}` : "/render-lab"} label={locale === "en" ? "Retry Loading" : "重新加载"} />}
           />
         ) : state && state !== "ready" ? (
-          <PageStateView state={state} />
+          <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
           <EmptyPanel
             title={locale === "en" ? "Select a Project" : "等待选择项目"}

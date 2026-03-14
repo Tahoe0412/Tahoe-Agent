@@ -20,8 +20,8 @@ export default async function ProjectHubPage() {
 
   return (
     <WorkspaceLayout locale={locale}>
-      <div className="space-y-8">
-        <PageHeader eyebrow={text.pages.projectHub.eyebrow} title={text.pages.projectHub.title} description={text.pages.projectHub.description} />
+      <div className="space-y-6 xl:space-y-5">
+        <PageHeader eyebrow={text.pages.projectHub.eyebrow} title={text.pages.projectHub.title} description={text.pages.projectHub.description} locale={locale} />
 
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <PanelCard title={locale === "en" ? "Project Center" : "项目中心"} description={locale === "en" ? "Search, filter, and manage projects. Expand the form above the list to create a new one." : "搜索、筛选和管理项目。展开列表上方的表单可创建新项目。"}>
@@ -30,6 +30,7 @@ export default async function ProjectHubPage() {
               brandProfiles={brandProfiles.map((item) => ({ id: item.id, brand_name: item.brand_name }))}
               industryTemplates={industryTemplates.map((item) => ({ id: item.id, industry_name: item.industry_name }))}
               showBulkActions
+              locale={locale}
             />
           </PanelCard>
 
