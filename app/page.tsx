@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ProjectForm } from "@/components/dashboard/project-form";
-import { DetailPanel } from "@/components/ui/detail-panel";
 import { EmptyPanel, ErrorPanel } from "@/components/ui/state-panel";
 import { ProjectContext } from "@/components/workspace/project-context";
 import { WorkflowActions } from "@/components/workspace/workflow-actions";
@@ -80,18 +79,75 @@ export default async function Home({
       ? text.pages.dashboard
       : workspace?.workspaceMode === "COPYWRITING"
         ? {
-            eyebrow: "文案工作流",
-            title: "文案项目总览",
-            description: "先确认任务，再生成主稿，再做平台改写与合规检查，不必一开始打开全部模块。",
+            eyebrow: locale === "en" ? "Copywriting Workflow" : "文案工作流",
+            title: locale === "en" ? "Copy Project Overview" : "文案项目总览",
+            description: locale === "en" ? "Confirm the brief first, then generate the master copy, then do platform rewrites and compliance checks." : "先确认任务，再生成主稿，再做平台改写与合规检查，不必一开始打开全部模块。",
           }
         : workspace?.workspaceMode === "PROMOTION"
           ? {
-              eyebrow: "推广工作流",
-              title: "推广项目总览",
-              description: "围绕一个推广目标收集信息、生成宣传主稿、派生平台稿，并在发布前完成检查。",
+              eyebrow: locale === "en" ? "Promotion Workflow" : "推广工作流",
+              title: locale === "en" ? "Promotion Project Overview" : "推广项目总览",
+              description: locale === "en" ? "Gather inputs around one promotion goal, generate copy, derive platform versions, and complete checks before publishing." : "围绕一个推广目标收集信息、生成宣传主稿、派生平台稿，并在发布前完成检查。",
             }
           : text.pages.dashboard;
   const nextStep = getDashboardNextStep(workspace, locale);
+
+  const ui = {
+    startWorkingTitle: locale === "en" ? "Getting Started" : "开始工作",
+    startWorkingDesc: locale === "en" ? "Don\u0027t look at every module first. Just do the most logical next step." : "不要先看所有模块，只做当前最合理的下一步。",
+    threeStepsTitle: locale === "en" ? "Three Steps to Complete" : "三步完成当前项目",
+    threeStepsDesc: locale === "en" ? "Compress the workflow into three key steps." : "把工作流压缩成最关键的 3 步，不先思考所有模块。",
+    prioritiesTitle: locale === "en" ? "Current Focus" : "当前只看这几件事",
+    prioritiesDesc: locale === "en" ? "Confirm direction first, then push execution. Don\u0027t try to absorb everything from the overview." : "先确认方向、再推进执行，不在总览页一次看完所有信息。",
+    briefTitle: locale === "en" ? "Current Brief" : "当前任务单",
+    briefDesc: locale === "en" ? "Check if the brief is clear before deciding to continue with research, scripts, or copy." : "先看任务是否明确，再决定继续研究、脚本还是宣传文案。",
+    execTitle: locale === "en" ? "Execution Overview" : "当前执行概览",
+    execDesc: locale === "en" ? "Only the most critical results and statuses for this round." : "总览里只保留本轮最关键的结果和状态。",
+    viewDetails: locale === "en" ? "View Detailed Results" : "查看详细结果",
+    tipsTitle: locale === "en" ? "Quick Tips" : "使用建议",
+    tip1: locale === "en" ? "Choose a work mode first—don\u0027t try to do everything at once." : "先选工作模式，不要一开始就做所有事情。",
+    tip2: locale === "en" ? "Write out the project intro, core idea, and raw input clearly." : "先把项目介绍、核心想法和原始输入写清楚。",
+    tip3: locale === "en" ? "Generate the first draft, then decide whether to go deeper." : "先跑出第一版结果，再决定要不要进入更细的页面。",
+    continueProject: locale === "en" ? "Continue Current Project" : "继续当前项目",
+    startNewProject: locale === "en" ? "Start Another Project" : "开始新项目",
+    step01Title: locale === "en" ? "Confirm the Brief" : "先确认任务单",
+    step02VideoTitle: locale === "en" ? "Generate Script / Storyboard" : "再生成脚本 / 分镜",
+    step02CopyTitle: locale === "en" ? "Generate Master Copy" : "再生成宣传主稿",
+    step03Title: locale === "en" ? "Review & Deliver" : "最后检查并交付",
+    trendLabel: locale === "en" ? "Trend Topics" : "趋势主题",
+    scenesLabel: locale === "en" ? "Scene Count" : "镜头数量",
+    copyVersionsLabel: locale === "en" ? "Copy Versions" : "主稿版本",
+    statusLabel: locale === "en" ? "Status" : "当前状态",
+    produced: locale === "en" ? "Produced" : "已产出",
+    inProgress: locale === "en" ? "In Progress" : "进行中",
+    priorityLabel: locale === "en" ? "Focus" : "重点",
+    noBriefYet: locale === "en" ? "No brief yet. Go to the Brief Studio to define your goals, CTA, audience, and style constraints first." : "当前项目还没有创意任务单。建议先去「创意任务单」页面把目标、CTA、受众和风格约束固化下来。",
+    trendsPrimary: (label: string) => locale === "en" ? `Current lead: ${label}` : `当前优先：${label}`,
+    noTrendsYet: locale === "en" ? "No trend results yet" : "还没有趋势结果",
+    scenesDesc: locale === "en" ? "Editable scenes from script decomposition" : "当前脚本拆解后的可编辑镜头数",
+    latestCopy: (title: string) => locale === "en" ? `Latest: ${title}` : `最新主稿：${title}`,
+    noCopyYet: locale === "en" ? "No master copy yet" : "还没有宣传主稿",
+    producedDesc: locale === "en" ? "Report generated. Continue refining or export." : "当前项目已有报告，可继续细修或导出。",
+    inProgressDesc: locale === "en" ? "Follow the recommended action at the top to continue." : "建议先按页面顶部推荐动作继续推进。",
+    topTrendsTitle: locale === "en" ? "Top Trends" : "重点趋势",
+    topTrendsDesc: locale === "en" ? "Expand only when you need to review topics and evidence." : "只在需要时再展开看主题和证据。",
+    recentScenesTitle: locale === "en" ? "Recent Scenes" : "最近镜头",
+    recentScenesDesc: locale === "en" ? "Expand only when you need to review the latest scenes." : "只在需要时展开看最近几个镜头。",
+    evidenceLabel: locale === "en" ? "evidence" : "条证据",
+    pointsLabel: locale === "en" ? "pts" : "分",
+    sceneLabel: locale === "en" ? "Scene" : "镜头",
+    assetsReady: locale === "en" ? "Ready" : "已齐备",
+    assetsNeeded: locale === "en" ? "Needs Assets" : "待补素材",
+    awaitingPriorities: locale === "en" ? "Awaiting generation of priorities." : "等待生成本轮重点。",
+    briefHasData: locale === "en" ? "Brief exists. Continue to the next step." : "任务单已存在，可直接继续。",
+    briefNeedsData: locale === "en" ? "Go to the Brief Studio to define your goals, audience, and CTA." : "先去「创意任务单」把目标、受众、CTA 写清楚。",
+    step02VideoHasData: (count: number) => locale === "en" ? `${count} scenes available. Continue refining.` : `当前已有 ${count} 个镜头，可继续细修。`,
+    step02VideoNeedsData: locale === "en" ? "Run script rewrite first, then decide on scenes and assets." : "先运行脚本重构，再决定镜头与素材。",
+    step02CopyHasData: locale === "en" ? "Master copy exists. Continue with platform adaptation." : "当前已有宣传主稿，可直接继续平台改写。",
+    step02CopyNeedsData: locale === "en" ? "Go to Marketing Ops to generate the first master copy." : "去「宣传文案与运营」先生成一版主稿。",
+    step03HasData: locale === "en" ? "Report generated. Continue with compliance and delivery." : "报告已生成，可继续合规与交付。",
+    step03NeedsData: locale === "en" ? "Generate the report at the end. Don\u0027t switch between too many pages upfront." : "最后再生成报告，不要一开始就切很多页。",
+  };
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
@@ -131,95 +187,86 @@ export default async function Home({
           locale={locale}
           density="expanded"
         />
+
+        {/* ── With workspace: main dashboard ── */}
         {workspace ? (
-          <>
-            <PanelCard title="开始工作" description="不要先看所有模块，只做当前最合理的下一步。">
-              <div className="flex flex-wrap items-center gap-3">
-                <NextStepLink href={nextStep.href} label={locale === "en" ? "Continue Current Project" : "继续当前项目"} />
-                <Link
-                  href="#new-project"
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-2 text-sm font-medium text-[var(--text-1)] transition hover:bg-[var(--surface-muted)]"
-                >
-                  {locale === "en" ? "Start Another Project" : "开始新项目"}
-                </Link>
-              </div>
-            </PanelCard>
-
-            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <PanelCard title="三步完成当前项目" description="把工作流压缩成最关键的 3 步，不先思考所有模块。">
-              <div className="grid gap-4 md:grid-cols-3">
-                {[
-                  {
-                    step: "01",
-                    title: "先确认任务单",
-                    body: workspace.latestBrief ? "任务单已存在，可直接继续。" : "先去“创意任务单”把目标、受众、CTA 写清楚。",
-                  },
-                  {
-                    step: "02",
-                    title: workspace.workspaceMode === "SHORT_VIDEO" ? "再生成脚本 / 分镜" : "再生成宣传主稿",
-                    body:
-                      workspace.workspaceMode === "SHORT_VIDEO"
-                        ? workspace.scriptLabRows.length
-                          ? `当前已有 ${workspace.scriptLabRows.length} 个镜头，可继续细修。`
-                          : "先运行脚本重构，再决定镜头与素材。"
-                        : workspace.marketingOverview.latestPromotionalCopy
-                          ? "当前已有宣传主稿，可直接继续平台改写。"
-                          : "去“宣传文案与运营”先生成一版主稿。",
-                  },
-                  {
-                    step: "03",
-                    title: "最后检查并交付",
-                    body: workspace.latestReport ? "报告已生成，可继续合规与交付。" : "最后再生成报告，不要一开始就切很多页。",
-                  },
-                ].map((item) => (
-                  <div key={item.step} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{item.step}</div>
-                    <div className="mt-3 text-lg font-semibold text-[var(--text-1)]">{item.title}</div>
-                    <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{item.body}</div>
-                  </div>
-                ))}
-              </div>
-            </PanelCard>
-            <WorkflowActions projectId={workspace.project.id} workspaceMode={workspace.workspaceMode} />
-            </div>
-          </>
-        ) : null}
-
-        {!workspace ? (
-          <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-            <div id="new-project">
-              <ProjectForm />
-            </div>
-            <DetailPanel title="使用建议">
+          <div className="space-y-6">
+            {/* Three-step guide — flattened into a horizontal row */}
+            <div className="grid gap-4 md:grid-cols-3">
               {[
-                "先选工作模式，不要一开始就做所有事情。",
-                "先把项目介绍、核心想法和原始输入写清楚。",
-                "先跑出第一版结果，再决定要不要进入更细的页面。",
+                {
+                  step: "01",
+                  title: ui.step01Title,
+                  body: workspace.latestBrief ? ui.briefHasData : ui.briefNeedsData,
+                },
+                {
+                  step: "02",
+                  title: workspace.workspaceMode === "SHORT_VIDEO" ? ui.step02VideoTitle : ui.step02CopyTitle,
+                  body:
+                    workspace.workspaceMode === "SHORT_VIDEO"
+                      ? workspace.scriptLabRows.length
+                        ? ui.step02VideoHasData(workspace.scriptLabRows.length)
+                        : ui.step02VideoNeedsData
+                      : workspace.marketingOverview.latestPromotionalCopy
+                        ? ui.step02CopyHasData
+                        : ui.step02CopyNeedsData,
+                },
+                {
+                  step: "03",
+                  title: ui.step03Title,
+                  body: workspace.latestReport ? ui.step03HasData : ui.step03NeedsData,
+                },
               ].map((item) => (
-                <div key={item}>
-                  <div className="mt-2">{item}</div>
+                <div key={item.step} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{item.step}</div>
+                  <div className="mt-2 text-sm font-semibold text-[var(--text-1)]">{item.title}</div>
+                  <div className="mt-1 text-sm leading-7 text-[var(--text-2)]">{item.body}</div>
                 </div>
               ))}
-            </DetailPanel>
-          </div>
-        ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or switch from the recent project bar above." : "创建新项目后会自动跳转；也可以从上方最近项目里切换。"} />
-        ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found. Check the link or create a new project." : "当前 `projectId` 没有查到项目数据，请检查链接或重新创建项目。"} />
-        ) : (
-          <div className="space-y-6">
-            <PanelCard title="当前只看这几件事" description="先确认方向、再推进执行，不在总览页一次看完所有信息。">
-              <div className="grid gap-4 md:grid-cols-3">
-                {(workspace.priorities ?? ["等待生成本轮重点。"]).slice(0, 3).map((item, index) => (
-                  <div key={item} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">重点 {index + 1}</div>
-                    <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{item}</div>
-                  </div>
-                ))}
-              </div>
-            </PanelCard>
+            </div>
 
-            <PanelCard title="当前任务单" description="先看任务是否明确，再决定继续研究、脚本还是宣传文案。">
+            {/* Execution overview + Workflow actions — standard two-column */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <PanelCard title={ui.execTitle} description={ui.execDesc}>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.trendLabel}</div>
+                    <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{workspace.trendRows.length}</div>
+                    <div className="mt-2 text-sm text-[var(--text-2)]">
+                      {workspace.trendRows[0]?.label ? ui.trendsPrimary(workspace.trendRows[0].label) : ui.noTrendsYet}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
+                      {workspace.workspaceMode === "SHORT_VIDEO" ? ui.scenesLabel : ui.copyVersionsLabel}
+                    </div>
+                    <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">
+                      {workspace.workspaceMode === "SHORT_VIDEO"
+                        ? workspace.scriptLabRows.length
+                        : workspace.marketingOverview.promotionalCopyVersions.length}
+                    </div>
+                    <div className="mt-2 text-sm text-[var(--text-2)]">
+                      {workspace.workspaceMode === "SHORT_VIDEO"
+                        ? ui.scenesDesc
+                        : workspace.marketingOverview.latestPromotionalCopy
+                          ? ui.latestCopy(workspace.marketingOverview.latestPromotionalCopy.title)
+                          : ui.noCopyYet}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.statusLabel}</div>
+                    <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{workspace.latestReport ? ui.produced : ui.inProgress}</div>
+                    <div className="mt-2 text-sm text-[var(--text-2)]">
+                      {workspace.latestReport ? ui.producedDesc : ui.inProgressDesc}
+                    </div>
+                  </div>
+                </div>
+              </PanelCard>
+              <WorkflowActions projectId={workspace.project.id} workspaceMode={workspace.workspaceMode} />
+            </div>
+
+            {/* Current brief */}
+            <PanelCard title={ui.briefTitle} description={ui.briefDesc}>
               {workspace.latestBrief ? (
                 <div className="space-y-4">
                   <div>
@@ -239,48 +286,25 @@ export default async function Home({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
-                  当前项目还没有创意任务单。建议先去“创意任务单”页面把目标、CTA、受众和风格约束固化下来。
+                <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
+                  {ui.noBriefYet}
                 </div>
               )}
             </PanelCard>
 
-            <PanelCard title="当前执行概览" description="总览里只保留本轮最关键的结果和状态。">
+            {/* Priorities */}
+            <PanelCard title={ui.prioritiesTitle} description={ui.prioritiesDesc}>
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">趋势主题</div>
-                  <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{workspace.trendRows.length}</div>
-                  <div className="mt-2 text-sm text-[var(--text-2)]">
-                    {workspace.trendRows[0]?.label ? `当前优先：${workspace.trendRows[0].label}` : "还没有趋势结果"}
+                {(workspace.priorities ?? [ui.awaitingPriorities]).slice(0, 3).map((item, index) => (
+                  <div key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.priorityLabel} {index + 1}</div>
+                    <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{item}</div>
                   </div>
-                </div>
-                <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
-                    {workspace.workspaceMode === "SHORT_VIDEO" ? "镜头数量" : "主稿版本"}
-                  </div>
-                  <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">
-                    {workspace.workspaceMode === "SHORT_VIDEO"
-                      ? workspace.scriptLabRows.length
-                      : workspace.marketingOverview.promotionalCopyVersions.length}
-                  </div>
-                  <div className="mt-2 text-sm text-[var(--text-2)]">
-                    {workspace.workspaceMode === "SHORT_VIDEO"
-                      ? "当前脚本拆解后的可编辑镜头数"
-                      : workspace.marketingOverview.latestPromotionalCopy
-                        ? `最新主稿：${workspace.marketingOverview.latestPromotionalCopy.title}`
-                        : "还没有宣传主稿"}
-                  </div>
-                </div>
-                <div className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前状态</div>
-                  <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{workspace.latestReport ? "已产出" : "进行中"}</div>
-                  <div className="mt-2 text-sm text-[var(--text-2)]">
-                    {workspace.latestReport ? "当前项目已有报告，可继续细修或导出。" : "建议先按页面顶部推荐动作继续推进。"}
-                  </div>
-                </div>
+                ))}
               </div>
             </PanelCard>
 
+            {/* Approval Board */}
             <ApprovalBoard
               projectId={workspace.project.id}
               approvals={workspace.project.approval_gates.map((gate) => ({
@@ -303,21 +327,22 @@ export default async function Home({
               }}
             />
 
+            {/* Expanded details (collapsed by default) */}
             <Disclosure
-              className="theme-panel rounded-[24px] p-4"
+              className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5"
               summaryClassName="text-sm font-medium text-[var(--text-1)]"
               contentClassName="mt-4 space-y-6"
-              title="查看详细结果"
+              title={ui.viewDetails}
             >
-                <PanelCard title="重点趋势" description="只在需要时再展开看主题和证据。">
+                <PanelCard title={ui.topTrendsTitle} description={ui.topTrendsDesc}>
                   <div className="grid gap-4 md:grid-cols-3">
                     {workspace.trendRows.slice(0, 3).map((row) => (
-                      <div key={row.topic} className="rounded-3xl border border-[var(--border)] bg-[var(--surface-solid)] p-5">
+                      <div key={row.topic} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5">
                         <div className="text-lg font-semibold text-[var(--text-1)]">{row.label}</div>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
                           <SummaryPill>{row.platforms}</SummaryPill>
-                          <SummaryPill>{row.evidence} 条证据</SummaryPill>
-                          <SummaryPill>{row.total} 分</SummaryPill>
+                          <SummaryPill>{row.evidence} {ui.evidenceLabel}</SummaryPill>
+                          <SummaryPill>{row.total} {ui.pointsLabel}</SummaryPill>
                         </div>
                         <div className="mt-4 text-sm leading-6 text-[var(--text-2)]">{row.summary}</div>
                       </div>
@@ -326,20 +351,20 @@ export default async function Home({
                 </PanelCard>
 
                 {workspace.workspaceMode === "SHORT_VIDEO" ? (
-                  <PanelCard title="最近镜头" description="只在需要时展开看最近几个镜头。">
+                  <PanelCard title={ui.recentScenesTitle} description={ui.recentScenesDesc}>
                     <div className="space-y-3">
                       {workspace.scriptLabRows.slice(0, 3).map((scene) => (
-                        <div key={scene.id} className="rounded-3xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div key={scene.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
                           <div className="flex items-center justify-between">
-                            <div className="text-sm font-medium text-[var(--text-1)]">镜头 {scene.sceneOrder}</div>
+                            <div className="text-sm font-medium text-[var(--text-1)]">{ui.sceneLabel} {scene.sceneOrder}</div>
                             <div className="flex items-center gap-2">
                               <SummaryPill>{scene.continuityGroup}</SummaryPill>
-                              <SummaryPill>{scene.assetReady ? "已齐备" : "待补素材"}</SummaryPill>
+                              <SummaryPill>{scene.assetReady ? ui.assetsReady : ui.assetsNeeded}</SummaryPill>
                             </div>
                           </div>
                           <div className="mt-3 grid gap-3 text-sm leading-6 text-[var(--text-2)] md:grid-cols-2">
-                            <div className="rounded-2xl bg-[var(--surface-muted)] p-3 text-[var(--text-1)]">{scene.originalText}</div>
-                            <div className="theme-panel-strong rounded-2xl p-3 text-[color:rgba(246,240,232,0.9)]">{scene.rewritten}</div>
+                            <div className="rounded-xl bg-[var(--surface-muted)] p-3 text-[var(--text-1)]">{scene.originalText}</div>
+                            <div className="theme-panel-strong rounded-xl p-3 text-[color:rgba(246,240,232,0.9)]">{scene.rewritten}</div>
                           </div>
                         </div>
                       ))}
@@ -352,7 +377,28 @@ export default async function Home({
                 </div>
             </Disclosure>
           </div>
-        )}
+        ) : null}
+
+        {/* ── Without workspace: project creation ── */}
+        {!workspace ? (
+          <div className="space-y-6">
+            <div id="new-project">
+              <ProjectForm />
+            </div>
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
+              <div className="font-medium text-[var(--text-1)]">{ui.tipsTitle}</div>
+              <ul className="mt-2 list-inside list-disc space-y-1">
+                <li>{ui.tip1}</li>
+                <li>{ui.tip2}</li>
+                <li>{ui.tip3}</li>
+              </ul>
+            </div>
+          </div>
+        ) : !projectId ? (
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or switch from the recent project bar above." : "创建新项目后会自动跳转；也可以从上方最近项目里切换。"} />
+        ) : !workspace ? (
+          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found. Check the link or create a new project." : "当前 `projectId` 没有查到项目数据，请检查链接或重新创建项目。"} />
+        ) : null}
       </div>
     </WorkspaceLayout>
   );
