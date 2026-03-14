@@ -8,6 +8,9 @@ on:
     paths:
       - .github/workflows/diagnose-runtime.yml
 
+permissions:
+  contents: write
+
 jobs:
   diagnose:
     runs-on: ubuntu-latest
