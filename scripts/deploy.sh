@@ -5,6 +5,9 @@ APP_DIR="$HOME/Tahoe-Agent"
 
 cd "$APP_DIR"
 
+# Fix ownership in case files were created by a different user (root vs ubuntu)
+sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
+
 if [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
   echo "[deploy] Pulling latest code from main..."
   git pull origin main
