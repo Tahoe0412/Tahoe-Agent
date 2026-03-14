@@ -200,11 +200,11 @@ export function ApprovalBoard({
                     {statusLabel(item?.approval_status ?? "PENDING")}
                   </span>
                 </div>
-                <div className={`mt-2 text-xs ${stage === activeStage ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>
+                <div className={`mt-2 text-xs ${stage === activeStage ? "text-white/72" : "text-[var(--text-2)]"}`}>
                   v{item?.target_version ?? versionHints[stage] ?? 1}
                   {item?.reviewer_label ? ` · ${item.reviewer_label}` : ""}
                 </div>
-                <div className={`mt-3 line-clamp-2 text-sm leading-6 ${stage === activeStage ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>
+                <div className={`mt-3 line-clamp-2 text-sm leading-6 ${stage === activeStage ? "text-white/84" : "text-[var(--text-2)]"}`}>
                   {item?.decision_summary ?? stageDescription(stage)}
                 </div>
               </button>
@@ -243,7 +243,7 @@ export function ApprovalBoard({
                       {statusLabel(item?.approval_status ?? "PENDING")}
                     </span>
                   </div>
-                  <div className={`mt-2 text-sm leading-6 ${stage === activeStage ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>
+                  <div className={`mt-2 text-sm leading-6 ${stage === activeStage ? "text-white/84" : "text-[var(--text-2)]"}`}>
                     {item?.decision_summary ?? stageDescription(stage)}
                   </div>
                 </button>

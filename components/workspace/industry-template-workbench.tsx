@@ -173,11 +173,11 @@ export function IndustryTemplateWorkbench({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-base font-semibold">{template.industry_name}</div>
-                    <div className={`mt-1 text-xs ${template.id === activeTemplate?.id ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{template.competitor_profiles.length} 个竞品 · {template.projects.length} 个项目</div>
+                    <div className={`mt-1 text-xs ${template.id === activeTemplate?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{template.competitor_profiles.length} 个竞品 · {template.projects.length} 个项目</div>
                   </div>
                   {projectId && activeIndustryTemplateId === template.id ? <span className="theme-chip-ok rounded-full px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
                 </div>
-                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${template.id === activeTemplate?.id ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>{template.recommended_topic_directions.slice(0, 2).join(" · ") || "等待补充推荐选题方向。"}</div>
+                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${template.id === activeTemplate?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{template.recommended_topic_directions.slice(0, 2).join(" · ") || "等待补充推荐选题方向。"}</div>
               </button>
             ))}
           </div>

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useState, useCallback, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X, Settings, PanelLeftClose, PanelLeftOpen, GalleryVerticalEnd } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { copy, type Locale } from "@/lib/locale-copy";
@@ -28,16 +29,25 @@ export function AppShell({
 
   const toggle = useCallback(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
+      setCollapsed(false);           // 切到移动端时重置桌面折叠
       setMobileOpen((v) => !v);
     } else {
+      setMobileOpen(false);          // 切到桌面时关闭移动抽屉
       setCollapsed((v) => !v);
     }
   }, []);
 
+  // 窗口拉宽超过 xl 时自动关闭移动抽屉；拉窄时重置折叠
   useEffect(() => {
-    const close = () => setMobileOpen(false);
-    window.addEventListener("popstate", close);
-    return () => window.removeEventListener("popstate", close);
+    const onResize = () => {
+      if (window.innerWidth >= 1280) {
+        setMobileOpen(false);
+      } else {
+        setCollapsed(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   useEffect(() => {
@@ -47,6 +57,12 @@ export function AppShell({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // 路由切换时关闭移动端抽屉（Next.js Link 不触发 popstate）
+  const pathname = usePathname();
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
     <SidebarContext.Provider value={{ collapsed }}>
@@ -111,7 +127,7 @@ export function AppShell({
                 <span className="inline-flex size-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.72))] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
                   <GalleryVerticalEnd className="size-4" />
                 </span>
-                <span className="theme-kicker truncate text-sm font-semibold tracking-[0.22em] sm:tracking-[0.28em]">Tahoe</span>
+                <span className="truncate text-sm font-semibold tracking-[0.08em]">Tahoe</span>
               </Link>
             </div>
 

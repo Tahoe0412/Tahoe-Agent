@@ -208,9 +208,9 @@ export function BriefStudioWorkbench({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
+    <div className="grid gap-6 2xl:grid-cols-[1.25fr_0.75fr]">
       <PanelCard title="快速任务单" description="先把目标、核心表达、平台和 CTA 写清楚。其余细节先收进高级设置。">
-        <div className="grid gap-5 lg:grid-cols-[0.58fr_1fr]">
+        <div className="grid gap-6 xl:grid-cols-[0.42fr_1fr]">
           <div className="space-y-3">
             {briefs.length === 0 ? (
               <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
@@ -231,20 +231,20 @@ export function BriefStudioWorkbench({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-base font-semibold">{brief.title}</div>
-                      <div className={`mt-1 text-xs ${brief.id === activeBrief?.id ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>
+                      <div className={`mt-1 text-xs ${brief.id === activeBrief?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>
                         第 {brief.version_number} 版
                       </div>
                     </div>
                     <BriefPill>{getObjectiveMeta(brief.objective).label}</BriefPill>
                   </div>
-                  <div className={`mt-3 line-clamp-3 text-sm leading-6 ${brief.id === activeBrief?.id ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>{brief.key_message}</div>
+                  <div className={`mt-3 line-clamp-3 text-sm leading-6 ${brief.id === activeBrief?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{brief.key_message}</div>
                 </button>
               ))
             )}
           </div>
 
           <div className="space-y-4">
-            <div className="theme-panel-muted rounded-[24px] p-4">
+            <div className="theme-panel-muted rounded-[24px] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第一步：项目目标</div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
@@ -273,7 +273,7 @@ export function BriefStudioWorkbench({
               </div>
             </div>
 
-            <div className="theme-panel-muted rounded-[24px] p-4">
+            <div className="theme-panel-muted rounded-[24px] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第二步：平台与动作</div>
               <div className="mt-5">
                 <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布平台</div>
@@ -300,7 +300,7 @@ export function BriefStudioWorkbench({
                   })}
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {selectedPlatforms.map((platform) => (
                   <div key={platform} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
                     <div className="text-sm font-medium">{getPlatformLabel(platform as (typeof publishingPlatforms)[number])}</div>
@@ -342,7 +342,7 @@ export function BriefStudioWorkbench({
               </div>
             </div>
 
-            <div className="theme-panel-muted rounded-[24px] p-4">
+            <div className="theme-panel-muted rounded-[24px] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第三步：核心表达</div>
               <div className="mt-4 grid gap-4">
                 <label className="grid gap-2">
@@ -365,7 +365,7 @@ export function BriefStudioWorkbench({
             </div>
 
             {showAdvanced ? (
-              <div className="theme-panel-muted rounded-[24px] p-4">
+              <div className="theme-panel-muted rounded-[24px] p-5">
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">高级设置</div>
                 <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                   这些内容不是启动项目的必须项。只有当你需要更细地控制表达时，再补进去。
@@ -470,7 +470,7 @@ export function BriefStudioWorkbench({
 
             <div>
               <div className="text-sm font-medium text-[var(--text-inverse)]">核心表达</div>
-              <div className="mt-3 text-sm leading-7 text-[color:rgba(246,240,232,0.78)]">{activeBrief.key_message}</div>
+              <div className="mt-3 text-sm leading-7 text-white/78">{activeBrief.key_message}</div>
             </div>
 
             <div>
@@ -490,7 +490,7 @@ export function BriefStudioWorkbench({
                   activeBrief.constraints.map((item) => (
                     <div key={item.id} className="rounded-2xl border border-[rgba(255,255,255,0.1)] px-3 py-2">
                       <div className="text-sm text-[var(--text-inverse)]">{item.constraint_label}</div>
-                      <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
+                      <div className="text-xs text-white/58">
                         {item.is_hard_constraint ? "重要约束" : "补充建议"}
                       </div>
                     </div>

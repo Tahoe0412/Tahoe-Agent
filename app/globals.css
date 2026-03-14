@@ -259,10 +259,10 @@ textarea::placeholder {
 }
 
 .theme-panel-strong {
-  border: 1px solid var(--border-selected);
-  background: var(--surface-selected);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  color: var(--text-1);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(135deg, #1E2024 0%, #282C31 100%);
+  box-shadow: var(--shadow-soft);
+  color: #F8FAFC;
 }
 
 .theme-pill {

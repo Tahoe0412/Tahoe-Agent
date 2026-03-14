@@ -199,11 +199,11 @@ export function BrandProfileWorkbench({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-base font-semibold">{profile.brand_name}</div>
-                    <div className={`mt-1 text-xs ${profile.id === activeProfile?.id ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{getStageLabel(profile.brand_stage)}</div>
+                    <div className={`mt-1 text-xs ${profile.id === activeProfile?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{getStageLabel(profile.brand_stage)}</div>
                   </div>
                   {projectId && activeBrandProfileId === profile.id ? <span className="theme-chip-ok rounded-full px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
                 </div>
-                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${profile.id === activeProfile?.id ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>{profile.brand_positioning}</div>
+                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${profile.id === activeProfile?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{profile.brand_positioning}</div>
               </button>
             ))}
           </div>

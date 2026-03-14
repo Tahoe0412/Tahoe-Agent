@@ -355,7 +355,7 @@ export function ProjectContext({
                   <div className="grid gap-2 sm:min-w-[220px]">
                     <Link
                       href="/"
-                      className="inline-flex w-full items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] shadow-[0_18px_38px_rgba(196,111,66,0.22)] transition hover:-translate-y-0.5"
+                      className="inline-flex w-full items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-white shadow-[0_18px_38px_rgba(75,143,106,0.18)] transition hover:-translate-y-0.5"
                     >
                       <span className="inline-flex items-center gap-2">
                         <Plus className="size-4" />

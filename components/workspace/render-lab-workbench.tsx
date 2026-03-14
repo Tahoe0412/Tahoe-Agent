@@ -231,14 +231,14 @@ function AssetPreviewCard({
             title
           )}
         </div>
-        <div className="mt-1 text-xs text-[color:rgba(246,240,232,0.58)]">
+        <div className="mt-1 text-xs text-white/58">
           {asset.asset_type || (locale === "en" ? "Output asset" : "输出素材")}
           {asset.mime_type ? ` · ${asset.mime_type}` : ""}
           {kind === "image" ? ` · ${locale === "en" ? "image preview" : "图片预览"}` : ""}
           {kind === "video" ? ` · ${locale === "en" ? "video preview" : "视频预览"}` : ""}
         </div>
         {kind === "file" ? (
-          <div className="mt-3 rounded-2xl border border-dashed border-[rgba(255,255,255,0.12)] px-3 py-3 text-xs text-[color:rgba(246,240,232,0.68)]">
+          <div className="mt-3 rounded-2xl border border-dashed border-[rgba(255,255,255,0.12)] px-3 py-3 text-xs text-white/68">
             {locale === "en" ? "Preview is not available for this asset type yet. Open the file in a new tab." : "当前素材类型暂不支持内嵌预览，请点击文件链接在新标签页中查看。"}
           </div>
         ) : null}
@@ -563,7 +563,7 @@ export function RenderLabWorkbench({
                         </span>
                       </div>
                     </div>
-                    <p className={`mt-3 text-sm leading-6 ${selected ? "text-[color:rgba(246,240,232,0.76)]" : "text-[var(--text-2)]"}`}>{row.shotGoal}</p>
+                    <p className={`mt-3 text-sm leading-6 ${selected ? "text-white/76" : "text-[var(--text-2)]"}`}>{row.shotGoal}</p>
                     <div className="mt-4 grid gap-3 text-sm">
                       <div className="theme-panel-muted rounded-[18px] p-3">
                         <div className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Prompt Seed" : "提示词种子"}</div>
@@ -603,7 +603,7 @@ export function RenderLabWorkbench({
               <div className={`text-sm font-semibold ${editorMode === "CREATE" ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
                 {locale === "en" ? "Create From Scene" : "基于场景新建"}
               </div>
-              <div className={`mt-2 text-sm leading-6 ${editorMode === "CREATE" ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>
+              <div className={`mt-2 text-sm leading-6 ${editorMode === "CREATE" ? "text-white/72" : "text-[var(--text-2)]"}`}>
                 {locale === "en" ? "Use the currently selected storyboard row as the source of truth." : "直接以当前选中的分镜行为起点，快速起一个新任务。"}
               </div>
             </button>
@@ -624,7 +624,7 @@ export function RenderLabWorkbench({
               <div className={`text-sm font-semibold ${editorMode === "REUSE" ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
                 {locale === "en" ? "Reuse Last Run" : "复用上一轮任务"}
               </div>
-              <div className={`mt-2 text-sm leading-6 ${editorMode === "REUSE" ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>
+              <div className={`mt-2 text-sm leading-6 ${editorMode === "REUSE" ? "text-white/72" : "text-[var(--text-2)]"}`}>
                 {locale === "en" ? "Pull prompt, notes, and routing from the selected job to keep iterating." : "从右侧选中的任务回填 prompt、notes 和路由配置，继续往下迭代。"}
               </div>
             </button>
@@ -852,28 +852,28 @@ export function RenderLabWorkbench({
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
-                        <div className={`text-sm ${selected ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{formatDate(job.created_at, locale)}</div>
+                        <div className={`text-sm ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{formatDate(job.created_at, locale)}</div>
                       </div>
                       <div>
                         <div className={`text-sm font-medium ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
                           {(input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头"))}
                         </div>
-                        <div className={`mt-1 text-sm ${selected ? "text-[color:rgba(246,240,232,0.74)]" : "text-[var(--text-2)]"}`}>
+                        <div className={`mt-1 text-sm ${selected ? "text-white/74" : "text-[var(--text-2)]"}`}>
                           {job.job_type} · {job.provider}
                           {job.provider_model ? ` / ${job.provider_model}` : ""}
                         </div>
                         {linkedScene ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-[color:rgba(246,240,232,0.62)]" : "text-[var(--text-3)]"}`}>
+                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? "Scene" : "场景"} #{linkedScene.frameOrder}
                           </div>
                         ) : null}
                         {threadCount > 1 ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-[color:rgba(246,240,232,0.62)]" : "text-[var(--text-3)]"}`}>
+                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? `${threadCount} iterations in thread` : `同线程共 ${threadCount} 版`}
                           </div>
                         ) : null}
                       </div>
-                      <div className={`text-sm leading-6 ${selected ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-1)]"}`}>
+                      <div className={`text-sm leading-6 ${selected ? "text-white/84" : "text-[var(--text-1)]"}`}>
                         {trimPreview(input.prompt || input.shot_goal || linkedScene?.shotGoal, locale === "en" ? "No prompt summary yet." : "当前还没有任务摘要。")}
                       </div>
                     </button>
@@ -905,7 +905,7 @@ export function RenderLabWorkbench({
                 <>
                   <div>
                     <div className="text-sm font-medium text-[var(--text-inverse)]">{input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头")}</div>
-                    <div className="mt-2 text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.6)]">
+                    <div className="mt-2 text-xs uppercase tracking-[0.14em] text-white/60">
                       {selectedJob.job_type} · {selectedJob.provider}
                       {selectedJob.provider_model ? ` / ${selectedJob.provider_model}` : ""}
                     </div>
@@ -938,7 +938,7 @@ export function RenderLabWorkbench({
                   </div>
                   <div>
                     <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Version Thread" : "版本链路"}</div>
-                    <div className="mt-2 text-[color:rgba(246,240,232,0.72)]">
+                    <div className="mt-2 text-white/72">
                       {selectedJobThread.length > 1
                         ? locale === "en"
                           ? `This run is version ${selectedJobThreadIndex + 1} of ${selectedJobThread.length} for the same scene.`
@@ -964,7 +964,7 @@ export function RenderLabWorkbench({
                               <div className="text-sm text-[var(--text-inverse)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
                               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
                             </div>
-                            <div className="mt-2 text-xs text-[color:rgba(246,240,232,0.62)]">{formatDate(job.created_at, locale)}</div>
+                            <div className="mt-2 text-xs text-white/62">{formatDate(job.created_at, locale)}</div>
                           </button>
                         ))}
                       </div>
@@ -995,22 +995,22 @@ export function RenderLabWorkbench({
                       <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
                       <div className="mt-3 grid gap-3">
                         <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Current" : "当前版本"}</div>
+                          <div className="text-xs uppercase tracking-[0.14em] text-white/58">{locale === "en" ? "Current" : "当前版本"}</div>
                           <div className="mt-3 space-y-3">
                             {selectedJob.render_assets?.length ? (
                               selectedJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
                             ) : (
-                              <div className="text-sm text-[color:rgba(246,240,232,0.72)]">{locale === "en" ? "No preview asset on current version." : "当前版本还没有可对比预览素材。"}</div>
+                              <div className="text-sm text-white/72">{locale === "en" ? "No preview asset on current version." : "当前版本还没有可对比预览素材。"}</div>
                             )}
                           </div>
                         </div>
                         <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-[color:rgba(246,240,232,0.58)]">{locale === "en" ? "Previous" : "上一版本"}</div>
+                          <div className="text-xs uppercase tracking-[0.14em] text-white/58">{locale === "en" ? "Previous" : "上一版本"}</div>
                           <div className="mt-3 space-y-3">
                             {previousThreadJob.render_assets?.length ? (
                               previousThreadJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
                             ) : (
-                              <div className="text-sm text-[color:rgba(246,240,232,0.72)]">{locale === "en" ? "No preview asset on the previous version." : "上一版本还没有可对比预览素材。"}</div>
+                              <div className="text-sm text-white/72">{locale === "en" ? "No preview asset on the previous version." : "上一版本还没有可对比预览素材。"}</div>
                             )}
                           </div>
                         </div>

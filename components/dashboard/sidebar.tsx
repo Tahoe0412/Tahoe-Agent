@@ -35,7 +35,7 @@ type NavItem = {
 function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
   if (!show) return null;
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[#1E2024] px-3 py-1.5 text-xs font-medium text-white/90 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
       {label}
     </span>
   );
@@ -146,7 +146,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
               </div>
               <div>
                 <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
-                <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.22em] text-[var(--sidebar-text-hover)]">
+                <span className="mt-1 block text-[15px] font-semibold tracking-[0.12em] text-[var(--sidebar-text-hover)]">
                   Tahoe
                 </span>
               </div>

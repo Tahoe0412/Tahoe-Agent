@@ -235,12 +235,12 @@ export function ScriptLabWorkbench({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                     <div className="text-base font-semibold">镜头 {row.sceneOrder}</div>
-                      <div className={`mt-1 text-xs ${row.id === selectedScene.id ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
+                      <div className={`mt-1 text-xs ${row.id === selectedScene.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
                     </div>
                     <Tag tone={row.assetReady ? "success" : "danger"}>{row.assetReady ? "已齐备" : "待补素材"}</Tag>
                   </div>
                   <div className={`mt-3 line-clamp-2 text-sm font-medium ${row.id === selectedScene.id ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>{row.shotGoal}</div>
-                  <div className={`mt-2 line-clamp-3 text-sm leading-6 ${row.id === selectedScene.id ? "text-[color:rgba(246,240,232,0.84)]" : "text-[var(--text-2)]"}`}>{row.rewritten}</div>
+                  <div className={`mt-2 line-clamp-3 text-sm leading-6 ${row.id === selectedScene.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{row.rewritten}</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {row.labels.slice(0, 4).map((label) => (
                       <Tag key={label}>{label}</Tag>
@@ -423,7 +423,7 @@ export function ScriptLabWorkbench({
                       asset.fileName
                     )}
                   </div>
-                  <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
+                  <div className="text-xs text-white/58">
                     {asset.type}
                     {asset.continuityGroup ? ` · ${asset.continuityGroup}` : ""}
                   </div>

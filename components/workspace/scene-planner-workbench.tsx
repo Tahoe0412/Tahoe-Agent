@@ -247,16 +247,16 @@ export function ScenePlannerWorkbench({
                 >
                   <div>
                     <div className="text-3xl font-semibold tracking-tight">#{row.frameOrder}</div>
-                    <div className={`mt-2 text-xs uppercase tracking-[0.14em] ${selected ? "text-[color:rgba(246,240,232,0.66)]" : "text-[var(--text-3)]"}`}>
+                    <div className={`mt-2 text-xs uppercase tracking-[0.14em] ${selected ? "text-white/66" : "text-[var(--text-3)]"}`}>
                       {row.frameStatus}
                     </div>
-                    <div className={`mt-2 text-xs ${selected ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
+                    <div className={`mt-2 text-xs ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
                   </div>
 
                   <div>
                     <div className={`text-xl font-semibold leading-8 ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>{row.frameTitle}</div>
-                    <div className={`mt-2 text-sm leading-6 ${selected ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>{row.shotGoal}</div>
-                    <div className={`mt-3 line-clamp-3 text-base leading-7 ${selected ? "text-[color:rgba(246,240,232,0.9)]" : "text-[var(--text-1)]"}`}>{row.rewritten}</div>
+                    <div className={`mt-2 text-sm leading-6 ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.shotGoal}</div>
+                    <div className={`mt-3 line-clamp-3 text-base leading-7 ${selected ? "text-white/90" : "text-[var(--text-1)]"}`}>{row.rewritten}</div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Tag>{row.productionClass}</Tag>
                       <Tag>{row.durationSec}s</Tag>
@@ -273,7 +273,7 @@ export function ScenePlannerWorkbench({
                       <Tag tone={row.assetReady ? "success" : "danger"}>{row.assetReady ? "已齐备" : "待补素材"}</Tag>
                       <Tag tone={row.frameStatus === "READY" || row.frameStatus === "LOCKED" ? "success" : "warning"}>{row.frameStatus}</Tag>
                     </div>
-                    <div className={`text-xs ${selected ? "text-[color:rgba(246,240,232,0.72)]" : "text-[var(--text-2)]"}`}>
+                    <div className={`text-xs ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>
                       {row.uploadedAssets.length} uploaded / {row.requiredAssets.length} required
                     </div>
                   </div>
@@ -288,7 +288,7 @@ export function ScenePlannerWorkbench({
             <div className="text-sm font-medium text-[var(--text-inverse)]">当前分镜</div>
             <div className="mt-3 space-y-3 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
               <div className="text-xl font-semibold text-[var(--text-inverse)]">{selectedScene.frameTitle}</div>
-              <div className="text-sm leading-7 text-[color:rgba(246,240,232,0.78)]">{selectedScene.shotGoal}</div>
+              <div className="text-sm leading-7 text-white/78">{selectedScene.shotGoal}</div>
               <div className="flex flex-wrap gap-2">
                 <Tag>{selectedScene.productionClass}</Tag>
                 <Tag>{selectedScene.frameStatus}</Tag>
@@ -337,7 +337,7 @@ export function ScenePlannerWorkbench({
               </div>
             ) : null}
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Asset Type</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">Asset Type</span>
               <select
                 value={assetType}
                 onChange={(event) => setAssetType(event.target.value as (typeof assetTypeOptions)[number])}
@@ -351,15 +351,15 @@ export function ScenePlannerWorkbench({
               </select>
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">File</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">File</span>
               <input
                 type="file"
                 onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
                 className="theme-input rounded-[16px] px-3 py-3 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-[var(--surface-solid)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--text-1)]"
               />
-              {selectedFile ? <div className="text-xs text-[color:rgba(246,240,232,0.58)]">{selectedFile.name}</div> : null}
+              {selectedFile ? <div className="text-xs text-white/58">{selectedFile.name}</div> : null}
             </label>
-            <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
+            <div className="text-xs text-white/58">
               文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前镜头的素材分析。
               {uploadStorageMode === "tencent_cos" ? " 当前已启用腾讯云对象存储，可用于后续跨实例共享与更稳定的素材沉淀。" : " 当前使用服务端上传和本地存储，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
@@ -383,7 +383,7 @@ export function ScenePlannerWorkbench({
                         asset.fileName
                       )}
                     </div>
-                    <div className="text-xs text-[color:rgba(246,240,232,0.58)]">
+                    <div className="text-xs text-white/58">
                       {asset.type}
                       {asset.continuityGroup ? ` · ${asset.continuityGroup}` : ""}
                     </div>
@@ -401,17 +401,17 @@ export function ScenePlannerWorkbench({
                 <div className="text-sm font-medium text-[var(--text-inverse)]">镜头计划</div>
                 <div className="mt-3 grid gap-3">
                   <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Composition</div>
-                    <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.88)]">{selectedScene.compositionNotes ?? "暂无构图说明。"}</div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">Composition</div>
+                    <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.compositionNotes ?? "暂无构图说明。"}</div>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Camera</div>
-                      <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.88)]">{selectedScene.cameraPlan ?? "未指定 camera plan。"}</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Camera</div>
+                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.cameraPlan ?? "未指定 camera plan。"}</div>
                     </div>
                     <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Motion</div>
-                      <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.88)]">{selectedScene.motionPlan ?? "未指定 motion plan。"}</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Motion</div>
+                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.motionPlan ?? "未指定 motion plan。"}</div>
                     </div>
                   </div>
                 </div>
@@ -421,17 +421,17 @@ export function ScenePlannerWorkbench({
                 <div className="text-sm font-medium text-[var(--text-inverse)]">Prompt 与文案</div>
                 <div className="mt-3 grid gap-3">
                   <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Visual Prompt</div>
-                    <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.9)]">{selectedScene.visualPrompt ?? selectedScene.rewritten}</div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">Visual Prompt</div>
+                    <div className="mt-2 text-sm leading-7 text-white/90">{selectedScene.visualPrompt ?? selectedScene.rewritten}</div>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">Narration</div>
-                      <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.88)]">{selectedScene.narrationText ?? "无旁白补充。"}</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Narration</div>
+                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.narrationText ?? "无旁白补充。"}</div>
                     </div>
                     <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">On-screen Text</div>
-                      <div className="mt-2 text-sm leading-7 text-[color:rgba(246,240,232,0.88)]">{selectedScene.onScreenText ?? "无字幕/贴片要求。"}</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">On-screen Text</div>
+                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.onScreenText ?? "无字幕/贴片要求。"}</div>
                     </div>
                   </div>
                 </div>
