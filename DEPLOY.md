@@ -72,15 +72,17 @@ It performs:
 git fetch --prune origin main # skipped in CI deploy when SKIP_GIT_PULL=1
 git reset --hard origin/main
 npm ci
-npm run build
 npx prisma db push
-pm2 reload tahoe || pm2 restart tahoe
+npm run build
+# auto-detects `tahoe-agent` first, falls back to legacy `tahoe`
+pm2 reload <detected-app> || pm2 restart <detected-app>
 pm2 save
 ```
 
 Important:
 
 - `scripts/deploy.sh` no longer stops `pm2` before install/build. If deploy fails mid-way, the current app process stays online.
+- `scripts/deploy.sh` now auto-detects the real PM2 process name and prefers `tahoe-agent`, so CI and manual deploys operate on the same live app.
 - Prefer GitHub Actions for production releases. It uploads code over SSH and runs `SKIP_GIT_PULL=1 /home/ubuntu/Tahoe-Agent/scripts/deploy.sh`, which avoids server-side GitHub TLS failures.
 
 ## Server Environment
@@ -109,7 +111,7 @@ Commands:
 cd /home/ubuntu/Tahoe-Agent
 nano .env
 npm run build
-pm2 restart tahoe
+pm2 restart tahoe-agent || pm2 restart tahoe
 pm2 save
 ```
 
@@ -124,13 +126,13 @@ pm2 status
 View app logs:
 
 ```bash
-pm2 logs tahoe
+pm2 logs tahoe-agent || pm2 logs tahoe
 ```
 
 Restart app:
 
 ```bash
-pm2 restart tahoe
+pm2 restart tahoe-agent || pm2 restart tahoe
 ```
 
 Check nginx:
@@ -175,7 +177,7 @@ If a manual server deploy fails with a GitHub TLS error such as `GnuTLS recv err
 1. Restore the current process immediately if it is down:
 
 ```bash
-pm2 restart tahoe
+pm2 restart tahoe-agent || pm2 restart tahoe
 ```
 
 2. Push the fix to `main` from local.
@@ -201,4 +203,4 @@ curl http://127.0.0.1
 
 - `scripts/deploy.sh` supports `SKIP_GIT_PULL=1` for CI-driven deployments.
 - Production currently uses the server's local PostgreSQL instance, not Supabase.
-- If GitHub Actions succeeds but the site looks stale, check `pm2 logs tahoe` and rerun the latest workflow.
+- If GitHub Actions succeeds but the site looks stale, check `pm2 logs tahoe-agent || pm2 logs tahoe` and rerun the latest workflow.
