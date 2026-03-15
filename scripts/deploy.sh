@@ -75,6 +75,27 @@ load_pm2_env_var() {
   fi
 }
 
+probe_database() {
+  echo "[deploy] Probing database connectivity..."
+  node -e '
+    const { PrismaClient } = require("@prisma/client");
+    async function main() {
+      const prisma = new PrismaClient();
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        console.log("[deploy] Database probe: ok");
+      } finally {
+        await prisma.$disconnect().catch(() => {});
+      }
+    }
+    main().catch((error) => {
+      console.error("[deploy] Database probe failed");
+      console.error(error?.message || String(error));
+      process.exit(1);
+    });
+  '
+}
+
 # Fix ownership in case files were created by a different user (root vs ubuntu)
 sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
 
@@ -106,6 +127,8 @@ else
   echo "[deploy] Syncing Prisma schema..."
   npx prisma db push --accept-data-loss
 fi
+
+probe_database
 
 echo "[deploy] Building application..."
 npm run build

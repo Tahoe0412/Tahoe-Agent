@@ -97,6 +97,10 @@ jobs:
           SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
           timeout 2m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             set -euo pipefail
+            health="$(curl --max-time 20 -s http://127.0.0.1:3000/api/health)"
+            printf "%s\n" "$health" > /tmp/tahoe-health-smoke.json
+            echo "$health" | grep -q "\"status\":\"ok\""
+            echo "$health" | grep -q "\"database\":\"ok\""
             response="$(curl --max-time 20 -s -X POST http://127.0.0.1:3000/api/research/hot-topics -H "Content-Type: application/json" --data "{\"query\":\"火星公民 OR 茶饮 OR 慢生活\"}")"
             printf "%s\n" "$response" > /tmp/tahoe-hot-topics-smoke.json
             echo "$response" | grep -q "\"success\":true"
