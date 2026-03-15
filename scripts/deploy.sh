@@ -82,8 +82,12 @@ npm ci
 echo "[deploy] Generating Prisma client..."
 npx prisma generate
 
-echo "[deploy] Syncing Prisma schema..."
-npx prisma db push --accept-data-loss
+if [ "${SKIP_PRISMA_DB_PUSH:-0}" = "1" ]; then
+  echo "[deploy] Skipping Prisma schema sync because no Prisma files changed in this release."
+else
+  echo "[deploy] Syncing Prisma schema..."
+  npx prisma db push --accept-data-loss
+fi
 
 echo "[deploy] Building application..."
 npm run build

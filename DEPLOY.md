@@ -97,6 +97,7 @@ Production environment files live on the server here:
 
 `scripts/deploy.sh` now loads both files before running Prisma/build commands, with `.env.local` overriding `.env` to match Next.js runtime precedence.
 If `DATABASE_URL` / `DIRECT_URL` are still inconsistent, the script also falls back to the currently running PM2 app env so CI deploys match the healthy production runtime.
+GitHub Actions now skips `prisma db push` automatically when the release does not change `prisma/schema.prisma` or `prisma/migrations`, so frontend-only deploys are not blocked by an unrelated database sync step.
 
 Current production app base URL:
 

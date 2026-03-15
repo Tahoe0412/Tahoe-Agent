@@ -17,6 +17,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Detect Prisma schema changes
+        id: prisma_changes
+        run: |
+          before_sha="${{ github.event.before }}"
+
+          if [ -z "$before_sha" ] || [ "$before_sha" = "0000000000000000000000000000000000000000" ]; then
+            echo "skip_prisma_db_push=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git diff --quiet "$before_sha" "${{ github.sha }}" -- prisma/schema.prisma prisma/migrations; then
+            echo "skip_prisma_db_push=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_prisma_db_push=0" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -49,7 +65,7 @@ jobs:
           set -o pipefail
           ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
-            SKIP_GIT_PULL=1 bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
+            SKIP_GIT_PULL=1 SKIP_PRISMA_DB_PUSH=${{ steps.prisma_changes.outputs.skip_prisma_db_push }} bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           ' 2>&1 | tee deploy-report.txt
 
       - name: Publish deploy failure comment
