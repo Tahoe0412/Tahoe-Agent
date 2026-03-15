@@ -34,9 +34,25 @@ load_env_file() {
   fi
 }
 
+apply_env_override() {
+  local target_key="$1"
+  local override_key="$2"
+  local override_value="${!override_key:-}"
+
+  if [ -n "$override_value" ]; then
+    echo "[deploy] Overriding $target_key from CI/runtime secret"
+    export "${target_key}=${override_value}"
+  fi
+}
+
 load_pm2_env_var() {
   local env_key="$1"
   local env_value
+
+  if [ -n "${!env_key:-}" ]; then
+    echo "[deploy] Keeping existing $env_key and skipping PM2 runtime fallback"
+    return
+  fi
 
   env_value="$(pm2 jlist 2>/dev/null | node -e '
     const fs = require("fs");
@@ -65,6 +81,8 @@ sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
 # Match Next.js precedence so Prisma CLI and the build use the same runtime env.
 load_env_file "$APP_DIR/.env"
 load_env_file "$APP_DIR/.env.local"
+apply_env_override "DATABASE_URL" "CI_DATABASE_URL_OVERRIDE"
+apply_env_override "DIRECT_URL" "CI_DIRECT_URL_OVERRIDE"
 load_pm2_env_var "DATABASE_URL"
 load_pm2_env_var "DIRECT_URL"
 

@@ -68,9 +68,6 @@ jobs:
             done
 
             echo "== pm2 logs =="
-            pm2 logs tahoe-agent --lines 40 --nostream | tail -n 60 || true
-            pm2 logs tahoe --lines 20 --nostream | tail -n 40 || true
-
             echo "== database env summary =="
             node <<'"'"'EOF'"'"'
             const fs = require("fs");
@@ -148,6 +145,10 @@ jobs:
               summarize("DIRECT_URL", app?.pm2_env?.DIRECT_URL);
             }
             EOF
+
+            echo "== pm2 logs =="
+            pm2 logs tahoe-agent --lines 20 --nostream | tail -n 30 || true
+            pm2 logs tahoe --lines 10 --nostream | tail -n 20 || true
 
             echo "== prisma runtime probe =="
             cd /home/ubuntu/Tahoe-Agent

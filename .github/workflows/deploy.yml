@@ -84,7 +84,11 @@ jobs:
           SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
           timeout 10m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
-            SKIP_GIT_PULL=1 SKIP_PRISMA_DB_PUSH=${{ steps.prisma_changes.outputs.skip_prisma_db_push }} bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
+            CI_DATABASE_URL_OVERRIDE='"'"'${{ secrets.DATABASE_URL }}'"'"' \
+            CI_DIRECT_URL_OVERRIDE='"'"'${{ secrets.DIRECT_URL }}'"'"' \
+            SKIP_GIT_PULL=1 \
+            SKIP_PRISMA_DB_PUSH=${{ steps.prisma_changes.outputs.skip_prisma_db_push }} \
+            bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           ' 2>&1 | tee deploy-report.txt
 
       - name: Verify today hot-topics release
