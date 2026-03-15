@@ -53,6 +53,17 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Validate deploy secrets
+        run: |
+          set -euo pipefail
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "[workflow] DATABASE_URL secret is missing. Configure it in GitHub repository secrets before deploying."
+            exit 1
+          fi
+          if [ -z "${{ secrets.DIRECT_URL }}" ]; then
+            echo "[workflow] DIRECT_URL secret is missing. DATABASE_URL is still required for runtime, but adding DIRECT_URL is recommended for Prisma operations."
+          fi
+
       - name: Upload project files
         run: |
           set -euo pipefail
