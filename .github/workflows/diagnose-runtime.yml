@@ -33,32 +33,12 @@ jobs:
             hostname
             date -Is
 
-            echo "== app dir =="
-            pwd
-            ls -ld /home/ubuntu/Tahoe-Agent
-            stat -c "%n %y %U:%G" /home/ubuntu/Tahoe-Agent/components/layout/app-shell.tsx /home/ubuntu/Tahoe-Agent/app/render-lab/page.tsx /home/ubuntu/Tahoe-Agent/.next 2>/dev/null || true
-
-            echo "== git state =="
-            git -C /home/ubuntu/Tahoe-Agent rev-parse HEAD || true
-            git -C /home/ubuntu/Tahoe-Agent status --short | sed -n "1,40p" || true
-
-            echo "== app-shell source markers =="
-            grep -nE "w-\\[248px\\]|h-\\[64px\\]|p-4 lg:p-6 xl:p-7" /home/ubuntu/Tahoe-Agent/components/layout/app-shell.tsx || true
-
-            echo "== build markers =="
-            cat /home/ubuntu/Tahoe-Agent/.next/BUILD_ID 2>/dev/null || true
-            ls -1 /home/ubuntu/Tahoe-Agent/.next/static/css 2>/dev/null || true
-            grep -o "space-y-6 xl:space-y-5" /home/ubuntu/Tahoe-Agent/.next/server/app/render-lab/page.js 2>/dev/null | head -n 1 || true
-            grep -R -o "w-\\[248px\\]" /home/ubuntu/Tahoe-Agent/.next/static/chunks 2>/dev/null | head -n 1 || true
-            grep -R -o "h-\\[64px\\]" /home/ubuntu/Tahoe-Agent/.next/static/chunks 2>/dev/null | head -n 1 || true
-
             echo "== pm2 =="
             pm2 list || true
 
             echo "== pm2 targets =="
             for app in tahoe-agent tahoe; do
               echo "-- ${app} --"
-              pm2 describe "${app}" | sed -n "1,80p" || true
               pid="$(pm2 pid "${app}" | tail -n 1 | tr -dc "0-9")"
               echo "pid=${pid:-none}"
               if [ -n "${pid}" ] && [ "${pid}" -gt 0 ] 2>/dev/null; then
@@ -147,8 +127,8 @@ jobs:
             EOF
 
             echo "== pm2 logs =="
-            pm2 logs tahoe-agent --lines 20 --nostream | tail -n 30 || true
-            pm2 logs tahoe --lines 10 --nostream | tail -n 20 || true
+            pm2 logs tahoe-agent --lines 8 --nostream | tail -n 12 || true
+            pm2 logs tahoe --lines 5 --nostream | tail -n 10 || true
 
             echo "== prisma runtime probe =="
             cd /home/ubuntu/Tahoe-Agent
@@ -186,12 +166,10 @@ jobs:
             sudo grep -R -nE "server_name|listen|proxy_pass|root" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null || true
 
             echo "== local responses =="
-            for target in http://127.0.0.1/render-lab http://127.0.0.1:3000/render-lab http://127.0.0.1:3001/render-lab; do
+            for target in http://127.0.0.1/api/health http://127.0.0.1/render-lab http://127.0.0.1:3000/render-lab; do
               echo "-- ${target} --"
               html="$(curl --max-time 8 -s "${target}" || true)"
-              printf "%s\n" "${html}" | grep -o "/_next/static/css/[^\"]*" | head -n 1 || true
-              printf "%s\n" "${html}" | grep -oE "w-\\[(248|280)px\\]|h-\\[64px\\]|h-14|space-y-6 xl:space-y-5|space-y-8" | head -n 6 | tr "\n" " " || true
-              echo
+              printf "%s\n" "${html}" | sed -n "1,5p" || true
             done
           EOF_REMOTE
 
