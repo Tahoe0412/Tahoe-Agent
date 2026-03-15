@@ -71,6 +71,113 @@ jobs:
             pm2 logs tahoe-agent --lines 40 --nostream | tail -n 60 || true
             pm2 logs tahoe --lines 20 --nostream | tail -n 40 || true
 
+            echo "== database env summary =="
+            node <<'"'"'EOF'"'"'
+            const fs = require("fs");
+
+            function readEnvFile(path) {
+              try {
+                const raw = fs.readFileSync(path, "utf8");
+                const map = {};
+                for (const line of raw.split(/\r?\n/)) {
+                  const trimmed = line.trim();
+                  if (!trimmed || trimmed.startsWith("#")) continue;
+                  const idx = trimmed.indexOf("=");
+                  if (idx === -1) continue;
+                  const key = trimmed.slice(0, idx).trim();
+                  const value = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
+                  map[key] = value;
+                }
+                return map;
+              } catch {
+                return {};
+              }
+            }
+
+            function summarize(label, value) {
+              if (!value) {
+                console.log(`${label}: missing`);
+                return;
+              }
+
+              try {
+                const url = new URL(value);
+                console.log(`${label}: protocol=${url.protocol.replace(":", "")} host=${url.hostname} port=${url.port || "(default)"} db=${url.pathname.replace(/^\//, "") || "(none)"} user=${decodeURIComponent(url.username || "") || "(none)"}`);
+              } catch {
+                console.log(`${label}: present but unparsable`);
+              }
+            }
+
+            const envFile = readEnvFile("/home/ubuntu/Tahoe-Agent/.env");
+            const envLocalFile = readEnvFile("/home/ubuntu/Tahoe-Agent/.env.local");
+            summarize(".env DATABASE_URL", envFile.DATABASE_URL);
+            summarize(".env.local DATABASE_URL", envLocalFile.DATABASE_URL);
+            summarize(".env DIRECT_URL", envFile.DIRECT_URL);
+            summarize(".env.local DIRECT_URL", envLocalFile.DIRECT_URL);
+            EOF
+
+            echo "== pm2 database env summary =="
+            pm2 jlist 2>/dev/null | node <<'"'"'EOF'"'"'
+            const fs = require("fs");
+
+            function summarize(label, value) {
+              if (!value) {
+                console.log(`${label}: missing`);
+                return;
+              }
+
+              try {
+                const url = new URL(value);
+                console.log(`${label}: protocol=${url.protocol.replace(":", "")} host=${url.hostname} port=${url.port || "(default)"} db=${url.pathname.replace(/^\//, "") || "(none)"} user=${decodeURIComponent(url.username || "") || "(none)"}`);
+              } catch {
+                console.log(`${label}: present but unparsable`);
+              }
+            }
+
+            const payload = fs.readFileSync(0, "utf8").trim();
+            if (!payload) {
+              console.log("pm2 apps: unavailable");
+              process.exit(0);
+            }
+
+            const apps = JSON.parse(payload);
+            for (const appName of ["tahoe-agent", "tahoe"]) {
+              const app = apps.find((entry) => entry.name === appName);
+              console.log(`-- ${appName} --`);
+              summarize("DATABASE_URL", app?.pm2_env?.DATABASE_URL);
+              summarize("DIRECT_URL", app?.pm2_env?.DIRECT_URL);
+            }
+            EOF
+
+            echo "== prisma runtime probe =="
+            cd /home/ubuntu/Tahoe-Agent
+            set +e
+            node <<'"'"'EOF'"'"'
+            const { PrismaClient } = require("@prisma/client");
+
+            async function main() {
+              const prisma = new PrismaClient();
+              try {
+                await prisma.$queryRaw`SELECT 1`;
+                console.log("prisma probe: ok");
+              } catch (error) {
+                console.log("prisma probe:", error?.name || "UnknownError");
+                console.log("prisma message:", error?.message || String(error));
+                if (error?.errorCode) {
+                  console.log("prisma code:", error.errorCode);
+                }
+              } finally {
+                await prisma.$disconnect().catch(() => {});
+              }
+            }
+
+            main().catch((error) => {
+              console.log("probe bootstrap failed:", error?.message || String(error));
+              process.exitCode = 1;
+            });
+            EOF
+            set -e
+
             echo "== listening ports =="
             sudo ss -ltnp | grep -E ":80|:443|:3000|:3001|:3002|:3003" || true
 
