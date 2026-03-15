@@ -12,6 +12,7 @@ import { ProjectContext } from "@/components/workspace/project-context";
 import { PageStateView } from "@/components/workspace/page-state";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { WorkspaceLayout } from "@/components/workspace/layout";
+import { TrendDiscoveryWorkbench } from "@/components/trend-discovery/trend-discovery-workbench";
 import type { PageState } from "@/lib/demo-workspace-data";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
@@ -31,8 +32,16 @@ export default async function TrendExplorerPage({
   const locale = await getLocale();
   const text = copy[locale];
   const { state, projectId, platform } = await searchParams;
-  const recentProjects = await workspaceQueryService.listRecentProjects();
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+
+  // Gracefully handle DB failures — discovery mode (no projectId) doesn't need DB
+  let recentProjects: Awaited<ReturnType<typeof workspaceQueryService.listRecentProjects>> = [];
+  let workspace: Awaited<ReturnType<typeof workspaceQueryService.getProjectWorkspace>> | null = null;
+  try {
+    recentProjects = await workspaceQueryService.listRecentProjects();
+    workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  } catch {
+    // DB unreachable — continue with empty data; discovery workbench still works
+  }
   const selectedPlatform = platform?.toUpperCase() ?? "ALL";
   const selectedSourcePlatform =
     selectedPlatform !== "ALL" ? (selectedPlatform as SupportedPlatform) : null;
@@ -176,7 +185,7 @@ export default async function TrendExplorerPage({
         {state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Create a project first or open Trend Explorer with a projectId." : "请先从总览页创建项目，或带上 `projectId` 进入趋势面板。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
+          <TrendDiscoveryWorkbench />
         ) : !workspace ? (
           <ErrorPanel title={locale === "en" ? "Trend Data Unavailable" : "无法读取趋势数据"} description={locale === "en" ? "The project was not found, or trend topics have not been generated yet." : "没有找到该项目，或项目还没生成趋势主题。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : (
