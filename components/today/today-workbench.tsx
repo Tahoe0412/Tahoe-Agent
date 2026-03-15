@@ -79,7 +79,7 @@ export function TodayWorkbench({
       try {
         const result = await apiClient.post<HotTopicsSearchResult>(
           "/api/research/hot-topics",
-          { query, platforms: ["YOUTUBE", "X"] as SupportedPlatform[], mockMode: true }
+          { query, platforms: ["YOUTUBE", "X"] as SupportedPlatform[], mockMode: false }
         );
         setTopics(toTopicRankingItems(result.topics));
         setSearched(true);
