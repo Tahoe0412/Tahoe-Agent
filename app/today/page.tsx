@@ -1,7 +1,7 @@
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { TodayWorkbench } from "@/components/today/today-workbench";
-import { copy, getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 
 const workspaceQueryService = new WorkspaceQueryService();
@@ -10,7 +10,6 @@ export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
   const locale = await getLocale();
-  const text = copy[locale];
 
   let brandKeywordProfiles: Array<{ id: string; name: string; keywords: string[] }> = [];
   let recentProjects: Array<{ id: string; title: string; topic_query: string; status: string }> = [];

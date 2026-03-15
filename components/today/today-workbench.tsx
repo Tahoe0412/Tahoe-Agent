@@ -17,7 +17,8 @@ import type {
   HotTopicsSearchResult,
   TopicRankingItem,
 } from "@/types/trend-discovery";
-import type { SupportedPlatform } from "@/types/platform-data";
+import type { PlatformCollectResult, SupportedPlatform } from "@/types/platform-data";
+import type { NewsSearchResult } from "@/types/news-search";
 import { cn } from "@/lib/utils";
 
 /* ────────────────────────────────────────────
@@ -60,6 +61,8 @@ export function TodayWorkbench({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [topics, setTopics] = useState<TopicRankingItem[]>([]);
+  const [newsResult, setNewsResult] = useState<NewsSearchResult | null>(null);
+  const [platformResults, setPlatformResults] = useState<PlatformCollectResult[]>([]);
   const [searched, setSearched] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<TopicRankingItem | null>(
     null
@@ -82,11 +85,15 @@ export function TodayWorkbench({
           { query, platforms: ["YOUTUBE", "X"] as SupportedPlatform[], mockMode: false }
         );
         setTopics(toTopicRankingItems(result.topics));
+        setNewsResult(result.news);
+        setPlatformResults(result.platform_results);
         setSearched(true);
       } catch (err) {
         setError(
           err instanceof ApiError ? err.message : "搜索失败，请重试"
         );
+        setNewsResult(null);
+        setPlatformResults([]);
         setSearched(true);
       } finally {
         setLoading(false);
@@ -106,6 +113,8 @@ export function TodayWorkbench({
   }, [activeBrand, handleSearch]);
 
   const t = locale === "zh";
+  const mockPlatforms = platformResults.filter((item) => item.mode === "mock").map((item) => item.platform);
+  const failedPlatforms = platformResults.filter((item) => !item.success);
 
   return (
     <div className="space-y-6">
@@ -194,6 +203,88 @@ export function TodayWorkbench({
             {error}
           </div>
         )}
+
+        {searched && !loading && (platformResults.length > 0 || newsResult) ? (
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
+                {t ? "数据源状态" : "Source Status"}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {platformResults.map((item) => (
+                  <span
+                    key={item.platform}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs font-medium",
+                      item.success && item.mode === "live"
+                        ? "bg-emerald-500/12 text-emerald-400"
+                        : item.mode === "mock"
+                          ? "bg-amber-500/12 text-amber-400"
+                          : "bg-red-500/12 text-red-400"
+                    )}
+                  >
+                    {item.platform} · {item.mode}
+                  </span>
+                ))}
+                {newsResult ? (
+                  <span
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs font-medium",
+                      newsResult.success && newsResult.mode === "live"
+                        ? "bg-emerald-500/12 text-emerald-400"
+                        : newsResult.mode === "mock"
+                          ? "bg-amber-500/12 text-amber-400"
+                          : "bg-red-500/12 text-red-400"
+                    )}
+                  >
+                    Google News · {newsResult.mode}
+                  </span>
+                ) : null}
+              </div>
+              {mockPlatforms.length > 0 ? (
+                <div className="mt-3 text-xs leading-6 text-amber-400">
+                  {t
+                    ? `当前 ${mockPlatforms.join(" / ")} 仍在返回 mock 数据，热点卡片会受影响。`
+                    : `${mockPlatforms.join(" / ")} is still returning mock data, so topic quality will be affected.`}
+                </div>
+              ) : null}
+              {failedPlatforms.length > 0 ? (
+                <div className="mt-2 text-xs leading-6 text-red-400">
+                  {t
+                    ? `以下平台请求失败：${failedPlatforms.map((item) => item.platform).join(" / ")}`
+                    : `These platforms failed: ${failedPlatforms.map((item) => item.platform).join(" / ")}`}
+                </div>
+              ) : null}
+            </div>
+
+            {newsResult ? (
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
+                  {t ? "Google 新闻样本" : "Google News Samples"}
+                </div>
+                <div className="mt-3 space-y-2">
+                  {newsResult.items.slice(0, 3).map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3 transition hover:border-[var(--accent)]/40"
+                    >
+                      <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
+                      <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
+                    </a>
+                  ))}
+                  {newsResult.items.length === 0 ? (
+                    <div className="text-xs leading-6 text-[var(--text-3)]">
+                      {t ? "当前没有拿到新闻结果。" : "No news results were returned."}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Loading skeleton */}
         {loading && (

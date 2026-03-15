@@ -20,7 +20,7 @@ export function getConnectorMode(forceMock = false): "mock" | "live" {
     return "mock";
   }
 
-  return process.env.PLATFORM_CONNECTOR_MODE?.toLowerCase() === "live" ? "live" : "mock";
+  return process.env.PLATFORM_CONNECTOR_MODE?.toLowerCase() === "mock" ? "mock" : "live";
 }
 
 export function getConnectorTimeoutMs() {

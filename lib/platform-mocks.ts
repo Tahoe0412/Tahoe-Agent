@@ -51,6 +51,10 @@ export function buildMockContentItems(
     const viewBase = platform === "YOUTUBE" ? 220000 : platform === "TIKTOK" ? 280000 : 95000;
     const contentType = platform === "X" ? "POST" : "SHORT_VIDEO";
     const productionClass = platform === "X" ? "SCREEN_CAPTURE" : index % 2 === 0 ? "UGC" : "HYBRID";
+    const views = Math.max(viewBase - index * 14000, platform === "X" ? 6000 : 18000);
+    const likes = Math.max(Math.round(views * 0.07), 0);
+    const comments = Math.max(Math.round(views * 0.008), 0);
+    const shares = Math.max(Math.round(views * 0.012), 0);
 
     return {
       platform,
@@ -70,10 +74,10 @@ export function buildMockContentItems(
       url: `https://example.com/${platform.toLowerCase()}/${topicKey}/${index + 1}`,
       published_at: new Date(publishedBase - index * 1000 * 60 * 60 * 4).toISOString(),
       duration_seconds: contentType === "SHORT_VIDEO" ? 32 + index * 4 : undefined,
-      view_count: viewBase - index * 14000,
-      like_count: Math.round((viewBase - index * 14000) * 0.07),
-      comment_count: Math.round((viewBase - index * 14000) * 0.008),
-      share_count: Math.round((viewBase - index * 14000) * 0.012),
+      view_count: views,
+      like_count: likes,
+      comment_count: comments,
+      share_count: shares,
       keyword_set: [topicKey, "result_first_hook", "ugc", platform.toLowerCase()],
       topic_hints: [topicKey, "result_first_hook", "ugc_workflow"],
       ai_producibility_hints:

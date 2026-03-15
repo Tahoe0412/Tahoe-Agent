@@ -66,7 +66,13 @@ export class AppSettingsService {
   }
 
   async getEffectiveSettings(): Promise<EffectiveAppSettings> {
-    const record = await this.getRecord();
+    let record: Awaited<ReturnType<AppSettingsService["getRecord"]>> | null = null;
+
+    try {
+      record = await this.getRecord();
+    } catch (error) {
+      console.warn("App settings DB read failed, falling back to environment defaults.", error);
+    }
 
     return {
       llmProvider: record?.llm_provider ?? ((process.env.LLM_PROVIDER?.toUpperCase() as LlmProvider | undefined) || "OPENAI"),

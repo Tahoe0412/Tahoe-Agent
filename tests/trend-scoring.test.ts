@@ -76,6 +76,32 @@ describe("trend scoring formulas", () => {
     expect(topics[0].scores.total_score).toBeLessThanOrEqual(100);
   });
 
+  it("prefers meaningful topic labels over generic hook or workflow placeholders", () => {
+    const engine = new TrendScoringEngine();
+    const topics = engine.score([
+      makeItem({
+        title: "火星公民 茶饮 慢生活观察",
+        normalized_title: "火星公民_茶饮_慢生活_观察",
+        keyword_set: ["result_first_hook", "ugc", "youtube"],
+        topic_hints: ["result_first_hook", "ugc_workflow"],
+      }),
+      makeItem({
+        external_content_id: "item_2",
+        platform: "X",
+        content_type: "POST",
+        production_class: "SCREEN_CAPTURE",
+        title: "火星公民 茶饮 慢生活门店体验",
+        normalized_title: "火星公民_茶饮_慢生活_门店_体验",
+        keyword_set: ["result_first_hook", "ugc", "x"],
+        topic_hints: ["result_first_hook", "ugc_workflow"],
+      }),
+    ]);
+
+    expect(topics[0]?.topic_key).not.toBe("result_first_hook");
+    expect(topics[0]?.topic_key).not.toBe("ugc_workflow");
+    expect(topics[0]?.topic_label).toContain("火星公民");
+  });
+
   it("produces interpretable sub-scores for a single topic bucket", () => {
     const breakdown = calculateTrendScoreBreakdown([
       makeItem({}),
