@@ -32,6 +32,7 @@ export class BrandProfileService {
         forbidden_phrases: toJson(payload.forbidden_phrases),
         compliance_notes: payload.compliance_notes,
         brand_voice: payload.brand_voice,
+        keyword_pool: toJson(payload.keyword_pool),
         brand_stage: payload.brand_stage,
         metadata_json: payload.metadata_json ? toJson(payload.metadata_json) : undefined,
       },

@@ -58,6 +58,7 @@ export default async function BrandProfilesPage({
             brand_voice: profile.brand_voice,
             platform_priority: (profile.platform_priority as string[] | null) ?? [],
             forbidden_phrases: (profile.forbidden_phrases as string[] | null) ?? [],
+            keyword_pool: (profile.keyword_pool as string[] | null) ?? [],
             content_pillars: profile.content_pillars.map((pillar) => ({
               id: pillar.id,
               pillar_name: pillar.pillar_name,

@@ -567,6 +567,7 @@ model BrandProfile {
   forbidden_phrases     Json
   compliance_notes      String?             @db.Text
   brand_voice           String?             @db.Text
+  keyword_pool          Json                @default("[]")
   brand_stage           BrandStage          @default(COLD_START)
   metadata_json         Json?
   created_at            DateTime            @default(now())

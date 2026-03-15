@@ -133,6 +133,7 @@ export const brandProfileCreateSchema = z.object({
   forbidden_phrases: z.array(z.string().min(1).max(120)).max(40).default([]),
   compliance_notes: z.string().max(4000).optional(),
   brand_voice: z.string().max(2000).optional(),
+  keyword_pool: z.array(z.string().min(1).max(80)).max(40).default([]),
   brand_stage: brandStageSchema.default("COLD_START"),
   metadata_json: z.record(z.string(), z.unknown()).optional(),
 });

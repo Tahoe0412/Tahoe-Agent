@@ -16,6 +16,7 @@ type BrandProfileRow = {
   brand_voice: string | null;
   platform_priority: string[];
   forbidden_phrases: string[];
+  keyword_pool: string[];
   content_pillars: Array<{
     id: string;
     pillar_name: string;
@@ -78,6 +79,7 @@ export function BrandProfileWorkbench({
   const [stage, setStage] = useState<(typeof stages)[number]["value"]>("COLD_START");
   const [platformPriority, setPlatformPriority] = useState<string[]>(["XIAOHONGSHU_POST", "DOUYIN_VIDEO"]);
   const [forbidden, setForbidden] = useState<string[]>([]);
+  const [keywordPool, setKeywordPool] = useState<string[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState(profiles[0]?.id ?? "");
   const [pillarName, setPillarName] = useState("");
   const [pillarType, setPillarType] = useState<(typeof pillarTypes)[number]>("EDUCATION");
@@ -110,6 +112,7 @@ export function BrandProfileWorkbench({
           target_personas: [],
           platform_priority: platformPriority,
           forbidden_phrases: forbidden,
+          keyword_pool: keywordPool,
         }),
       });
       const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
@@ -119,6 +122,7 @@ export function BrandProfileWorkbench({
       setPositioning("");
       setVoice("");
       setForbidden([]);
+      setKeywordPool([]);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建品牌档案失败。");
@@ -235,6 +239,7 @@ export function BrandProfileWorkbench({
                   </div>
                 </div>
                 <TagInput value={forbidden} onChange={setForbidden} placeholder="输入禁止表达（可选）后按回车" />
+                <TagInput value={keywordPool} onChange={setKeywordPool} placeholder="输入选题关键词后按回车，例如 SpaceX、火星移民、AI" />
                 <div className="flex items-center gap-3">
                   <Button onClick={() => void createProfile()} disabled={pending !== null}>{pending === "brand" ? "创建中..." : "创建品牌档案"}</Button>
                   {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
@@ -303,6 +308,12 @@ export function BrandProfileWorkbench({
               <div className="theme-panel-muted rounded-[20px] p-4">
                 <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">内容支柱</div>
                 <div className="mt-3 text-lg font-semibold text-[var(--text-1)]">{activeProfile.content_pillars.length}</div>
+              </div>
+            </div>
+            <div className="theme-panel-muted rounded-[20px] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">选题关键词池</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {activeProfile.keyword_pool.length ? activeProfile.keyword_pool.map((item) => <span key={item} className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">暂未设置。趋势面板将不会自动搜索。</span>}
               </div>
             </div>
             <div className="theme-panel-muted rounded-[20px] p-4">
