@@ -16,6 +16,7 @@ import {
   Sparkles,
   SwatchBook,
   Waypoints,
+  Zap,
   GalleryVerticalEnd,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
@@ -102,6 +103,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
 
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [
+    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint, icon: Zap, accentBg: "rgba(245,158,11,0.18)", accentColor: "#f59e0b" },
     { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
     { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
     { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
