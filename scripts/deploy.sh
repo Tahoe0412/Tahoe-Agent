@@ -41,7 +41,7 @@ echo "[deploy] Generating Prisma client..."
 npx prisma generate
 
 echo "[deploy] Syncing Prisma schema..."
-npx prisma db push
+npx prisma db push --accept-data-loss
 
 echo "[deploy] Building application..."
 npm run build
