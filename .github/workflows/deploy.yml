@@ -82,6 +82,16 @@ jobs:
         run: |
           set -euo pipefail
           SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+          if [ -n "${{ secrets.DATABASE_URL }}" ]; then
+            echo "[workflow] DATABASE_URL secret: present" | tee deploy-report.txt
+          else
+            echo "[workflow] DATABASE_URL secret: missing" | tee deploy-report.txt
+          fi
+          if [ -n "${{ secrets.DIRECT_URL }}" ]; then
+            echo "[workflow] DIRECT_URL secret: present" | tee -a deploy-report.txt
+          else
+            echo "[workflow] DIRECT_URL secret: missing" | tee -a deploy-report.txt
+          fi
           timeout 10m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
             CI_DATABASE_URL_OVERRIDE='"'"'${{ secrets.DATABASE_URL }}'"'"' \
@@ -89,7 +99,7 @@ jobs:
             SKIP_GIT_PULL=1 \
             SKIP_PRISMA_DB_PUSH=${{ steps.prisma_changes.outputs.skip_prisma_db_push }} \
             bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
-          ' 2>&1 | tee deploy-report.txt
+          ' 2>&1 | tee -a deploy-report.txt
 
       - name: Verify today hot-topics release
         run: |
@@ -138,6 +148,31 @@ jobs:
 
             echo "== pm2 =="
             pm2 list || true
+
+            echo "== pm2 database env summary =="
+            pm2 jlist 2>/dev/null | node -e '
+              const fs = require("fs");
+              const payload = fs.readFileSync(0, "utf8").trim();
+              if (!payload) process.exit(0);
+              const apps = JSON.parse(payload);
+              for (const app of apps) {
+                const env = app?.pm2_env ?? {};
+                const databaseUrl = env.DATABASE_URL || "";
+                const directUrl = env.DIRECT_URL || "";
+                const summarize = (value) => {
+                  if (typeof value !== "string" || value.length === 0) return "missing";
+                  try {
+                    const url = new URL(value);
+                    return `protocol=${url.protocol.replace(":", "")} host=${url.hostname || "missing"} port=${url.port || "default"} db=${url.pathname.replace(/^\//, "") || "missing"} user=${url.username || "missing"}`;
+                  } catch {
+                    return "present (unparseable)";
+                  }
+                };
+                console.log(`app=${app.name}`);
+                console.log(`  DATABASE_URL: ${summarize(databaseUrl)}`);
+                console.log(`  DIRECT_URL: ${summarize(directUrl)}`);
+              }
+            ' || true
 
             echo "== recent app files =="
             stat -c "%n %y %U:%G" /home/ubuntu/Tahoe-Agent/scripts/deploy.sh /home/ubuntu/Tahoe-Agent/app/api/research/hot-topics/route.ts 2>/dev/null || true
