@@ -116,13 +116,16 @@ export function TodayWorkbench({
   }, [activeBrand, handleSearch]);
 
   const t = locale === "zh";
-  const mockPlatforms = platformResults.filter((item) => item.mode === "mock").map((item) => item.platform);
+  const mockPlatforms = platformResults
+    .filter((item) => item.mode === "mock")
+    .map((item) => item.platform);
   const failedPlatforms = platformResults.filter((item) => !item.success);
-  const newsFailed = Boolean(newsResult) && !newsResult.success;
+  const newsErrors = newsResult?.errors ?? [];
+  const newsFailed = newsResult ? !newsResult.success : false;
   const sourceFailureMessages = [
-    ...(newsResult?.errors.map((item) =>
+    ...newsErrors.map((item) =>
       t ? `Google 新闻：${item.message}` : `Google News: ${item.message}`
-    ) ?? []),
+    ),
     ...failedPlatforms.flatMap((item) =>
       item.errors.map((error) =>
         t ? `${item.platform}：${error.message}` : `${item.platform}: ${error.message}`

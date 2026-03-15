@@ -33,20 +33,27 @@ export default async function TrendExplorerPage({
   const text = copy[locale];
   const { state, projectId, platform } = await searchParams;
 
-  // Gracefully handle DB failures — discovery mode (no projectId) doesn't need DB
-  let recentProjects: Awaited<ReturnType<typeof workspaceQueryService.listRecentProjects>> = [];
-  let workspace: Awaited<ReturnType<typeof workspaceQueryService.getProjectWorkspace>> | null = null;
-  let brandKeywordProfiles: Array<{ id: string; name: string; keywords: string[] }> = [];
-  try {
-    recentProjects = await workspaceQueryService.listRecentProjects();
-    workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
-    const profiles = await workspaceQueryService.listBrandProfiles();
-    brandKeywordProfiles = profiles
-      .filter((p) => Array.isArray(p.keyword_pool) && (p.keyword_pool as string[]).length > 0)
-      .map((p) => ({ id: p.id, name: p.brand_name, keywords: p.keyword_pool as string[] }));
-  } catch {
-    // DB unreachable — continue with empty data; discovery workbench still works
-  }
+  const [recentProjectsResult, workspaceResult, profilesResult] = await Promise.allSettled([
+    workspaceQueryService.listRecentProjects(),
+    projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
+    workspaceQueryService.listBrandProfiles(),
+  ]);
+  const recentProjects =
+    recentProjectsResult.status === "fulfilled" ? recentProjectsResult.value : [];
+  const workspace =
+    workspaceResult.status === "fulfilled" ? workspaceResult.value : null;
+  const brandKeywordProfiles =
+    profilesResult.status === "fulfilled"
+      ? profilesResult.value
+          .filter((p) => Array.isArray(p.keyword_pool) && (p.keyword_pool as string[]).length > 0)
+          .map((p) => ({ id: p.id, name: p.brand_name, keywords: p.keyword_pool as string[] }))
+      : [];
+  const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
+  const workspaceLoadFailed = workspaceResult.status === "rejected";
+  const profilesUnavailable = profilesResult.status === "rejected";
+  const workspaceDataUnavailable =
+    recentProjectsUnavailable || workspaceLoadFailed || profilesUnavailable;
+  const loadFailed = Boolean(projectId) && workspaceLoadFailed;
   const selectedPlatform = platform?.toUpperCase() ?? "ALL";
   const selectedSourcePlatform =
     selectedPlatform !== "ALL" ? (selectedPlatform as SupportedPlatform) : null;
@@ -187,8 +194,31 @@ export default async function TrendExplorerPage({
           density="compact"
         />
 
+        {workspaceDataUnavailable && !projectId ? (
+          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+            {locale === "en"
+              ? "Workspace data is temporarily unavailable, but you can still search trend topics manually from this page."
+              : "当前工作区数据暂时不可用，但你仍然可以在这个页面里手动搜索趋势主题。"}
+          </div>
+        ) : null}
+
         {state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
+        ) : loadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Trend Explorer Is Temporarily Unavailable" : "趋势研究页暂时不可用"}
+            description={
+              locale === "en"
+                ? "The current project workspace could not be loaded. Refresh the page or try again after the database recovers."
+                : "当前项目工作区暂时没有成功加载。请稍后刷新，或在数据库恢复后重试。"
+            }
+            action={
+              <NextStepLink
+                href={projectId ? `/trend-explorer?projectId=${projectId}` : "/trend-explorer"}
+                label={locale === "en" ? "Retry Loading" : "重新加载"}
+              />
+            }
+          />
         ) : !projectId ? (
           <TrendDiscoveryWorkbench brandProfiles={brandKeywordProfiles} />
         ) : !workspace ? (

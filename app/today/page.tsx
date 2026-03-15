@@ -13,21 +13,26 @@ export default async function TodayPage() {
 
   let brandKeywordProfiles: Array<{ id: string; name: string; keywords: string[] }> = [];
   let recentProjects: Array<{ id: string; title: string; topic_query: string; status: string }> = [];
-  let workspaceDataUnavailable = false;
-  try {
-    const profiles = await workspaceQueryService.listBrandProfiles();
-    brandKeywordProfiles = profiles
+  const [profilesResult, projectsResult] = await Promise.allSettled([
+    workspaceQueryService.listBrandProfiles(),
+    workspaceQueryService.listRecentProjects(),
+  ]);
+  const workspaceDataUnavailable =
+    profilesResult.status === "rejected" || projectsResult.status === "rejected";
+
+  if (profilesResult.status === "fulfilled") {
+    brandKeywordProfiles = profilesResult.value
       .filter((p) => Array.isArray(p.keyword_pool) && (p.keyword_pool as string[]).length > 0)
       .map((p) => ({ id: p.id, name: p.brand_name, keywords: p.keyword_pool as string[] }));
-    const projects = await workspaceQueryService.listRecentProjects();
-    recentProjects = projects.map((p) => ({
+  }
+
+  if (projectsResult.status === "fulfilled") {
+    recentProjects = projectsResult.value.map((p) => ({
       id: p.id,
       title: p.title,
       topic_query: p.topic_query,
       status: p.status,
     }));
-  } catch {
-    workspaceDataUnavailable = true;
   }
 
   return (
