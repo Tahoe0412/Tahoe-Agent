@@ -4,6 +4,7 @@ import { ThemeSettings } from "@/components/settings/theme-settings";
 import { Disclosure } from "@/components/ui/disclosure";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
+import { ErrorPanel } from "@/components/ui/state-panel";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { copy, getLocale } from "@/lib/locale";
@@ -18,11 +19,18 @@ export default async function SettingsPage() {
   const locale = await getLocale();
   const text = copy[locale];
   const settings = await appSettingsService.getEffectiveSettings();
-  const [projects, brandProfiles, industryTemplates] = await Promise.all([
+  const [projectsResult, brandProfilesResult, industryTemplatesResult] = await Promise.allSettled([
     workspaceQueryService.listProjects(),
     workspaceQueryService.listBrandProfiles(),
     workspaceQueryService.listIndustryTemplates(),
   ]);
+  const projects = projectsResult.status === "fulfilled" ? projectsResult.value : [];
+  const brandProfiles = brandProfilesResult.status === "fulfilled" ? brandProfilesResult.value : [];
+  const industryTemplates = industryTemplatesResult.status === "fulfilled" ? industryTemplatesResult.value : [];
+  const workspaceDataUnavailable =
+    projectsResult.status === "rejected" ||
+    brandProfilesResult.status === "rejected" ||
+    industryTemplatesResult.status === "rejected";
 
   return (
     <WorkspaceLayout locale={locale}>
@@ -120,6 +128,17 @@ export default async function SettingsPage() {
         </Disclosure>
 
         {/* ── Row 4: Project Management (full-width, core interaction) ── */}
+        {workspaceDataUnavailable ? (
+          <ErrorPanel
+            title={locale === "en" ? "Project Management Data Is Temporarily Unavailable" : "项目管理数据暂时不可用"}
+            description={
+              locale === "en"
+                ? "Core settings are still available, but project, brand, or template data could not be loaded from the database just now."
+                : "基础设置仍可查看，但项目、品牌档案或行业模板数据刚刚没有从数据库成功读取。"
+            }
+            locale={locale}
+          />
+        ) : null}
         <PanelCard title={locale === "en" ? "Project Management" : "项目管理"} description={locale === "en" ? "Create, open, archive, or restore projects from one place." : "在同一页创建新项目、切换项目、归档或恢复项目。"}>
           <ProjectManager
             initialProjects={projects}

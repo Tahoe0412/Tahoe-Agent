@@ -2,6 +2,7 @@ import { ProjectManager } from "@/components/settings/project-manager";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
+import { ErrorPanel } from "@/components/ui/state-panel";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
@@ -12,16 +13,35 @@ export const dynamic = "force-dynamic";
 export default async function ProjectHubPage() {
   const locale = await getLocale();
   const text = copy[locale];
-  const [projects, brandProfiles, industryTemplates] = await Promise.all([
+  const [projectsResult, brandProfilesResult, industryTemplatesResult] = await Promise.allSettled([
     workspaceQueryService.listProjects(),
     workspaceQueryService.listBrandProfiles(),
     workspaceQueryService.listIndustryTemplates(),
   ]);
+  const projects = projectsResult.status === "fulfilled" ? projectsResult.value : [];
+  const brandProfiles = brandProfilesResult.status === "fulfilled" ? brandProfilesResult.value : [];
+  const industryTemplates = industryTemplatesResult.status === "fulfilled" ? industryTemplatesResult.value : [];
+  const workspaceDataUnavailable =
+    projectsResult.status === "rejected" ||
+    brandProfilesResult.status === "rejected" ||
+    industryTemplatesResult.status === "rejected";
 
   return (
     <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader eyebrow={text.pages.projectHub.eyebrow} title={text.pages.projectHub.title} description={text.pages.projectHub.description} locale={locale} />
+
+        {workspaceDataUnavailable ? (
+          <ErrorPanel
+            title={locale === "en" ? "Project Center Is Running in Limited Mode" : "项目中心当前处于降级模式"}
+            description={
+              locale === "en"
+                ? "Project, brand, or template data could not be fully loaded from the database. You can still open the page shell while the server recovers."
+                : "项目、品牌档案或行业模板数据暂时没有完整从数据库成功读取。页面仍可打开，等服务器恢复后再继续完整管理。"
+            }
+            locale={locale}
+          />
+        ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <PanelCard title={locale === "en" ? "Project Center" : "项目中心"} description={locale === "en" ? "Search, filter, and manage projects. Expand the form above the list to create a new one." : "搜索、筛选和管理项目。展开列表上方的表单可创建新项目。"}>

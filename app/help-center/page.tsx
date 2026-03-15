@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
+import { ErrorPanel } from "@/components/ui/state-panel";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
@@ -18,7 +19,14 @@ export default async function HelpCenterPage({
   const locale = await getLocale();
   const text = copy[locale];
   const { projectId } = await searchParams;
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  const workspaceResult = await (projectId
+    ? workspaceQueryService
+        .getProjectWorkspace(projectId)
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: null }))
+    : Promise.resolve({ ok: true as const, value: null }));
+  const workspace = workspaceResult.value;
+  const workspaceLoadFailed = Boolean(projectId) && !workspaceResult.ok;
 
   const modeLabel =
     workspace?.workspaceMode === "SHORT_VIDEO"
@@ -113,6 +121,18 @@ export default async function HelpCenterPage({
           description={text.pages.help.description}
           locale={locale}
         />
+
+        {workspaceLoadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Help Center Is Temporarily Running Without Project Context" : "帮助中心暂时无法读取项目上下文"}
+            description={
+              locale === "en"
+                ? "The page is still available, but the current project context could not be loaded from the server just now."
+                : "页面本身仍可访问，但当前项目上下文刚刚没有从服务器成功读取。"
+            }
+            locale={locale}
+          />
+        ) : null}
 
         {/* ── Getting Started ── */}
         <PanelCard title={ui.gettingStartedTitle} description={ui.gettingStartedDesc}>
