@@ -326,7 +326,7 @@ export default async function TrendExplorerPage({
                   <>
                     <div>
                       <div className="text-xl font-semibold text-[var(--text-inverse)]">{primaryTrend.label}</div>
-                      <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[color:rgba(246,240,232,0.58)]">{primaryTrend.topic}</div>
+                      <div className="mt-2 text-xs uppercase tracking-[0.16em] text-white/58">{primaryTrend.topic}</div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {primaryTrend.sourceEvidenceMap.map((item) => (
