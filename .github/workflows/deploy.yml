@@ -90,6 +90,7 @@ jobs:
           " 2>&1 | tee upload-report.txt
 
       - name: Setup Clash proxy on server
+        continue-on-error: true
         run: |
           set -euo pipefail
           SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
