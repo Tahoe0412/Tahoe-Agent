@@ -11,6 +11,24 @@ function toTopicKey(topic: string) {
     .join("_");
 }
 
+function extractTopicPhrases(topic: string) {
+  const phrases = topic
+    .split(/\bOR\b|[|,]/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) =>
+      part
+        .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+        .trim()
+        .split(/\s+/)
+        .slice(0, 4)
+        .join(" "),
+    )
+    .filter(Boolean);
+
+  return phrases.length > 0 ? phrases : [topic.trim()];
+}
+
 export function buildMockCreators(platform: SupportedPlatform, topic: string): Creator[] {
   const topicKey = toTopicKey(topic);
 
@@ -44,6 +62,7 @@ export function buildMockContentItems(
   input: PlatformCollectInput,
 ): ContentItem[] {
   const topicKey = toTopicKey(topic);
+  const phrases = extractTopicPhrases(topic);
   const limit = Math.max(1, Math.min(input.limit ?? 6, 10));
   const publishedBase = new Date("2026-03-08T10:00:00.000Z").getTime();
 
@@ -55,6 +74,14 @@ export function buildMockContentItems(
     const likes = Math.max(Math.round(views * 0.07), 0);
     const comments = Math.max(Math.round(views * 0.008), 0);
     const shares = Math.max(Math.round(views * 0.012), 0);
+    const primaryPhrase = phrases[index % phrases.length];
+    const secondaryPhrase = phrases[(index + 1) % phrases.length] ?? primaryPhrase;
+    const headline =
+      index % 2 === 0
+        ? `${primaryPhrase} 热点观察 ${index + 1}`
+        : `${primaryPhrase} 与 ${secondaryPhrase} 内容趋势 ${index + 1}`;
+    const normalizedHeadline = toTopicKey(headline);
+    const phraseKeywords = [...new Set(phrases.map((phrase) => toTopicKey(phrase)).filter(Boolean))];
 
     return {
       platform,
@@ -63,14 +90,8 @@ export function buildMockContentItems(
       creator_handle: `@${topicKey}_${index % 2 === 0 ? "alpha" : "beta"}`,
       content_type: contentType,
       production_class: productionClass,
-      title:
-        index % 2 === 0
-          ? `${topic} result-first hook breakdown ${index + 1}`
-          : `${topic} UGC workflow case study ${index + 1}`,
-      normalized_title:
-        index % 2 === 0
-          ? `${topicKey}_result_first_hook_breakdown_${index + 1}`
-          : `${topicKey}_ugc_workflow_case_study_${index + 1}`,
+      title: headline,
+      normalized_title: normalizedHeadline,
       url: `https://example.com/${platform.toLowerCase()}/${topicKey}/${index + 1}`,
       published_at: new Date(publishedBase - index * 1000 * 60 * 60 * 4).toISOString(),
       duration_seconds: contentType === "SHORT_VIDEO" ? 32 + index * 4 : undefined,
@@ -78,8 +99,8 @@ export function buildMockContentItems(
       like_count: likes,
       comment_count: comments,
       share_count: shares,
-      keyword_set: [topicKey, "result_first_hook", "ugc", platform.toLowerCase()],
-      topic_hints: [topicKey, "result_first_hook", "ugc_workflow"],
+      keyword_set: [...phraseKeywords, platform.toLowerCase()].slice(0, 6),
+      topic_hints: phraseKeywords.slice(0, 3),
       ai_producibility_hints:
         productionClass === "SCREEN_CAPTURE"
           ? ["screen_proof", "text_overlay"]

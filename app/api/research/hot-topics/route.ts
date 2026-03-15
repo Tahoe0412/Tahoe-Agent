@@ -3,6 +3,7 @@ import { getPlatformConnector } from "@/services/platform-connectors";
 import { TrendScoringEngine } from "@/services/trend-scoring";
 import { searchLatestNews } from "@/services/news-search";
 import { MockNewsSearchProvider } from "@/services/news-search/mock";
+import { prepareTrendContentItems } from "@/services/hot-topics/prepare-trend-content";
 import type { SupportedPlatform, ContentItem, Creator, PlatformCollectResult } from "@/types/platform-data";
 import type { ScoredTrendTopic } from "@/services/trend-scoring/engine";
 import type { NewsSearchResult } from "@/types/news-search";
@@ -80,10 +81,11 @@ export async function POST(request: Request) {
 
     const creators = [...creatorMap.values()];
     const contentItems = [...contentMap.values()];
+    const trendContentItems = prepareTrendContentItems(contentItems, newsResult, platformResults, query);
 
     // 3. Score & rank trend topics
     const trendEngine = new TrendScoringEngine();
-    const topics = trendEngine.score(contentItems);
+    const topics = trendEngine.score(trendContentItems);
 
     const response: HotTopicsResponse = {
       success: true,
