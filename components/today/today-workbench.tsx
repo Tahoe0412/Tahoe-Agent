@@ -65,7 +65,7 @@ export function TodayWorkbench({
     null
   );
   const [searchQuery, setSearchQuery] = useState(
-    activeBrand?.keywords.join(" ") ?? ""
+    activeBrand?.keywords.join(" OR ") ?? ""
   );
   const autoSearchFired = useRef(false);
 
@@ -100,7 +100,7 @@ export function TodayWorkbench({
     if (autoSearchFired.current) return;
     if (!activeBrand || activeBrand.keywords.length === 0) return;
     autoSearchFired.current = true;
-    const q = activeBrand.keywords.join(" ");
+    const q = activeBrand.keywords.join(" OR ");
     setSearchQuery(q);
     void handleSearch(q);
   }, [activeBrand, handleSearch]);
@@ -140,7 +140,7 @@ export function TodayWorkbench({
                   (b) => b.id === e.target.value
                 );
                 if (brand && brand.keywords.length > 0) {
-                  const q = brand.keywords.join(" ");
+                  const q = brand.keywords.join(" OR ");
                   setSearchQuery(q);
                   void handleSearch(q);
                 }
