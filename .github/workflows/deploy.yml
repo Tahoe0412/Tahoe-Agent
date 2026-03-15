@@ -21,15 +21,22 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Detect Prisma schema changes
         id: prisma_changes
         run: |
+          set -euo pipefail
           before_sha="${{ github.event.before }}"
 
           if [ -z "$before_sha" ] || [ "$before_sha" = "0000000000000000000000000000000000000000" ]; then
             echo "skip_prisma_db_push=0" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+
+          if ! git cat-file -e "${before_sha}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --prune origin "${before_sha}"
           fi
 
           if git diff --quiet "$before_sha" "${{ github.sha }}" -- prisma/schema.prisma prisma/migrations; then
