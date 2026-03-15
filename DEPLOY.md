@@ -96,6 +96,7 @@ Production environment files live on the server here:
 ```
 
 `scripts/deploy.sh` now loads both files before running Prisma/build commands, with `.env.local` overriding `.env` to match Next.js runtime precedence.
+If `DATABASE_URL` / `DIRECT_URL` are still inconsistent, the script also falls back to the currently running PM2 app env so CI deploys match the healthy production runtime.
 
 Current production app base URL:
 

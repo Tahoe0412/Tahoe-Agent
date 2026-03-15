@@ -34,12 +34,39 @@ load_env_file() {
   fi
 }
 
+load_pm2_env_var() {
+  local env_key="$1"
+  local env_value
+
+  env_value="$(pm2 jlist 2>/dev/null | node -e '
+    const fs = require("fs");
+    const appName = process.argv[1];
+    const envKey = process.argv[2];
+    const payload = fs.readFileSync(0, "utf8").trim();
+    if (!payload) process.exit(0);
+
+    const apps = JSON.parse(payload);
+    const app = apps.find((entry) => entry.name === appName);
+    const value = app?.pm2_env?.[envKey];
+    if (typeof value === "string" && value.length > 0) {
+      process.stdout.write(value);
+    }
+  ' "$APP_NAME" "$env_key")"
+
+  if [ -n "$env_value" ]; then
+    echo "[deploy] Loading $env_key from PM2 runtime env"
+    export "${env_key}=${env_value}"
+  fi
+}
+
 # Fix ownership in case files were created by a different user (root vs ubuntu)
 sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
 
 # Match Next.js precedence so Prisma CLI and the build use the same runtime env.
 load_env_file "$APP_DIR/.env"
 load_env_file "$APP_DIR/.env.local"
+load_pm2_env_var "DATABASE_URL"
+load_pm2_env_var "DIRECT_URL"
 
 if [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
   echo "[deploy] Fetching latest code from origin/main..."
