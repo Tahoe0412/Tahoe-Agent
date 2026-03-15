@@ -24,7 +24,7 @@ enum LlmProvider {
 
 enum SearchProvider {
   MOCK
-  TAVILY
+  BING
 }
 
 enum BrandStage {
@@ -548,7 +548,7 @@ model AppSettings {
   llm_routing_json      Json?
   news_search_provider  SearchProvider @default(MOCK)
   news_search_mock_mode Boolean        @default(true)
-  tavily_api_key        String?
+  bing_api_key          String?
   app_base_url          String?
   created_at            DateTime       @default(now())
   updated_at            DateTime       @updatedAt

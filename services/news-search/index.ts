@@ -1,6 +1,6 @@
 import { AppSettingsService } from "@/services/app-settings.service";
 import { MockNewsSearchProvider } from "@/services/news-search/mock";
-import { TavilyNewsSearchProvider } from "@/services/news-search/tavily";
+import { BingNewsSearchProvider } from "@/services/news-search/bing";
 
 const appSettingsService = new AppSettingsService();
 
@@ -11,23 +11,23 @@ export async function searchLatestNews(input: { topic: string; limit?: number })
     return new MockNewsSearchProvider().searchLatest(input);
   }
 
-  if (settings.newsSearchProvider === "TAVILY") {
-    if (!settings.tavilyApiKey) {
+  if (settings.newsSearchProvider === "BING") {
+    if (!settings.bingApiKey) {
       return {
-        provider: "TAVILY" as const,
+        provider: "BING" as const,
         mode: "live" as const,
         success: false,
         items: [],
-        errors: [{ code: "CONFIG_MISSING", message: "TAVILY_API_KEY is missing." }],
+        errors: [{ code: "CONFIG_MISSING", message: "BING_API_KEY is missing." }],
         fetched_at: new Date().toISOString(),
       };
     }
 
     try {
-      return await new TavilyNewsSearchProvider(settings.tavilyApiKey).searchLatest(input);
+      return await new BingNewsSearchProvider(settings.bingApiKey).searchLatest(input);
     } catch (error) {
       return {
-        provider: "TAVILY" as const,
+        provider: "BING" as const,
         mode: "live" as const,
         success: false,
         items: [],

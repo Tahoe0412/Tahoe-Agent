@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { AppSettingsService } from "@/services/app-settings.service";
-import { TavilySearchService } from "@/services/web-search/tavily-search.service";
+import { BingSearchService } from "@/services/web-search/bing-search.service";
 
 const appSettingsService = new AppSettingsService();
 
 interface WebSearchRequest {
   query: string;
   limit?: number;
-  searchDepth?: "basic" | "advanced";
+  market?: string;
   siteDomain?: string;
 }
 
@@ -24,29 +24,29 @@ export async function POST(request: Request) {
 
     const settings = await appSettingsService.getEffectiveSettings();
 
-    if (!settings.tavilyApiKey) {
+    if (!settings.bingApiKey) {
       return NextResponse.json(
         {
           success: false,
-          error: "TAVILY_API_KEY is not configured. Please add it in Settings.",
-          provider: "TAVILY",
+          error: "BING_API_KEY is not configured. Please add it in Settings.",
+          provider: "BING",
         },
         { status: 422 }
       );
     }
 
-    const tavilyService = new TavilySearchService(settings.tavilyApiKey);
+    const bingService = new BingSearchService(settings.bingApiKey);
 
     const result = body.siteDomain
-      ? await tavilyService.searchPlatformContent({
+      ? await bingService.searchPlatformContent({
           query: body.query.trim(),
           siteDomain: body.siteDomain,
           limit: body.limit,
         })
-      : await tavilyService.searchGeneral({
+      : await bingService.searchGeneral({
           query: body.query.trim(),
           limit: body.limit,
-          searchDepth: body.searchDepth,
+          market: body.market,
         });
 
     return NextResponse.json(result);

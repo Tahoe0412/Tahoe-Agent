@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const llmProviderSchema = z.enum(["OPENAI", "GEMINI", "DEEPSEEK", "QWEN"]);
-export const searchProviderSchema = z.enum(["MOCK", "TAVILY"]);
+export const searchProviderSchema = z.enum(["MOCK", "BING"]);
 export const modelRouteKeySchema = z.enum([
   "MARKETING_ANALYSIS",
   "PROMOTIONAL_COPY",
@@ -27,7 +27,7 @@ export const appSettingsUpdateSchema = z.object({
   llm_routing_json: z.record(modelRouteKeySchema, modelRouteConfigSchema).optional(),
   news_search_provider: searchProviderSchema,
   news_search_mock_mode: z.boolean(),
-  tavily_api_key: z.string().max(500).optional().nullable(),
+  bing_api_key: z.string().max(500).optional().nullable(),
   app_base_url: z.string().url().optional().nullable(),
 });
 

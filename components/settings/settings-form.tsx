@@ -15,9 +15,9 @@ type SettingsPayload = {
   deepseekApiKey: string | null;
   qwenApiKey: string | null;
   llmRouting: Record<ModelRouteKey, { provider: "OPENAI" | "GEMINI" | "DEEPSEEK" | "QWEN"; model: string }>;
-  newsSearchProvider: "MOCK" | "TAVILY";
+  newsSearchProvider: "MOCK" | "BING";
   newsSearchMockMode: boolean;
-  tavilyApiKey: string | null;
+  bingApiKey: string | null;
   appBaseUrl: string | null;
 };
 
@@ -47,7 +47,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     llm_routing_json: initial.llmRouting,
     news_search_provider: initial.newsSearchProvider,
     news_search_mock_mode: initial.newsSearchMockMode,
-    tavily_api_key: initial.tavilyApiKey ?? "",
+    bing_api_key: initial.bingApiKey ?? "",
     app_base_url: initial.appBaseUrl ?? "",
   });
   const [showFallbackConfig, setShowFallbackConfig] = useState(initialMainCustom);
@@ -367,21 +367,21 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">新闻搜索提供方</span>
           <select
             value={form.news_search_provider}
-            onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "TAVILY" }))}
+            onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "BING" }))}
             className="theme-input rounded-xl px-4 py-3 text-sm"
           >
             <option value="MOCK">Mock</option>
-            <option value="TAVILY">Tavily</option>
+            <option value="BING">Bing</option>
           </select>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Tavily 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Bing 密钥</span>
           <input
-            value={form.tavily_api_key}
-            onChange={(event) => setForm((current) => ({ ...current, tavily_api_key: event.target.value }))}
+            value={form.bing_api_key}
+            onChange={(event) => setForm((current) => ({ ...current, bing_api_key: event.target.value }))}
             className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="tvly-..."
+            placeholder="你的 Bing Search API Key"
           />
         </label>
       </div>

@@ -59,7 +59,7 @@ export default async function SettingsPage() {
               llmRouting: settings.llmRouting,
               newsSearchProvider: settings.newsSearchProvider,
               newsSearchMockMode: settings.newsSearchMockMode,
-              tavilyApiKey: settings.tavilyApiKey,
+              bingApiKey: settings.bingApiKey,
               appBaseUrl: settings.appBaseUrl,
             }}
           />

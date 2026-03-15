@@ -13,7 +13,7 @@ export interface EffectiveAppSettings {
   llmRouting: Record<ModelRouteKey, ModelRouteConfig>;
   newsSearchProvider: SearchProvider;
   newsSearchMockMode: boolean;
-  tavilyApiKey: string | null;
+  bingApiKey: string | null;
   appBaseUrl: string | null;
 }
 
@@ -47,7 +47,7 @@ function envApiKeyDefaults() {
     gemini_api_key: trimOrNull(process.env.GEMINI_API_KEY),
     deepseek_api_key: trimOrNull(process.env.DEEPSEEK_API_KEY),
     qwen_api_key: trimOrNull(process.env.QWEN_API_KEY),
-    tavily_api_key: trimOrNull(process.env.TAVILY_API_KEY),
+    bing_api_key: trimOrNull(process.env.BING_API_KEY),
   };
 }
 
@@ -83,7 +83,7 @@ export class AppSettingsService {
       newsSearchProvider:
         record?.news_search_provider ?? ((process.env.NEWS_SEARCH_PROVIDER?.toUpperCase() as SearchProvider | undefined) || "MOCK"),
       newsSearchMockMode: record?.news_search_mock_mode ?? envBoolean(process.env.NEWS_SEARCH_MOCK_MODE, true),
-      tavilyApiKey: trimOrNull(record?.tavily_api_key) ?? trimOrNull(process.env.TAVILY_API_KEY),
+      bingApiKey: trimOrNull(record?.bing_api_key) ?? trimOrNull(process.env.BING_API_KEY),
       appBaseUrl: trimOrNull(record?.app_base_url) ?? trimOrNull(process.env.APP_BASE_URL),
     };
   }
@@ -99,7 +99,7 @@ export class AppSettingsService {
     llm_routing_json?: Partial<Record<ModelRouteKey, ModelRouteConfig>>;
     news_search_provider: SearchProvider;
     news_search_mock_mode: boolean;
-    tavily_api_key?: string | null;
+    bing_api_key?: string | null;
     app_base_url?: string | null;
   }) {
     await this.getRecord();
@@ -117,7 +117,7 @@ export class AppSettingsService {
         llm_routing_json: normalizeModelRoutes(input.llm_routing_json) as never,
         news_search_provider: input.news_search_provider,
         news_search_mock_mode: input.news_search_mock_mode,
-        tavily_api_key: trimOrNull(input.tavily_api_key),
+        bing_api_key: trimOrNull(input.bing_api_key),
         app_base_url: trimOrNull(input.app_base_url),
       },
       create: {
@@ -132,7 +132,7 @@ export class AppSettingsService {
         llm_routing_json: normalizeModelRoutes(input.llm_routing_json) as never,
         news_search_provider: input.news_search_provider,
         news_search_mock_mode: input.news_search_mock_mode,
-        tavily_api_key: trimOrNull(input.tavily_api_key),
+        bing_api_key: trimOrNull(input.bing_api_key),
         app_base_url: trimOrNull(input.app_base_url),
       },
     });
