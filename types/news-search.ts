@@ -1,4 +1,4 @@
-export type NewsSearchProvider = "MOCK" | "BING";
+export type NewsSearchProvider = "MOCK" | "GOOGLE";
 
 export interface NewsSearchItem {
   id: string;

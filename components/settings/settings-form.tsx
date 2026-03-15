@@ -15,9 +15,10 @@ type SettingsPayload = {
   deepseekApiKey: string | null;
   qwenApiKey: string | null;
   llmRouting: Record<ModelRouteKey, { provider: "OPENAI" | "GEMINI" | "DEEPSEEK" | "QWEN"; model: string }>;
-  newsSearchProvider: "MOCK" | "BING";
+  newsSearchProvider: "MOCK" | "GOOGLE";
   newsSearchMockMode: boolean;
-  bingApiKey: string | null;
+  googleSearchApiKey: string | null;
+  googleSearchCx: string | null;
   appBaseUrl: string | null;
 };
 
@@ -47,7 +48,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     llm_routing_json: initial.llmRouting,
     news_search_provider: initial.newsSearchProvider,
     news_search_mock_mode: initial.newsSearchMockMode,
-    bing_api_key: initial.bingApiKey ?? "",
+    google_search_api_key: initial.googleSearchApiKey ?? "",
+    google_search_cx: initial.googleSearchCx ?? "",
     app_base_url: initial.appBaseUrl ?? "",
   });
   const [showFallbackConfig, setShowFallbackConfig] = useState(initialMainCustom);
@@ -367,21 +369,31 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">新闻搜索提供方</span>
           <select
             value={form.news_search_provider}
-            onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "BING" }))}
+            onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "GOOGLE" }))}
             className="theme-input rounded-xl px-4 py-3 text-sm"
           >
             <option value="MOCK">Mock</option>
-            <option value="BING">Bing</option>
+            <option value="GOOGLE">Google</option>
           </select>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Bing 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Google Search API Key</span>
           <input
-            value={form.bing_api_key}
-            onChange={(event) => setForm((current) => ({ ...current, bing_api_key: event.target.value }))}
+            value={form.google_search_api_key}
+            onChange={(event) => setForm((current) => ({ ...current, google_search_api_key: event.target.value }))}
             className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="你的 Bing Search API Key"
+            placeholder="AIzaSy..."
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Search Engine ID (cx)</span>
+          <input
+            value={form.google_search_cx}
+            onChange={(event) => setForm((current) => ({ ...current, google_search_cx: event.target.value }))}
+            className="theme-input rounded-xl px-4 py-3 text-sm"
+            placeholder="你的搜索引擎 ID"
           />
         </label>
       </div>

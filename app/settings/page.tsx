@@ -59,7 +59,8 @@ export default async function SettingsPage() {
               llmRouting: settings.llmRouting,
               newsSearchProvider: settings.newsSearchProvider,
               newsSearchMockMode: settings.newsSearchMockMode,
-              bingApiKey: settings.bingApiKey,
+              googleSearchApiKey: settings.googleSearchApiKey,
+              googleSearchCx: settings.googleSearchCx,
               appBaseUrl: settings.appBaseUrl,
             }}
           />
