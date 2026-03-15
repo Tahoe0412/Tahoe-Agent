@@ -13,6 +13,7 @@ export default async function TodayPage() {
 
   let brandKeywordProfiles: Array<{ id: string; name: string; keywords: string[] }> = [];
   let recentProjects: Array<{ id: string; title: string; topic_query: string; status: string }> = [];
+  let workspaceDataUnavailable = false;
   try {
     const profiles = await workspaceQueryService.listBrandProfiles();
     brandKeywordProfiles = profiles
@@ -26,7 +27,7 @@ export default async function TodayPage() {
       status: p.status,
     }));
   } catch {
-    // DB unreachable — continue with empty data
+    workspaceDataUnavailable = true;
   }
 
   return (
@@ -46,6 +47,7 @@ export default async function TodayPage() {
           brandProfiles={brandKeywordProfiles}
           recentProjects={recentProjects}
           locale={locale}
+          workspaceDataUnavailable={workspaceDataUnavailable}
         />
       </div>
     </WorkspaceLayout>

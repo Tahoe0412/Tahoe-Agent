@@ -47,10 +47,12 @@ export function TodayWorkbench({
   brandProfiles = [],
   recentProjects = [],
   locale = "zh",
+  workspaceDataUnavailable = false,
 }: {
   brandProfiles?: BrandKeywordProfile[];
   recentProjects?: RecentProject[];
   locale?: "zh" | "en";
+  workspaceDataUnavailable?: boolean;
 }) {
   const router = useRouter();
   const [activeBrandId, setActiveBrandId] = useState(
@@ -184,6 +186,20 @@ export function TodayWorkbench({
             </select>
           )}
         </div>
+
+        {workspaceDataUnavailable ? (
+          <div className="mb-4 rounded-2xl border border-[color:color-mix(in_srgb,var(--warning-text)_28%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_86%,var(--surface-solid)),rgba(255,255,255,0.22))] px-4 py-3 text-sm leading-7 text-[var(--warning-text)] shadow-[0_10px_24px_rgba(145,108,43,0.08)]">
+            {t
+              ? "当前品牌关键词池和最近项目列表暂时没有从数据库成功读取，但你仍然可以手动输入关键词搜索热点。"
+              : "Brand keyword pools and recent projects could not be loaded from the database right now, but you can still search with manual keywords."}
+          </div>
+        ) : brandProfiles.length === 0 ? (
+          <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-7 text-[var(--text-2)]">
+            {t
+              ? "还没有可用的品牌关键词池。你可以先手动输入关键词搜索，或稍后去品牌档案里补充关键词池。"
+              : "No brand keyword pool is available yet. You can search manually now, or add one later in Brand Profiles."}
+          </div>
+        ) : null}
 
         {/* Search bar */}
         <div className="flex gap-3">
