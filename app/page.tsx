@@ -71,8 +71,15 @@ export default async function Home({
   const locale = await getLocale();
   const text = copy[locale];
   const { projectId } = await searchParams;
-  const recentProjects = await workspaceQueryService.listRecentProjects();
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  const [recentProjectsResult, workspaceResult] = await Promise.allSettled([
+    workspaceQueryService.listRecentProjects(),
+    projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
+  ]);
+  const recentProjects = recentProjectsResult.status === "fulfilled" ? recentProjectsResult.value : [];
+  const workspace = workspaceResult.status === "fulfilled" ? workspaceResult.value : null;
+  const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
+  const workspaceLoadFailed = workspaceResult.status === "rejected";
+  const loadFailed = Boolean(projectId) && workspaceLoadFailed;
   const headerCopy =
     workspace?.workspaceMode === "SHORT_VIDEO"
       ? text.pages.dashboard
@@ -188,8 +195,26 @@ export default async function Home({
           density="expanded"
         />
 
+        {recentProjectsUnavailable && !projectId ? (
+          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+            {locale === "en"
+              ? "The project list is temporarily unavailable, but the workspace shell is still available while the database recovers."
+              : "当前项目列表暂时不可用，但工作台页面本身仍可访问，等数据库恢复后即可继续加载项目。"}
+          </div>
+        ) : null}
+
         {/* ── With workspace: main dashboard ── */}
-        {workspace ? (
+        {loadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Dashboard Is Temporarily Unavailable" : "总览暂时不可用"}
+            description={
+              locale === "en"
+                ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers."
+                : "当前工作区数据暂时没有成功加载。请稍后刷新，或在服务恢复后重新切换项目。"
+            }
+            action={<NextStepLink href={projectId ? `/?projectId=${projectId}` : "/"} label={locale === "en" ? "Retry Loading" : "重新加载"} />}
+          />
+        ) : workspace ? (
           <div className="space-y-6">
             {/* Three-step guide — flattened into a horizontal row */}
             <div className="grid gap-4 md:grid-cols-3">
