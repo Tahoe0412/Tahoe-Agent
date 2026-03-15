@@ -36,9 +36,14 @@ export default async function TrendExplorerPage({
   // Gracefully handle DB failures — discovery mode (no projectId) doesn't need DB
   let recentProjects: Awaited<ReturnType<typeof workspaceQueryService.listRecentProjects>> = [];
   let workspace: Awaited<ReturnType<typeof workspaceQueryService.getProjectWorkspace>> | null = null;
+  let brandKeywordProfiles: Array<{ id: string; name: string; keywords: string[] }> = [];
   try {
     recentProjects = await workspaceQueryService.listRecentProjects();
     workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+    const profiles = await workspaceQueryService.listBrandProfiles();
+    brandKeywordProfiles = profiles
+      .filter((p) => Array.isArray(p.keyword_pool) && (p.keyword_pool as string[]).length > 0)
+      .map((p) => ({ id: p.id, name: p.brand_name, keywords: p.keyword_pool as string[] }));
   } catch {
     // DB unreachable — continue with empty data; discovery workbench still works
   }
@@ -185,7 +190,7 @@ export default async function TrendExplorerPage({
         {state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
-          <TrendDiscoveryWorkbench />
+          <TrendDiscoveryWorkbench brandProfiles={brandKeywordProfiles} />
         ) : !workspace ? (
           <ErrorPanel title={locale === "en" ? "Trend Data Unavailable" : "无法读取趋势数据"} description={locale === "en" ? "The project was not found, or trend topics have not been generated yet." : "没有找到该项目，或项目还没生成趋势主题。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
         ) : (

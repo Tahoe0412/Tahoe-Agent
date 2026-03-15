@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { TrendSearchBar } from "@/components/trend-discovery/trend-search-bar";
 import { TopicRankingList } from "@/components/trend-discovery/topic-ranking-list";
@@ -9,6 +9,12 @@ import { toTopicRankingItems } from "@/types/trend-discovery";
 import type { HotTopicsSearchResult, TopicRankingItem } from "@/types/trend-discovery";
 import type { SupportedPlatform } from "@/types/platform-data";
 import type { NewsSearchResult } from "@/types/news-search";
+
+interface BrandKeywordProfile {
+  id: string;
+  name: string;
+  keywords: string[];
+}
 
 interface DiscoveryState {
   loading: boolean;
@@ -32,9 +38,17 @@ const INITIAL_STATE: DiscoveryState = {
   contentCount: 0,
 };
 
-export function TrendDiscoveryWorkbench() {
+export function TrendDiscoveryWorkbench({
+  brandProfiles = [],
+}: {
+  brandProfiles?: BrandKeywordProfile[];
+}) {
   const router = useRouter();
   const [state, setState] = useState<DiscoveryState>(INITIAL_STATE);
+  const [activeBrandId, setActiveBrandId] = useState(brandProfiles[0]?.id ?? "");
+  const autoSearchFired = useRef(false);
+
+  const activeBrand = brandProfiles.find((b) => b.id === activeBrandId) ?? null;
 
   const handleSearch = useCallback(async (query: string, platforms: SupportedPlatform[]) => {
     setState((prev) => ({ ...prev, loading: true, error: null, query }));
@@ -65,9 +79,16 @@ export function TrendDiscoveryWorkbench() {
     }
   }, []);
 
+  // Auto-search on mount if brand keywords are available
+  useEffect(() => {
+    if (autoSearchFired.current) return;
+    if (!activeBrand || activeBrand.keywords.length === 0) return;
+    autoSearchFired.current = true;
+    void handleSearch(activeBrand.keywords.join(" "), ["YOUTUBE", "X"]);
+  }, [activeBrand, handleSearch]);
+
   const handleCreateProject = useCallback(
     (topicKey: string, label: string) => {
-      // Navigate to create-project with pre-filled data
       const params = new URLSearchParams({
         topic: state.query || label,
         title: label,
@@ -81,15 +102,40 @@ export function TrendDiscoveryWorkbench() {
     <div className="space-y-6">
       {/* Search bar */}
       <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-6">
-        <div className="mb-4">
-          <div className="text-lg font-semibold text-[var(--text-1)]">热点发现</div>
-          <div className="mt-1 text-sm text-[var(--text-3)]">
-            输入关键词，系统从 YouTube、X 等平台聚合热点话题，30 秒内决定今天发什么
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-lg font-semibold text-[var(--text-1)]">热点发现</div>
+            <div className="mt-1 text-sm text-[var(--text-3)]">
+              {activeBrand
+                ? `已加载「${activeBrand.name}」的关键词池，自动搜索中`
+                : "输入关键词，系统从 YouTube、X 等平台聚合热点话题"}
+            </div>
           </div>
+          {/* Brand selector */}
+          {brandProfiles.length > 0 && (
+            <select
+              value={activeBrandId}
+              onChange={(e) => {
+                setActiveBrandId(e.target.value);
+                const brand = brandProfiles.find((b) => b.id === e.target.value);
+                if (brand && brand.keywords.length > 0) {
+                  void handleSearch(brand.keywords.join(" "), ["YOUTUBE", "X"]);
+                }
+              }}
+              className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-2)]"
+            >
+              {brandProfiles.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} ({b.keywords.length} 词)
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <TrendSearchBar
           onSearch={handleSearch}
           loading={state.loading}
+          defaultQuery={activeBrand?.keywords.join(" ") ?? ""}
         />
       </div>
 
