@@ -1,6 +1,6 @@
 # Deploy Guide
 
-This project is deployed on Tencent Cloud Lighthouse and is no longer dependent on Vercel or Supabase for production runtime.
+This project is deployed on Tencent Cloud Lighthouse with local PostgreSQL.
 
 ## Current Production Setup
 
@@ -202,5 +202,5 @@ curl http://127.0.0.1
 ## Notes
 
 - `scripts/deploy.sh` supports `SKIP_GIT_PULL=1` for CI-driven deployments.
-- Production currently uses the server's local PostgreSQL instance, not Supabase.
+- Production uses the server's local PostgreSQL instance.
 - If GitHub Actions succeeds but the site looks stale, check `pm2 logs tahoe-agent || pm2 logs tahoe` and rerun the latest workflow.
