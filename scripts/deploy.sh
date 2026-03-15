@@ -128,8 +128,6 @@ else
   npx prisma db push --accept-data-loss
 fi
 
-probe_database
-
 echo "[deploy] Building application..."
 npm run build
 
@@ -139,6 +137,8 @@ if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
 else
   pm2 start npm --name "$APP_NAME" -- start
 fi
+
+probe_database
 
 if [ "$APP_NAME" = "$PRIMARY_APP_NAME" ] && pm2 describe "$LEGACY_APP_NAME" >/dev/null 2>&1; then
   echo "[deploy] Removing legacy PM2 app: $LEGACY_APP_NAME"
