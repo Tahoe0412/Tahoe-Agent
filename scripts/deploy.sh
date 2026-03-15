@@ -23,8 +23,23 @@ APP_NAME="$(resolve_app_name)"
 
 cd "$APP_DIR"
 
+load_env_file() {
+  local file_path="$1"
+  if [ -f "$file_path" ]; then
+    echo "[deploy] Loading environment from $file_path"
+    set -a
+    # shellcheck disable=SC1090
+    source "$file_path"
+    set +a
+  fi
+}
+
 # Fix ownership in case files were created by a different user (root vs ubuntu)
 sudo chown -R "$(whoami)" "$APP_DIR" 2>/dev/null || true
+
+# Match Next.js precedence so Prisma CLI and the build use the same runtime env.
+load_env_file "$APP_DIR/.env"
+load_env_file "$APP_DIR/.env.local"
 
 if [ "${SKIP_GIT_PULL:-0}" != "1" ]; then
   echo "[deploy] Fetching latest code from origin/main..."

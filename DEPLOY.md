@@ -72,6 +72,7 @@ It performs:
 git fetch --prune origin main # skipped in CI deploy when SKIP_GIT_PULL=1
 git reset --hard origin/main
 npm ci
+source .env && source .env.local # when present, .env.local overrides .env
 npx prisma db push
 npm run build
 # auto-detects `tahoe-agent` first, falls back to legacy `tahoe`
@@ -87,11 +88,14 @@ Important:
 
 ## Server Environment
 
-Production `.env` lives on the server here:
+Production environment files live on the server here:
 
 ```text
 /home/ubuntu/Tahoe-Agent/.env
+/home/ubuntu/Tahoe-Agent/.env.local
 ```
+
+`scripts/deploy.sh` now loads both files before running Prisma/build commands, with `.env.local` overriding `.env` to match Next.js runtime precedence.
 
 Current production app base URL:
 
@@ -102,14 +106,14 @@ APP_BASE_URL="http://111.229.24.208"
 If you change environment variables:
 
 1. SSH into the server
-2. Edit `.env`
+2. Edit `.env` or `.env.local`
 3. Rebuild and restart the app
 
 Commands:
 
 ```bash
 cd /home/ubuntu/Tahoe-Agent
-nano .env
+nano .env.local
 npm run build
 pm2 restart tahoe-agent || pm2 restart tahoe
 pm2 save
