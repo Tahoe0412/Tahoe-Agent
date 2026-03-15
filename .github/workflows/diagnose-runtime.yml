@@ -25,7 +25,7 @@ jobs:
 
       - name: Inspect runtime over SSH
         run: |
-          ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+          ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" 'bash -s' <<'EOF_REMOTE' | tee diagnose-report.txt
             set -eu
 
             echo "== host =="
@@ -192,7 +192,7 @@ jobs:
               printf "%s\n" "${html}" | grep -oE "w-\\[(248|280)px\\]|h-\\[64px\\]|h-14|space-y-6 xl:space-y-5|space-y-8" | head -n 6 | tr "\n" " " || true
               echo
             done
-          ' | tee diagnose-report.txt
+          EOF_REMOTE
 
       - name: Publish diagnosis comment
         uses: actions/github-script@v7
