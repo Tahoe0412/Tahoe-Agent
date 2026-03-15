@@ -97,7 +97,7 @@ jobs:
           timeout 5m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             set -euo pipefail
             CLASH_DIR=/opt/clash
-            CLASH_BIN=$CLASH_DIR/clash
+            CLASH_BIN=$CLASH_DIR/mihomo
             CONFIG_FILE=$CLASH_DIR/config.yaml
             SUB_URL="${{ secrets.CLASH_SUB_URL }}"
             APP_DIR=/home/ubuntu/Tahoe-Agent
@@ -107,16 +107,16 @@ jobs:
               exit 0
             fi
 
-            # Install Clash binary if missing
+            # Install Mihomo (Clash Meta) binary if missing
             if [ ! -f "$CLASH_BIN" ]; then
-              echo "[proxy] Installing Clash..."
+              echo "[proxy] Installing Mihomo..."
               sudo mkdir -p "$CLASH_DIR"
-              CLASH_URL="https://github.com/Dreamacro/clash/releases/download/v1.18.0/clash-linux-amd64-v1.18.0.gz"
-              curl -fsSL "$CLASH_URL" -o /tmp/clash.gz
-              gunzip -f /tmp/clash.gz
-              sudo mv /tmp/clash "$CLASH_BIN"
+              MIHOMO_URL="https://github.com/MetaCubeX/mihomo/releases/download/v1.19.21/mihomo-linux-amd64-v1.19.21.gz"
+              curl -fsSL "$MIHOMO_URL" -o /tmp/mihomo.gz
+              gunzip -f /tmp/mihomo.gz
+              sudo mv /tmp/mihomo "$CLASH_BIN"
               sudo chmod +x "$CLASH_BIN"
-              echo "[proxy] Clash binary installed"
+              echo "[proxy] Mihomo binary installed"
             fi
 
             # Always refresh subscription config
