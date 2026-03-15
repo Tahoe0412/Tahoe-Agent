@@ -89,6 +89,78 @@ jobs:
             sudo chown -R \"${{ secrets.SERVER_USER }}\":\"${{ secrets.SERVER_USER }}\" \"\$APP_DIR\"
           " 2>&1 | tee upload-report.txt
 
+      - name: Setup Clash proxy on server
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+          timeout 5m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+            set -euo pipefail
+            CLASH_DIR=/opt/clash
+            CLASH_BIN=$CLASH_DIR/clash
+            CONFIG_FILE=$CLASH_DIR/config.yaml
+            SUB_URL="${{ secrets.CLASH_SUB_URL }}"
+            APP_DIR=/home/ubuntu/Tahoe-Agent
+
+            if [ -z "$SUB_URL" ]; then
+              echo "[proxy] CLASH_SUB_URL secret not set, skipping proxy setup"
+              exit 0
+            fi
+
+            # Install Clash binary if missing
+            if [ ! -f "$CLASH_BIN" ]; then
+              echo "[proxy] Installing Clash..."
+              sudo mkdir -p "$CLASH_DIR"
+              CLASH_URL="https://github.com/Dreamacro/clash/releases/download/v1.18.0/clash-linux-amd64-v1.18.0.gz"
+              curl -fsSL "$CLASH_URL" -o /tmp/clash.gz
+              gunzip -f /tmp/clash.gz
+              sudo mv /tmp/clash "$CLASH_BIN"
+              sudo chmod +x "$CLASH_BIN"
+              echo "[proxy] Clash binary installed"
+            fi
+
+            # Always refresh subscription config
+            sudo curl -fsSL "$SUB_URL" -o "$CONFIG_FILE"
+            if ! grep -q "^mixed-port:" "$CONFIG_FILE"; then
+              sudo sed -i "1i mixed-port: 7890" "$CONFIG_FILE"
+            fi
+            echo "[proxy] Config refreshed"
+
+            # Create systemd service if missing
+            if [ ! -f /etc/systemd/system/clash.service ]; then
+              sudo tee /etc/systemd/system/clash.service > /dev/null <<SVCEOF
+          [Unit]
+          Description=Clash Proxy
+          After=network.target
+          [Service]
+          Type=simple
+          ExecStart=$CLASH_BIN -d $CLASH_DIR
+          Restart=on-failure
+          RestartSec=5
+          [Install]
+          WantedBy=multi-user.target
+          SVCEOF
+              sudo systemctl daemon-reload
+              sudo systemctl enable clash
+            fi
+
+            sudo systemctl restart clash
+            sleep 2
+
+            # Ensure HTTPS_PROXY in .env.local
+            touch "$APP_DIR/.env.local"
+            if ! grep -q "HTTPS_PROXY" "$APP_DIR/.env.local"; then
+              echo "HTTPS_PROXY=http://127.0.0.1:7890" >> "$APP_DIR/.env.local"
+              echo "[proxy] Added HTTPS_PROXY to .env.local"
+            fi
+
+            # Quick connectivity test
+            if curl --max-time 10 -s --proxy http://127.0.0.1:7890 https://www.google.com > /dev/null 2>&1; then
+              echo "[proxy] ✓ Proxy works — Google reachable"
+            else
+              echo "[proxy] ⚠ Proxy started but Google test failed"
+            fi
+          ' 2>&1 | tee proxy-setup-report.txt
+
       - name: Deploy over SSH
         run: |
           set -euo pipefail
