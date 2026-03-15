@@ -9,9 +9,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -35,6 +40,7 @@ jobs:
 
       - name: Configure SSH
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
@@ -42,31 +48,58 @@ jobs:
 
       - name: Upload project files
         run: |
+          set -euo pipefail
+          SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+
+          trap 'rm -f release.tgz' EXIT
+
           tar \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
             --exclude='.next' \
             --exclude='.env' \
-            -czf - . | ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "
-              set -e
-              APP_DIR=/home/ubuntu/Tahoe-Agent
-              STAGE_DIR=\$(mktemp -d /tmp/tahoe-release.XXXXXX)
-              trap 'sudo rm -rf \"\$STAGE_DIR\"' EXIT
-              sudo mkdir -p \"\$APP_DIR\"
-              sudo tar --no-same-owner --no-same-permissions -xzf - -C \"\$STAGE_DIR\"
-              sudo find \"\$APP_DIR\" -mindepth 1 -maxdepth 1 ! -name '.env' ! -name '.env.local' ! -name '.git' -exec rm -rf {} +
-              sudo cp -a \"\$STAGE_DIR\"/. \"\$APP_DIR\"/
-              sudo chown -R \"${{ secrets.SERVER_USER }}\":\"${{ secrets.SERVER_USER }}\" \"\$APP_DIR\"
-            "
+            -czf release.tgz .
+
+          timeout 5m scp ${SSH_OPTS} -P "${{ secrets.SERVER_PORT }}" release.tgz "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/tahoe-release.tgz"
+
+          timeout 5m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "
+            set -e
+            APP_DIR=/home/ubuntu/Tahoe-Agent
+            STAGE_DIR=\$(mktemp -d /tmp/tahoe-release.XXXXXX)
+            ARCHIVE=/tmp/tahoe-release.tgz
+            trap 'sudo rm -rf \"\$STAGE_DIR\" \"\$ARCHIVE\"' EXIT
+            sudo mkdir -p \"\$APP_DIR\"
+            sudo tar --no-same-owner --no-same-permissions -xzf \"\$ARCHIVE\" -C \"\$STAGE_DIR\"
+            sudo find \"\$APP_DIR\" -mindepth 1 -maxdepth 1 ! -name '.env' ! -name '.env.local' ! -name '.git' -exec rm -rf {} +
+            sudo cp -a \"\$STAGE_DIR\"/. \"\$APP_DIR\"/
+            sudo chown -R \"${{ secrets.SERVER_USER }}\":\"${{ secrets.SERVER_USER }}\" \"\$APP_DIR\"
+          " 2>&1 | tee upload-report.txt
 
       - name: Deploy over SSH
         run: |
-          set -o pipefail
-          ssh -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+          set -euo pipefail
+          SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+          timeout 10m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
             cd /home/ubuntu/Tahoe-Agent
             SKIP_GIT_PULL=1 SKIP_PRISMA_DB_PUSH=${{ steps.prisma_changes.outputs.skip_prisma_db_push }} bash /home/ubuntu/Tahoe-Agent/scripts/deploy.sh
           ' 2>&1 | tee deploy-report.txt
+
+      - name: Verify today hot-topics release
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+          timeout 2m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+            set -euo pipefail
+            response="$(curl --max-time 20 -s -X POST http://127.0.0.1:3000/api/research/hot-topics -H "Content-Type: application/json" --data "{\"query\":\"火星公民 OR 茶饮 OR 慢生活\"}")"
+            printf "%s\n" "$response" > /tmp/tahoe-hot-topics-smoke.json
+            echo "$response" | grep -q "\"success\":true"
+            if echo "$response" | grep -q "Result First Hook\|Ugc Workflow\|view_count\":-[0-9]"; then
+              echo "[verify] old mock trend output is still active"
+              cat /tmp/tahoe-hot-topics-smoke.json
+              exit 1
+            fi
+          ' 2>&1 | tee verify-report.txt
 
       - name: Publish deploy failure comment
         if: failure()
@@ -74,9 +107,20 @@ jobs:
         with:
           script: |
             const fs = require("fs");
-            const report = fs.existsSync("deploy-report.txt")
-              ? fs.readFileSync("deploy-report.txt", "utf8")
-              : "deploy-report.txt was not generated.";
+            const sections = [];
+            for (const [label, file] of [
+              ["upload", "upload-report.txt"],
+              ["deploy", "deploy-report.txt"],
+              ["verify", "verify-report.txt"],
+            ]) {
+              if (fs.existsSync(file)) {
+                sections.push(`== ${label} ==\n${fs.readFileSync(file, "utf8")}`);
+              }
+            }
+
+            const report = sections.length > 0
+              ? sections.join("\n\n")
+              : "No workflow report files were generated.";
             const body = [
               "Deploy workflow failure report:",
               "",
