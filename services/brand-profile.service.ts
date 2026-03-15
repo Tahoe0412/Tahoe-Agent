@@ -39,6 +39,23 @@ export class BrandProfileService {
     });
   }
 
+  async update(id: string, input: unknown) {
+    const payload = brandProfileCreateSchema.partial().parse(input);
+    const data: Record<string, unknown> = {};
+    if (payload.brand_name !== undefined) data.brand_name = payload.brand_name;
+    if (payload.brand_positioning !== undefined) data.brand_positioning = payload.brand_positioning;
+    if (payload.core_belief !== undefined) data.core_belief = payload.core_belief;
+    if (payload.product_lines !== undefined) data.product_lines_json = toJson(payload.product_lines);
+    if (payload.target_personas !== undefined) data.target_personas_json = toJson(payload.target_personas);
+    if (payload.platform_priority !== undefined) data.platform_priority = toJson(payload.platform_priority);
+    if (payload.forbidden_phrases !== undefined) data.forbidden_phrases = toJson(payload.forbidden_phrases);
+    if (payload.compliance_notes !== undefined) data.compliance_notes = payload.compliance_notes;
+    if (payload.brand_voice !== undefined) data.brand_voice = payload.brand_voice;
+    if (payload.keyword_pool !== undefined) data.keyword_pool = toJson(payload.keyword_pool);
+    if (payload.brand_stage !== undefined) data.brand_stage = payload.brand_stage;
+    return prisma.brandProfile.update({ where: { id }, data });
+  }
+
   async createPillar(input: unknown) {
     const payload = contentPillarCreateSchema.parse(input);
     return prisma.contentPillar.create({

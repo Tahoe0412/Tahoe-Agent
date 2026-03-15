@@ -310,12 +310,7 @@ export function BrandProfileWorkbench({
                 <div className="mt-3 text-lg font-semibold text-[var(--text-1)]">{activeProfile.content_pillars.length}</div>
               </div>
             </div>
-            <div className="theme-panel-muted rounded-[20px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">选题关键词池</div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {activeProfile.keyword_pool.length ? activeProfile.keyword_pool.map((item) => <span key={item} className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">暂未设置。趋势面板将不会自动搜索。</span>}
-              </div>
-            </div>
+            <KeywordPoolEditor profileId={activeProfile.id} initialKeywords={activeProfile.keyword_pool} onSaved={() => router.refresh()} />
             <div className="theme-panel-muted rounded-[20px] p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">禁用表达</div>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -340,6 +335,57 @@ export function BrandProfileWorkbench({
           </div>
         )}
       </PanelCard>
+    </div>
+  );
+}
+
+function KeywordPoolEditor({
+  profileId,
+  initialKeywords,
+  onSaved,
+}: {
+  profileId: string;
+  initialKeywords: string[];
+  onSaved: () => void;
+}) {
+  const [keywords, setKeywords] = useState<string[]>(initialKeywords);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const dirty = JSON.stringify(keywords) !== JSON.stringify(initialKeywords);
+
+  async function save() {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const response = await fetch(`/api/brand-profiles/${profileId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword_pool: keywords }),
+      });
+      const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
+      if (!payload.success) throw new Error(payload.error?.detail || payload.error?.message || "保存失败");
+      setFeedback("✅ 关键词已保存");
+      onSaved();
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="theme-panel-muted rounded-[20px] p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">选题关键词池</div>
+      <div className="mt-3">
+        <TagInput value={keywords} onChange={setKeywords} placeholder="输入关键词后按回车，例如 SpaceX、火星移民、AI" />
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        <Button variant="secondary" onClick={() => void save()} disabled={saving || !dirty}>
+          {saving ? "保存中..." : "保存关键词"}
+        </Button>
+        {feedback ? <span className="text-xs text-[var(--text-2)]">{feedback}</span> : null}
+        {!dirty && keywords.length > 0 ? <span className="text-xs text-[var(--text-3)]">已同步 {keywords.length} 个关键词</span> : null}
+      </div>
     </div>
   );
 }
