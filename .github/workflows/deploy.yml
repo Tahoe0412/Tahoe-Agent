@@ -54,6 +54,7 @@ jobs:
           trap 'rm -f release.tgz' EXIT
 
           git archive --format=tar.gz --output=release.tgz HEAD
+          du -h release.tgz | tee upload-size.txt
 
           timeout 5m scp ${SSH_OPTS} -P "${{ secrets.SERVER_PORT }}" release.tgz "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/tahoe-release.tgz"
 
@@ -95,6 +96,38 @@ jobs:
             fi
           ' 2>&1 | tee verify-report.txt
 
+      - name: Capture failure diagnostics over SSH
+        if: failure()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+          timeout 2m ssh ${SSH_OPTS} -p "${{ secrets.SERVER_PORT }}" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" '
+            set +e
+            echo "== host =="
+            whoami
+            hostname
+            date -Is
+
+            echo "== disk =="
+            df -h /
+            df -h /tmp
+
+            echo "== app dir =="
+            ls -ld /home/ubuntu/Tahoe-Agent
+            find /home/ubuntu/Tahoe-Agent -maxdepth 1 -mindepth 1 | sort | sed -n "1,40p"
+
+            echo "== temp release =="
+            ls -lh /tmp/tahoe-release.tgz 2>/dev/null || true
+            ls -ld /tmp/tahoe-release.* 2>/dev/null || true
+
+            echo "== pm2 =="
+            pm2 list || true
+
+            echo "== recent app files =="
+            stat -c "%n %y %U:%G" /home/ubuntu/Tahoe-Agent/scripts/deploy.sh /home/ubuntu/Tahoe-Agent/app/api/research/hot-topics/route.ts 2>/dev/null || true
+          ' 2>&1 | tee diagnostics-report.txt
+
       - name: Publish deploy failure comment
         if: failure()
         uses: actions/github-script@v7
@@ -103,9 +136,11 @@ jobs:
             const fs = require("fs");
             const sections = [];
             for (const [label, file] of [
+              ["archive-size", "upload-size.txt"],
               ["upload", "upload-report.txt"],
               ["deploy", "deploy-report.txt"],
               ["verify", "verify-report.txt"],
+              ["diagnostics", "diagnostics-report.txt"],
             ]) {
               if (fs.existsSync(file)) {
                 sections.push(`== ${label} ==\n${fs.readFileSync(file, "utf8")}`);
