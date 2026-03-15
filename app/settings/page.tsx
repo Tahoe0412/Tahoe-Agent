@@ -46,7 +46,7 @@ export default async function SettingsPage() {
         </div>
 
         {/* ── Row 2: Models & Web Search (full-width, core config) ── */}
-        <PanelCard title={locale === "en" ? "Models & Web Search" : "模型与联网"} description={locale === "en" ? "OpenAI, Gemini, DeepSeek, and Qwen are supported. News search supports Mock and Tavily." : "当前支持 OpenAI、Gemini、DeepSeek 与 Qwen，新闻搜索支持 Mock 与 Tavily。"}>
+        <PanelCard title={locale === "en" ? "Models & Web Search" : "模型与联网"} description={locale === "en" ? "OpenAI, Gemini, DeepSeek, and Qwen are supported. News search supports Mock and Google Custom Search." : "当前支持 OpenAI、Gemini、DeepSeek 与 Qwen，新闻搜索支持 Mock 与 Google Custom Search。"}>
           <SettingsForm
             initial={{
               llmProvider: settings.llmProvider,
@@ -104,8 +104,8 @@ export default async function SettingsPage() {
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Recommended" : "建议项"}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                 {locale === "en"
-                  ? "Enable Tavily plus YouTube/X live connectors if you need real trend evidence in the live workspace."
-                  : "如果要在当前正式工作台里看到真实趋势来源，建议打开 Tavily，以及 YouTube / X live connector。"}
+                  ? "Enable Google Custom Search plus YouTube/X live connectors if you need real trend evidence in the live workspace."
+                  : "如果要在当前正式工作台里看到真实趋势来源，建议打开 Google Custom Search，以及 YouTube / X live connector。"}
               </div>
             </div>
             <div className="rounded-xl bg-[var(--surface-muted)] p-4">

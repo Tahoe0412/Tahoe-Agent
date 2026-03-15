@@ -53,6 +53,21 @@ function envApiKeyDefaults() {
   };
 }
 
+function defaultNewsSearchProvider() {
+  const configuredProvider = process.env.NEWS_SEARCH_PROVIDER?.trim().toUpperCase() as SearchProvider | undefined;
+  if (configuredProvider === "GOOGLE" || configuredProvider === "MOCK") {
+    return configuredProvider;
+  }
+
+  return trimOrNull(process.env.GOOGLE_SEARCH_API_KEY) && trimOrNull(process.env.GOOGLE_SEARCH_CX)
+    ? "GOOGLE"
+    : "MOCK";
+}
+
+function defaultNewsSearchMockMode(provider: SearchProvider) {
+  return envBoolean(process.env.NEWS_SEARCH_MOCK_MODE, provider === "MOCK");
+}
+
 export class AppSettingsService {
   async getRecord() {
     return prisma.appSettings.upsert({
@@ -67,6 +82,7 @@ export class AppSettingsService {
 
   async getEffectiveSettings(): Promise<EffectiveAppSettings> {
     let record: Awaited<ReturnType<AppSettingsService["getRecord"]>> | null = null;
+    const envNewsSearchProvider = defaultNewsSearchProvider();
 
     try {
       record = await this.getRecord();
@@ -88,9 +104,8 @@ export class AppSettingsService {
             Object.keys(defaultModelRoutes).map((key) => [key, envRoute(key as ModelRouteKey)]),
           ),
       ),
-      newsSearchProvider:
-        record?.news_search_provider ?? ((process.env.NEWS_SEARCH_PROVIDER?.toUpperCase() as SearchProvider | undefined) || "MOCK"),
-      newsSearchMockMode: record?.news_search_mock_mode ?? envBoolean(process.env.NEWS_SEARCH_MOCK_MODE, true),
+      newsSearchProvider: record?.news_search_provider ?? envNewsSearchProvider,
+      newsSearchMockMode: record?.news_search_mock_mode ?? defaultNewsSearchMockMode(envNewsSearchProvider),
       googleSearchApiKey: trimOrNull(record?.google_search_api_key) ?? trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
       googleSearchCx: trimOrNull(record?.google_search_cx) ?? trimOrNull(process.env.GOOGLE_SEARCH_CX),
       appBaseUrl: trimOrNull(record?.app_base_url) ?? trimOrNull(process.env.APP_BASE_URL),
