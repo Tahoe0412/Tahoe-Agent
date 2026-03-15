@@ -187,6 +187,15 @@ jobs:
 
             echo "== recent app files =="
             stat -c "%n %y %U:%G" /home/ubuntu/Tahoe-Agent/scripts/deploy.sh /home/ubuntu/Tahoe-Agent/app/api/research/hot-topics/route.ts 2>/dev/null || true
+
+            echo "== postgres role summary =="
+            sudo -u postgres psql -tAc "select rolname from pg_roles where rolname in ('postgres','tahoe') order by rolname;" 2>/dev/null || true
+
+            echo "== postgres db summary =="
+            sudo -u postgres psql -tAc \"select datname from pg_database where datname in ('ai_video_mvp') order by datname;\" 2>/dev/null || true
+
+            echo "== postgres local probe =="
+            sudo -u postgres psql -d ai_video_mvp -tAc "select current_user, current_database();" 2>/dev/null || true
           ' 2>&1 | tee diagnostics-report.txt
 
       - name: Publish deploy failure comment
