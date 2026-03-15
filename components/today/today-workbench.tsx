@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Clock,
   Flame,
+  AlertTriangle,
 } from "lucide-react";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { toTopicRankingItems } from "@/types/trend-discovery";
@@ -115,6 +116,24 @@ export function TodayWorkbench({
   const t = locale === "zh";
   const mockPlatforms = platformResults.filter((item) => item.mode === "mock").map((item) => item.platform);
   const failedPlatforms = platformResults.filter((item) => !item.success);
+  const newsFailed = Boolean(newsResult) && !newsResult.success;
+  const sourceFailureMessages = [
+    ...(newsResult?.errors.map((item) =>
+      t ? `Google 新闻：${item.message}` : `Google News: ${item.message}`
+    ) ?? []),
+    ...failedPlatforms.flatMap((item) =>
+      item.errors.map((error) =>
+        t ? `${item.platform}：${error.message}` : `${item.platform}: ${error.message}`
+      )
+    ),
+  ];
+  const hasSourceFailures = newsFailed || failedPlatforms.length > 0;
+  const emptyDueToSourceFailure =
+    searched &&
+    !loading &&
+    !error &&
+    topics.length === 0 &&
+    hasSourceFailures;
 
   return (
     <div className="space-y-6">
@@ -338,13 +357,46 @@ export function TodayWorkbench({
         )}
 
         {/* Empty state */}
-        {searched && !loading && !error && topics.length === 0 && (
+        {emptyDueToSourceFailure ? (
+          <div className="mt-5 rounded-2xl border border-[color:color-mix(in_srgb,var(--warning-text)_28%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_86%,var(--surface-solid)),rgba(255,255,255,0.22))] p-5 shadow-[0_12px_30px_rgba(145,108,43,0.08)]">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.4)] text-[var(--warning-text)]">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--warning-text)]">
+                  {t ? "数据源需要处理" : "Source Attention Needed"}
+                </div>
+                <div className="mt-2 text-lg font-semibold text-[var(--text-1)]">
+                  {t ? "今日热点暂时没有可用结果" : "No usable topic results right now"}
+                </div>
+                <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
+                  {t
+                    ? "当前不是关键词没有命中，而是搜索源本身没有成功返回数据。先修复下面这些来源，再重新搜索。"
+                    : "This is not just a weak keyword match. The connected sources did not return usable data, so fix them first and search again."}
+                </div>
+                <div className="mt-4 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                  {sourceFailureMessages.map((message) => (
+                    <div key={message} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.36)] px-3 py-2">
+                      {message}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,255,255,0.3)] px-4 py-3 text-xs leading-6 text-[var(--text-3)]">
+                  {t
+                    ? "建议先去设置页补齐 X 凭据，确认服务器外网可访问 Google News，并适当放宽 YouTube 连接超时。"
+                    : "Recommended next step: add X credentials in Settings, confirm the server can reach Google News, and relax the YouTube connector timeout if needed."}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : searched && !loading && !error && topics.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center text-sm text-[var(--text-3)]">
             {t
               ? "未找到相关热点话题，换个关键词试试"
               : "No trending topics found. Try different keywords."}
           </div>
-        )}
+        ) : null}
       </section>
 
       {/* ── Block 2: 快速操作 ── */}
