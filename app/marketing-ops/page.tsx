@@ -19,8 +19,15 @@ export default async function MarketingOpsPage({
   const locale = await getLocale();
   const text = copy[locale];
   const { projectId } = await searchParams;
-  const recentProjects = await workspaceQueryService.listRecentProjects();
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  const [recentProjectsResult, workspaceResult] = await Promise.allSettled([
+    workspaceQueryService.listRecentProjects(),
+    projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
+  ]);
+  const recentProjects = recentProjectsResult.status === "fulfilled" ? recentProjectsResult.value : [];
+  const workspace = workspaceResult.status === "fulfilled" ? workspaceResult.value : null;
+  const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
+  const workspaceLoadFailed = workspaceResult.status === "rejected";
+  const loadFailed = Boolean(projectId) && workspaceLoadFailed;
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
@@ -67,7 +74,24 @@ export default async function MarketingOpsPage({
           locale={locale}
           density="compact"
         />
-        {!projectId ? (
+        {recentProjectsUnavailable && !projectId ? (
+          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+            {locale === "en"
+              ? "The project list is temporarily unavailable, but Marketing Ops will be ready once workspace data recovers."
+              : "当前项目列表暂时不可用，但宣传文案页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}
+          </div>
+        ) : null}
+        {loadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Marketing Ops Is Temporarily Unavailable" : "宣传文案与运营暂时不可用"}
+            description={
+              locale === "en"
+                ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers."
+                : "当前工作区数据暂时没有成功加载。请稍后刷新，或在服务恢复后重新切换项目。"
+            }
+            action={<NextStepLink href={projectId ? `/marketing-ops?projectId=${projectId}` : "/marketing-ops"} label={locale === "en" ? "Retry Loading" : "重新加载"} />}
+          />
+        ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Open a project first before using Marketing Ops." : "请先选择项目，再进入内容运营台。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
           <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found." : "当前 projectId 没有找到项目数据。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />

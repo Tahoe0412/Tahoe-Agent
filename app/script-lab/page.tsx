@@ -19,8 +19,15 @@ export default async function ScriptLabPage({
   const locale = await getLocale();
   const text = copy[locale];
   const { state, projectId } = await searchParams;
-  const recentProjects = await workspaceQueryService.listRecentProjects();
-  const workspace = projectId ? await workspaceQueryService.getProjectWorkspace(projectId) : null;
+  const [recentProjectsResult, workspaceResult] = await Promise.allSettled([
+    workspaceQueryService.listRecentProjects(),
+    projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
+  ]);
+  const recentProjects = recentProjectsResult.status === "fulfilled" ? recentProjectsResult.value : [];
+  const workspace = workspaceResult.status === "fulfilled" ? workspaceResult.value : null;
+  const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
+  const workspaceLoadFailed = workspaceResult.status === "rejected";
+  const loadFailed = Boolean(projectId) && workspaceLoadFailed;
   const nextHref =
     workspace?.workspaceMode === "SHORT_VIDEO"
       ? projectId
@@ -77,7 +84,25 @@ export default async function ScriptLabPage({
           density="compact"
         />
 
-        {state && state !== "ready" ? (
+        {recentProjectsUnavailable && !projectId ? (
+          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+            {locale === "en"
+              ? "The project list is temporarily unavailable, but Script Lab will be ready once workspace data recovers."
+              : "当前项目列表暂时不可用，但脚本实验台页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}
+          </div>
+        ) : null}
+
+        {loadFailed ? (
+          <ErrorPanel
+            title={locale === "en" ? "Script Lab Is Temporarily Unavailable" : "脚本实验台暂时不可用"}
+            description={
+              locale === "en"
+                ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers."
+                : "当前工作区数据暂时没有成功加载。请稍后刷新，或在服务恢复后重新切换项目。"
+            }
+            action={<NextStepLink href={projectId ? `/script-lab?projectId=${projectId}` : "/script-lab"} label={locale === "en" ? "Retry Loading" : "重新加载"} />}
+          />
+        ) : state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
