@@ -16,7 +16,6 @@ import {
   Sparkles,
   SwatchBook,
   Waypoints,
-  Zap,
   GalleryVerticalEnd,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
@@ -36,7 +35,7 @@ type NavItem = {
 function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
   if (!show) return null;
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[#1E2024] px-3 py-1.5 text-xs font-medium text-white/90 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
       {label}
     </span>
   );
@@ -62,17 +61,14 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       href={href}
       className={cn(
         "group relative flex items-center gap-3 overflow-hidden rounded-[24px] border transition-all duration-200",
-        collapsed ? "mx-auto w-[56px] justify-center px-0 py-3" : "px-3 py-3.5",
+        collapsed ? "justify-center px-0 py-3" : "px-3 py-3.5",
         active
-          ? cn(
-              "border-white/10 text-[var(--sidebar-item-active-text)]",
-              collapsed ? "shadow-[0_8px_20px_rgba(0,0,0,0.12)]" : "shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
-            )
+          ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
           : "border-transparent text-[var(--sidebar-text)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
       style={active ? { background: accentBg ?? "var(--sidebar-item-active-bg)" } : undefined}
     >
-      {active && !collapsed ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
+      {active ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
       <div
         className={cn(
           "shrink-0 rounded-2xl p-2.5 transition-all duration-200",
@@ -103,7 +99,6 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
 
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [
-    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint, icon: Zap, accentBg: "rgba(245,158,11,0.18)", accentColor: "#f59e0b" },
     { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
     { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
     { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
@@ -151,7 +146,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
               </div>
               <div>
                 <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
-                <span className="mt-1 block text-[15px] font-semibold tracking-[0.12em] text-[var(--sidebar-text-hover)]">
+                <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.22em] text-[var(--sidebar-text-hover)]">
                   Tahoe
                 </span>
               </div>

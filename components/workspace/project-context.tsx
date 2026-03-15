@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, FolderKanban, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
-import { ErrorNotice } from "@/components/ui/error-notice";
-import { apiRequest } from "@/lib/client-api";
 import type { StyleReferenceInsight } from "@/lib/style-reference";
 import type { Locale } from "@/lib/locale-copy";
 import { copy } from "@/lib/locale-copy";
@@ -63,7 +61,6 @@ export function ProjectContext({
         styleLabel: "Style",
         lengthLabel: "Length",
         scenarioLabel: "Use Case",
-        loadFailed: "Failed to load the latest project settings.",
         readyEyebrow: "Ready for a fresh brief",
         noProjectTitle: "No project selected yet",
         noProjectDescription: "Start a project from the dashboard, or switch from Project Hub. Once selected, this card becomes your brief, constraints, and next-step summary.",
@@ -100,8 +97,7 @@ export function ProjectContext({
         styleLabel: "风格",
         lengthLabel: "长度",
         scenarioLabel: "场景",
-        loadFailed: "读取最新项目配置失败。",
-        readyEyebrow: "准备好开始新任务",
+        readyEyebrow: "Ready for a fresh brief",
         noProjectTitle: "还没有选中项目",
         noProjectDescription: "先从总览页新建一个项目，或者去项目中心挑一个继续做。选中之后，这里会立刻变成你的任务摘要、边界条件和下一步入口。",
         createProject: "去总览新建项目",
@@ -128,8 +124,7 @@ export function ProjectContext({
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<unknown>(null);
-  const [loadError, setLoadError] = useState<unknown>(null);
+  const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState(project?.title ?? "");
   const [topicQuery, setTopicQuery] = useState(project?.topic_query ?? "");
   const [introduction, setIntroduction] = useState(project?.introduction ?? "");
@@ -148,7 +143,7 @@ export function ProjectContext({
   useEffect(() => {
     if (!project?.id) return;
 
-    void apiRequest(`/api/projects/${project.id}`, {
+    void fetch(`/api/projects/${project.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -156,49 +151,37 @@ export function ProjectContext({
       body: JSON.stringify({
         last_opened_at: new Date().toISOString(),
       }),
-    }).catch(() => undefined);
+    });
   }, [project?.id]);
 
   useEffect(() => {
     if (isEditing && project?.id) {
-      let cancelled = false;
-      setLoadError(null);
+      void fetch(`/api/projects/${project.id}`)
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && payload.data) {
+            setBrandProfileId(payload.data.brand_profile_id || "");
+            setIndustryTemplateId(payload.data.industry_template_id || "");
+          }
+        });
 
-      void Promise.allSettled([
-        apiRequest<{ brand_profile_id?: string | null; industry_template_id?: string | null }>(`/api/projects/${project.id}`),
-        apiRequest<Array<{ id: string; brand_name: string }>>("/api/brand-profiles"),
-        apiRequest<Array<{ id: string; industry_name: string }>>("/api/industry-templates"),
-      ]).then((results) => {
-        if (cancelled) {
-          return;
-        }
+      void fetch("/api/brand-profiles")
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && Array.isArray(payload.data)) {
+            setAvailableBrandProfiles(payload.data);
+          }
+        });
 
-        const [projectResult, brandProfilesResult, industryTemplatesResult] = results;
-
-        if (projectResult.status === "fulfilled") {
-          setBrandProfileId(projectResult.value.brand_profile_id || "");
-          setIndustryTemplateId(projectResult.value.industry_template_id || "");
-        }
-
-        if (brandProfilesResult.status === "fulfilled") {
-          setAvailableBrandProfiles(brandProfilesResult.value);
-        }
-
-        if (industryTemplatesResult.status === "fulfilled") {
-          setAvailableIndustryTemplates(industryTemplatesResult.value);
-        }
-
-        const rejected = results.find((result) => result.status === "rejected");
-        if (rejected?.status === "rejected") {
-          setLoadError(rejected.reason ?? new Error(ui.loadFailed));
-        }
-      });
-
-      return () => {
-        cancelled = true;
-      };
+      void fetch("/api/industry-templates")
+        .then((res) => res.json())
+        .then((payload) => {
+          if (payload.success && Array.isArray(payload.data)) {
+            setAvailableIndustryTemplates(payload.data);
+          }
+        });
     }
-  }, [isEditing, project?.id, ui.loadFailed]);
+  }, [isEditing, project?.id]);
 
   useEffect(() => {
     if (!project) {
@@ -217,7 +200,6 @@ export function ProjectContext({
     setIsEditing(false);
     setMessage(null);
     setError(null);
-    setLoadError(null);
   }, [project]);
 
   async function saveProjectContext() {
@@ -226,7 +208,7 @@ export function ProjectContext({
     setMessage(null);
     setError(null);
     try {
-      await apiRequest(`/api/projects/${project.id}`, {
+      const response = await fetch(`/api/projects/${project.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -245,11 +227,18 @@ export function ProjectContext({
           industry_template_id: industryTemplateId || null,
         }),
       });
+      const payload = (await response.json()) as {
+        success: boolean;
+        error?: { message?: string; detail?: string };
+      };
+      if (!payload.success) {
+        throw new Error(payload.error?.detail || payload.error?.message || ui.saveFailed);
+      }
       setMessage(ui.saved);
       setIsEditing(false);
       router.refresh();
     } catch (saveError) {
-      setError(saveError ?? new Error(ui.saveFailed));
+      setError(saveError instanceof Error ? saveError.message : ui.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -355,7 +344,7 @@ export function ProjectContext({
                   <div className="grid gap-2 sm:min-w-[220px]">
                     <Link
                       href="/"
-                      className="inline-flex w-full items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-white shadow-[0_18px_38px_rgba(75,143,106,0.18)] transition hover:-translate-y-0.5"
+                      className="inline-flex w-full items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] shadow-[0_18px_38px_rgba(196,111,66,0.22)] transition hover:-translate-y-0.5"
                     >
                       <span className="inline-flex items-center gap-2">
                         <Plus className="size-4" />
@@ -410,13 +399,12 @@ export function ProjectContext({
                 </Disclosure>
               ) : null}
               {message ? <div className="text-sm text-[var(--accent-strong)]">{message}</div> : null}
+              {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
             </div>
           </div>
         </div>
         {project && isEditing ? (
           <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            {loadError ? <div className="mb-4"><ErrorNotice error={loadError} locale={locale} /></div> : null}
-            {error ? <div className="mb-4"><ErrorNotice error={error} locale={locale} onRetry={() => void saveProjectContext()} /></div> : null}
             <div className="grid gap-4 xl:grid-cols-2">
               <label className="space-y-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectName}</div>
@@ -568,11 +556,10 @@ export function ProjectContext({
                     {isEditing ? ui.hideEdit : ui.editProject}
                   </Button>
                   {message ? <div className="text-sm text-[var(--accent-strong)]">{message}</div> : null}
+                  {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
                 </div>
                 {isEditing ? (
                   <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                    {loadError ? <div className="mb-4"><ErrorNotice error={loadError} locale={locale} /></div> : null}
-                    {error ? <div className="mb-4"><ErrorNotice error={error} locale={locale} onRetry={() => void saveProjectContext()} /></div> : null}
                     <div className="grid gap-4 xl:grid-cols-2">
                       <label className="space-y-2">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectName}</div>
