@@ -66,3 +66,28 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 5. **Always update `docs/` files** after completing any task
 6. **Keep the existing design system** — vanilla CSS with CSS custom properties, no Tailwind
 7. **Serper free tier**: 2,500 queries/month — be conservative with API calls
+
+## 部署工作流规则
+
+默认情况下，agent 完成任务后只执行：
+- build
+- git commit
+- git push
+
+默认不自动部署到腾讯云服务器。
+
+只有在以下条件同时满足时，才允许自动部署：
+1. 改动是低风险任务（如 UI、样式、文案、轻量前端优化）
+2. build 通过
+3. 未触碰核心业务逻辑、API 契约、数据库结构、鉴权、支付或其他高风险链路
+4. 当前任务被明确标记为允许部署，或用户明确要求"改完自动部署"
+
+如果不满足以上条件，则只允许做到 push，不允许自动部署。
+
+任务结束时，必须明确汇报：
+- Build: passed / failed / not run
+- Commit: yes / no
+- Push: yes / no
+- Deploy: yes / no
+
+如果某一步没做，必须直接说明原因，不要用模糊表述。
