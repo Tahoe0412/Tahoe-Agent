@@ -122,51 +122,20 @@ export function TodayWorkbench({
           </div>
         ) : null}
 
-        {/* Command Center: Tag-based Keyword Display + Editable Query */}
+        {/* Command Center: Tags + Add Keyword Input + Search */}
         {(() => {
           const queryKeywords = searchQuery
             .split(/\s+OR\s+/i)
             .map((k) => k.trim())
             .filter(Boolean);
-          const showTags = queryKeywords.length > 0;
 
           return (
-            <div className="space-y-3">
-              {/* Keyword Tags Row */}
-              {showTags && (
-                <div className="flex flex-wrap items-center gap-2">
-                  {queryKeywords.slice(0, 8).map((keyword, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-1)] transition-colors"
-                    >
-                      {keyword}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = queryKeywords.filter((_, j) => j !== i).join(" OR ");
-                          setSearchQuery(updated);
-                        }}
-                        className="ml-1.5 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-colors"
-                        aria-label={`Remove ${keyword}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  {queryKeywords.length > 8 && (
-                    <span className="text-xs text-[var(--text-3)]">
-                      +{queryKeywords.length - 8}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Search Bar */}
-              <div className="group relative flex items-stretch rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)] hover:border-[var(--border-soft)]">
-                {/* Prefix: Brand Selector */}
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)]">
+              {/* Tags + Inline Add Input */}
+              <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+                {/* Brand Selector (compact) */}
                 {brandProfiles.length > 0 && (
-                  <div className="relative flex shrink-0 items-center border-r border-[var(--border)] bg-[var(--surface-muted)] px-1 transition-colors group-focus-within:border-[var(--accent)]/30">
+                  <div className="relative flex shrink-0 items-center">
                     <select
                       value={activeBrandId}
                       onChange={(e) => {
@@ -180,7 +149,7 @@ export function TodayWorkbench({
                           void handleSearch(q);
                         }
                       }}
-                      className="h-full appearance-none bg-transparent py-3 pl-3 pr-8 text-sm font-medium text-[var(--text-1)] outline-none cursor-pointer"
+                      className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--text-1)] outline-none cursor-pointer transition-colors hover:border-[var(--accent)]/40"
                     >
                       {brandProfiles.map((b) => (
                         <option key={b.id} value={b.id}>
@@ -188,52 +157,93 @@ export function TodayWorkbench({
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute right-3 flex items-center text-[var(--text-3)]">
-                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="pointer-events-none absolute right-2 flex items-center text-[var(--text-3)]">
+                      <svg width="8" height="5" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
                   </div>
                 )}
 
-                {/* Main Input */}
+                {/* Keyword Tags */}
+                {queryKeywords.map((keyword, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center rounded-lg border border-[var(--accent)]/15 bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text-1)] transition-colors"
+                  >
+                    {keyword}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = queryKeywords.filter((_, j) => j !== i).join(" OR ");
+                        setSearchQuery(updated);
+                      }}
+                      className="ml-1.5 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-colors"
+                      aria-label={`Remove ${keyword}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+
+                {/* Inline Add Keyword Input */}
                 <input
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") void handleSearch(searchQuery);
+                    const input = e.currentTarget;
+                    const val = input.value.trim();
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (val) {
+                        // If user pastes a full OR query, accept it
+                        const newQuery = searchQuery
+                          ? searchQuery + " OR " + val
+                          : val;
+                        setSearchQuery(newQuery);
+                        input.value = "";
+                      } else {
+                        // Enter on empty input → trigger search
+                        void handleSearch(searchQuery);
+                      }
+                    }
                   }}
                   placeholder={
-                    t
-                      ? "输入关键词，多个词之间用 OR 分隔..."
-                      : "Type keywords separated by OR..."
+                    queryKeywords.length > 0
+                      ? t ? "+ 添加关键词" : "+ Add keyword"
+                      : t ? "输入关键词，回车添加..." : "Type keyword and press Enter..."
                   }
-                  className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
+                  className="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
                   spellCheck={false}
                 />
+              </div>
 
-                {/* Action Button */}
-                <div className="p-1.5">
-                  <button
-                    onClick={() => void handleSearch(searchQuery)}
-                    disabled={loading || !searchQuery.trim()}
-                    className="flex h-full min-w-[80px] items-center justify-center rounded-lg bg-[var(--text-1)] px-4 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {loading
-                      ? (
-                        <div className="flex items-center gap-2">
-                          <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </div>
-                      )
-                      : t
-                        ? "搜索"
-                        : "Search"}
-                  </button>
-                </div>
+              {/* Divider + Search Button Row */}
+              <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-2">
+                <span className="text-xs text-[var(--text-3)]">
+                  {queryKeywords.length > 0
+                    ? t
+                      ? `${queryKeywords.length} 个关键词`
+                      : `${queryKeywords.length} keywords`
+                    : t
+                      ? "输入关键词后按回车"
+                      : "Type and press Enter to add"}
+                </span>
+                <button
+                  onClick={() => void handleSearch(searchQuery)}
+                  disabled={loading || !searchQuery.trim()}
+                  className="flex items-center justify-center rounded-lg bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading
+                    ? (
+                      <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )
+                    : t
+                      ? "搜索"
+                      : "Search"}
+                </button>
               </div>
             </div>
           );
