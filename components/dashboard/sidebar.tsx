@@ -7,6 +7,7 @@ import {
   BarChart3,
   BookOpen,
   BriefcaseBusiness,
+  CalendarDays,
   Clapperboard,
   Compass,
   FileStack,
@@ -100,6 +101,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [
     { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
+    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "rgba(200,166,145,0.18)", accentColor: "var(--terracotta)" },
     { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
     { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
   ];
