@@ -2,6 +2,13 @@
 
 :root {
   --canvas: #F7FAFC;
+  --bg-glow-opacity: 0.24;
+  --bg-glow-end: 0.02;
+  --panel-glow-opacity: 0.46;
+  --panel-glow-end: 0.20;
+  --panel-muted-glow: 0.28;
+  --input-glow: 0.34;
+  --pill-glow: 0.24;
   --surface: rgba(255, 255, 255, 0.9);
   --surface-solid: #FFFFFF;
   --surface-muted: #F1F5F9;
@@ -51,6 +58,13 @@ html[data-theme="light"] {
 html[data-theme="dark"] {
   color-scheme: dark;
   --canvas: #0B1220;
+  --bg-glow-opacity: 0;
+  --bg-glow-end: 0;
+  --panel-glow-opacity: 0.04;
+  --panel-glow-end: 0;
+  --panel-muted-glow: 0.02;
+  --input-glow: 0.06;
+  --pill-glow: 0.04;
   --surface: rgba(17, 26, 43, 0.9);
   --surface-solid: #111A2B;
   --surface-muted: #152238;
@@ -69,8 +83,8 @@ html[data-theme="dark"] {
   --text-2: #A9BCCB;
   --text-3: #6C8296;
   --text-inverse: #0B1220;
-  --border: #24364A;
-  --border-soft: rgba(36, 54, 74, 0.6);
+  --border: #1E2D40;
+  --border-soft: rgba(30, 45, 64, 0.6);
   --accent: #4FD3E1;
   --accent-strong: #3CBAC7;
   --accent-soft: rgba(79, 211, 225, 0.15);
@@ -97,6 +111,13 @@ html[data-theme="dark"] {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --canvas: #0B1220;
+    --bg-glow-opacity: 0;
+    --bg-glow-end: 0;
+    --panel-glow-opacity: 0.04;
+    --panel-glow-end: 0;
+    --panel-muted-glow: 0.02;
+    --input-glow: 0.06;
+    --pill-glow: 0.04;
     --surface: rgba(17, 26, 43, 0.9);
     --surface-solid: #111A2B;
     --surface-muted: #152238;
@@ -115,8 +136,8 @@ html[data-theme="dark"] {
     --text-2: #A9BCCB;
     --text-3: #6C8296;
     --text-inverse: #0B1220;
-    --border: #24364A;
-    --border-soft: rgba(36, 54, 74, 0.6);
+    --border: #1E2D40;
+    --border-soft: rgba(30, 45, 64, 0.6);
     --accent: #4FD3E1;
     --accent-strong: #3CBAC7;
     --accent-soft: rgba(79, 211, 225, 0.15);
@@ -156,7 +177,7 @@ body {
     radial-gradient(circle at top left, rgba(34, 184, 207, 0.06), transparent 24%),
     radial-gradient(circle at 84% 8%, rgba(15, 61, 94, 0.06), transparent 24%),
     radial-gradient(circle at 50% 100%, rgba(27, 95, 138, 0.04), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.02) 42%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, var(--bg-glow-opacity)) 0%, rgba(255, 255, 255, var(--bg-glow-end)) 42%, transparent 100%),
     var(--canvas);
   color: var(--text-1);
   font-family: "Avenir Next", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -251,7 +272,7 @@ textarea::placeholder {
 .theme-panel {
   border: 1px solid var(--border);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0.20) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, var(--panel-glow-opacity)) 0%, rgba(255, 255, 255, var(--panel-glow-end)) 100%),
     var(--surface-solid);
   box-shadow: var(--shadow-soft);
 }
@@ -259,7 +280,7 @@ textarea::placeholder {
 .theme-panel-muted {
   border: 1px solid var(--border);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, var(--panel-muted-glow)) 0%, transparent 100%),
     var(--surface-muted);
 }
 
@@ -276,7 +297,7 @@ textarea::placeholder {
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
   color: var(--accent-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, var(--pill-glow));
 }
 
 .theme-input {
@@ -284,7 +305,7 @@ textarea::placeholder {
   background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
   color: var(--text-1);
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, var(--input-glow));
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
