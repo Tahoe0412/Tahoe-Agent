@@ -1,5 +1,11 @@
 # Changelog
 
+> ⚠️ **This file is superseded by the `docs/` system.**
+> For current project state, see `docs/PROJECT_STATE.md`.
+> For task tracking, see `docs/TASKS.md`.
+> For key decisions, see `docs/DECISIONS.md`.
+> For work history, see `docs/WORKLOG.md`.
+
 All notable changes to this project will be documented in this file.
 Format: `[Date] [Commit] — Summary`
 
