@@ -61,7 +61,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3 overflow-hidden rounded-[24px] border transition-all duration-200",
+        "group relative flex items-center gap-3 overflow-hidden rounded-xl border transition-all duration-200",
         collapsed ? "justify-center px-0 py-3" : "px-3 py-3.5",
         active
           ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
@@ -73,7 +73,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       <div
         className={cn(
           "shrink-0 rounded-2xl p-2.5 transition-all duration-200",
-          active ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "bg-white/8 group-hover:bg-white/12"
+          active ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "bg-white/6 group-hover:bg-white/12"
         )}
         style={accentColor ? { color: accentColor } : undefined}
       >
@@ -100,18 +100,18 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
 
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [
-    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
-    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "rgba(200,166,145,0.18)", accentColor: "var(--terracotta)" },
-    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
-    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
+    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
+    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
+    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
+    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
   ];
 
   /* ── Group 2: 生产车间 (Build) ── */
   const buildItems: NavItem[] = [
-    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "rgba(158,171,179,0.18)", accentColor: "var(--slate-blue)" },
-    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "rgba(149,168,143,0.18)", accentColor: "var(--sage)" },
-    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "rgba(200,166,145,0.18)", accentColor: "var(--terracotta)" },
-    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "rgba(176,163,160,0.18)", accentColor: "var(--plum)" },
+    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
+    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
+    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
+    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
   ];
 
   /* ── Group 3: 资产与配置 (Manage) ── */
@@ -143,7 +143,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
         >
           {!collapsed ? (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(183,186,162,0.22),rgba(255,255,255,0.10))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(34,184,207,0.18),rgba(255,255,255,0.06))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div>
