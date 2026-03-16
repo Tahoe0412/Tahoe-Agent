@@ -44,7 +44,7 @@ export default async function SettingsPage() {
 
         {/* ── Row 1: Theme & Language (lightweight, equal halves) ── */}
         <div className="grid gap-6 md:grid-cols-2">
-          <PanelCard title={locale === "en" ? "Theme" : "界面外观"} description={locale === "en" ? "Choose light, dark, or follow system." : "切换莫兰迪浅色、深色，或保持跟随系统。"}>
+          <PanelCard title={locale === "en" ? "Theme" : "界面外观"} description={locale === "en" ? "Choose light, dark, or follow system." : "切换浅色、深色，或保持跟随系统。"}>
             <ThemeSettings />
           </PanelCard>
 

@@ -5,7 +5,7 @@ import { applyTheme, THEME_STORAGE_KEY, type ThemePreference } from "@/lib/theme
 
 const options: Array<{ value: ThemePreference; label: string; hint: string }> = [
   { value: "system", label: "跟随系统", hint: "自动切换浅色 / 深色" },
-  { value: "light", label: "浅色模式", hint: "稳定的莫兰迪亮色工作台" },
+  { value: "light", label: "浅色模式", hint: "清爽明亮的 Tahoe 工作台" },
   { value: "dark", label: "深色模式", hint: "适合夜间和长时间工作" },
 ];
 

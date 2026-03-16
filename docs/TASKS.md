@@ -4,10 +4,11 @@
 
 ## In Progress
 
-### T-007 UI/UX Enhancement (Phase 1 & 2) ✅
+### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Goal**: Elevate UI from demo quality to a professional, "Tahoe" branded pro-tool. Focus on layout, whitespace, hierarchy, and brand colors without altering logic.
 - **Phase 1 (Done)**: App-wide brand color mapping (`globals.css`) and unified Command Center redesign for the Hot Topics search bar.
 - **Phase 2 (Done)**: Unified status chips, Quick Actions and Recent Projects components aligned to Tahoe tokens, fixed broken variable references, sidebar contrast fix.
+- **Phase 3 (Done)**: Fixed dark mode white gradient wash-out by extracting overlay opacities into CSS variables. Redesigned search bar to tag-based keyword input. Removed legacy "莫兰迪" branding.
 
 ## Pending
 

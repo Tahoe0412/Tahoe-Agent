@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-03-16 18:35 — Agent: Antigravity (Claude)
+
+### UI/UX Refactoring: Phase 3 (Dark Mode Fix, Search Redesign, Brand Cleanup)
+
+**Changes**:
+- **`app/globals.css`**: Extracted all hardcoded white gradient overlay opacities into CSS variables (`--bg-glow-opacity`, `--panel-glow-opacity`, `--panel-muted-glow`, `--input-glow`, `--pill-glow`). In dark mode, these are set to near-zero, eliminating the washed-out gray background. Darkened `--border` from `#24364A` → `#1E2D40` for subtler edge contrast.
+- **`components/today/today-workbench.tsx`**: Redesigned the search bar from a raw OR-string input to a tag-based keyword display. Keywords appear as removable tag chips; a separate inline input allows adding new keywords via Enter. Bottom bar shows keyword count + search button. No duplicate content.
+- **`components/settings/theme-settings.tsx`**: Replaced "莫兰迪" branding with "Tahoe" in theme option hint text.
+- **`app/settings/page.tsx`**: Removed last "莫兰迪" reference in Theme panel description.
+
+**Reason**: Dark mode was fundamentally broken by hardcoded white gradient overlays that washed out all panel/border contrast. The OR query string was visually cluttered and lacked add/remove UX. "莫兰迪" branding was outdated after the Tahoe rebrand.
+
+**Remaining**: Dark mode and search UX now stable. No further UI phases planned unless user requests.
+
+---
+
 ## 2026-03-16 18:10 — Agent: Antigravity (Claude)
 
 ### UI/UX Refactoring: Phase 2 (Component Alignment & Token Unification)
