@@ -122,79 +122,122 @@ export function TodayWorkbench({
           </div>
         ) : null}
 
-        {/* Command Center: Combined Select & Search Bar */}
-        <div className="group relative flex items-stretch rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)] hover:border-[var(--border-soft)]">
-          {/* Prefix: Brand Selector */}
-          {brandProfiles.length > 0 && (
-            <div className="relative flex shrink-0 items-center border-r border-[var(--border)] bg-[var(--surface-muted)] px-1 transition-colors group-focus-within:border-[var(--accent)]/30">
-              <select
-                value={activeBrandId}
-                onChange={(e) => {
-                  setActiveBrandId(e.target.value);
-                  const brand = brandProfiles.find(
-                    (b) => b.id === e.target.value
-                  );
-                  if (brand && brand.keywords.length > 0) {
-                    const q = brand.keywords.join(" OR ");
-                    setSearchQuery(q);
-                    void handleSearch(q);
+        {/* Command Center: Tag-based Keyword Display + Editable Query */}
+        {(() => {
+          const queryKeywords = searchQuery
+            .split(/\s+OR\s+/i)
+            .map((k) => k.trim())
+            .filter(Boolean);
+          const showTags = queryKeywords.length > 0;
+
+          return (
+            <div className="space-y-3">
+              {/* Keyword Tags Row */}
+              {showTags && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {queryKeywords.slice(0, 8).map((keyword, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-1)] transition-colors"
+                    >
+                      {keyword}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = queryKeywords.filter((_, j) => j !== i).join(" OR ");
+                          setSearchQuery(updated);
+                        }}
+                        className="ml-1.5 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-colors"
+                        aria-label={`Remove ${keyword}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  {queryKeywords.length > 8 && (
+                    <span className="text-xs text-[var(--text-3)]">
+                      +{queryKeywords.length - 8}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Search Bar */}
+              <div className="group relative flex items-stretch rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)] hover:border-[var(--border-soft)]">
+                {/* Prefix: Brand Selector */}
+                {brandProfiles.length > 0 && (
+                  <div className="relative flex shrink-0 items-center border-r border-[var(--border)] bg-[var(--surface-muted)] px-1 transition-colors group-focus-within:border-[var(--accent)]/30">
+                    <select
+                      value={activeBrandId}
+                      onChange={(e) => {
+                        setActiveBrandId(e.target.value);
+                        const brand = brandProfiles.find(
+                          (b) => b.id === e.target.value
+                        );
+                        if (brand && brand.keywords.length > 0) {
+                          const q = brand.keywords.join(" OR ");
+                          setSearchQuery(q);
+                          void handleSearch(q);
+                        }
+                      }}
+                      className="h-full appearance-none bg-transparent py-3 pl-3 pr-8 text-sm font-medium text-[var(--text-1)] outline-none cursor-pointer"
+                    >
+                      {brandProfiles.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {t ? "词池:" : "Pool:"} {b.name} ({b.keywords.length})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-3 flex items-center text-[var(--text-3)]">
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+
+                {/* Main Input */}
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void handleSearch(searchQuery);
+                  }}
+                  placeholder={
+                    t
+                      ? "输入关键词，多个词之间用 OR 分隔..."
+                      : "Type keywords separated by OR..."
                   }
-                }}
-                className="h-full appearance-none bg-transparent py-3 pl-3 pr-8 text-sm font-medium text-[var(--text-1)] outline-none cursor-pointer"
-              >
-                {brandProfiles.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {t ? "词池:" : "Pool:"} {b.name} ({b.keywords.length})
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute right-3 flex items-center text-[var(--text-3)]">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                  className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
+                  spellCheck={false}
+                />
+
+                {/* Action Button */}
+                <div className="p-1.5">
+                  <button
+                    onClick={() => void handleSearch(searchQuery)}
+                    disabled={loading || !searchQuery.trim()}
+                    className="flex h-full min-w-[80px] items-center justify-center rounded-lg bg-[var(--text-1)] px-4 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {loading
+                      ? (
+                        <div className="flex items-center gap-2">
+                          <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )
+                      : t
+                        ? "搜索"
+                        : "Search"}
+                  </button>
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Main Input */}
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void handleSearch(searchQuery);
-            }}
-            placeholder={
-              t
-                ? "输入关键词（支持 OR / AND 布尔逻辑），按回车搜索..."
-                : "Enter boolean query (e.g. AI OR Machine Learning)..."
-            }
-            className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
-            spellCheck={false}
-          />
-
-          {/* Action Button */}
-          <div className="p-1.5">
-            <button
-              onClick={() => void handleSearch(searchQuery)}
-              disabled={loading || !searchQuery.trim()}
-              className="flex h-full min-w-[80px] items-center justify-center rounded-lg bg-[var(--text-1)] px-4 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading
-                ? (
-                  <div className="flex items-center gap-2">
-                    <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  </div>
-                )
-                : t
-                  ? "搜索"
-                  : "Search"}
-            </button>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Error */}
         {error && (
