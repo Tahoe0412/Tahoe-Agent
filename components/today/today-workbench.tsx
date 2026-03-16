@@ -198,14 +198,14 @@ export function TodayWorkbench({
 
         {/* Error */}
         {error && (
-          <div className="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mt-4 rounded-xl bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
             {error}
           </div>
         )}
 
         {searched && !loading && (platformResults.length > 0 || newsResult) ? (
           <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
                 {t ? "数据源状态" : "Source Status"}
               </div>
@@ -216,10 +216,10 @@ export function TodayWorkbench({
                     className={cn(
                       "rounded-full px-3 py-1.5 text-xs font-medium",
                       item.success && item.mode === "live"
-                        ? "bg-emerald-500/12 text-emerald-400"
+                        ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                         : item.mode === "mock"
-                          ? "bg-amber-500/12 text-amber-400"
-                          : "bg-red-500/12 text-red-400"
+                          ? "bg-[var(--warn-bg)] text-[var(--warn-text)]"
+                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]"
                     )}
                   >
                     {item.platform} · {item.mode}
@@ -230,10 +230,10 @@ export function TodayWorkbench({
                     className={cn(
                       "rounded-full px-3 py-1.5 text-xs font-medium",
                       newsResult.success && newsResult.mode === "live"
-                        ? "bg-emerald-500/12 text-emerald-400"
+                        ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                         : newsResult.mode === "mock"
-                          ? "bg-amber-500/12 text-amber-400"
-                          : "bg-red-500/12 text-red-400"
+                          ? "bg-[var(--warn-bg)] text-[var(--warn-text)]"
+                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]"
                     )}
                   >
                     Google News · {newsResult.mode}
@@ -241,14 +241,14 @@ export function TodayWorkbench({
                 ) : null}
               </div>
               {mockPlatforms.length > 0 ? (
-                <div className="mt-3 text-xs leading-6 text-amber-400">
+                <div className="mt-3 text-xs leading-6 text-[var(--warn-text)]">
                   {t
                     ? `当前 ${mockPlatforms.join(" / ")} 仍在返回 mock 数据，热点卡片会受影响。`
                     : `${mockPlatforms.join(" / ")} is still returning mock data, so topic quality will be affected.`}
                 </div>
               ) : null}
               {failedPlatforms.length > 0 ? (
-                <div className="mt-2 text-xs leading-6 text-red-400">
+                <div className="mt-2 text-xs leading-6 text-[var(--danger-text)]">
                   {t
                     ? `以下平台请求失败：${failedPlatforms.map((item) => item.platform).join(" / ")}`
                     : `These platforms failed: ${failedPlatforms.map((item) => item.platform).join(" / ")}`}
@@ -257,7 +257,7 @@ export function TodayWorkbench({
             </div>
 
             {newsResult ? (
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                 <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
                   {t ? "Google 新闻样本" : "Google News Samples"}
                 </div>
@@ -315,7 +315,7 @@ export function TodayWorkbench({
                   <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
                     {index + 1}
                   </span>
-                  <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold text-orange-400">
+                  <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
                     {t ? "热度" : "Heat"} {topic.score}
                   </span>
                 </div>
@@ -338,13 +338,13 @@ export function TodayWorkbench({
 
         {/* Empty state */}
         {emptyDueToSourceFailure ? (
-          <div className="mt-5 rounded-2xl border border-[color:color-mix(in_srgb,var(--warning-text)_28%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_86%,var(--surface-solid)),rgba(255,255,255,0.22))] p-5 shadow-[0_12px_30px_rgba(145,108,43,0.08)]">
+          <div className="mt-5 rounded-xl border border-[var(--warn-text)]/20 bg-[var(--warn-bg)] p-5 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.4)] text-[var(--warning-text)]">
+              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--warn-text)]/15 text-[var(--warn-text)]">
                 <AlertTriangle className="size-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--warning-text)]">
+                <div className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--warn-text)]">
                   {t ? "数据源需要处理" : "Source Attention Needed"}
                 </div>
                 <div className="mt-2 text-lg font-semibold text-[var(--text-1)]">
@@ -371,7 +371,7 @@ export function TodayWorkbench({
             </div>
           </div>
         ) : searched && !loading && !error && topics.length === 0 ? (
-          <div className="mt-5 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center text-sm text-[var(--text-3)]">
+          <div className="mt-5 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center text-sm text-[var(--text-3)]">
             {t
               ? "未找到相关热点话题，换个关键词试试"
               : "No trending topics found. Try different keywords."}

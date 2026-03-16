@@ -24,7 +24,7 @@ export function TodayRecentProjects({
   const t = locale === "zh";
 
   return (
-    <section className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-6">
+    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
         <Clock className="size-5 text-[var(--text-3)]" />
         <h3 className="text-base font-semibold text-[var(--text-1)]">
@@ -36,7 +36,7 @@ export function TodayRecentProjects({
           <button
             key={project.id}
             onClick={() => onProjectClick(project.id)}
-            className="group flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="group flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-sm"
           >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-[var(--text-1)]">
@@ -50,8 +50,8 @@ export function TodayRecentProjects({
               className={cn(
                 "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                 project.status === "DONE"
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "bg-blue-500/15 text-blue-400"
+                  ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
+                  : "bg-[var(--accent-soft)] text-[var(--accent)]"
               )}
             >
               {project.status === "DONE"

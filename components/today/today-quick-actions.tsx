@@ -22,7 +22,7 @@ export function TodayQuickActions({
   const t = locale === "zh";
 
   return (
-    <section className="rounded-[24px] border border-[var(--accent)]/30 bg-gradient-to-r from-[var(--accent)]/5 to-transparent p-6">
+    <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] p-6">
       <div className="mb-4 flex items-center gap-3">
         <Zap className="size-5 text-[var(--accent)]" />
         <div>
@@ -45,8 +45,8 @@ export function TodayQuickActions({
             desc: t
               ? "AI 拆解选题，输出可拍摄的分镜脚本"
               : "AI breaks down the topic into a shootable script",
-            color: "from-blue-500/20 to-cyan-500/20",
-            textColor: "text-blue-400",
+            color: "from-[var(--sage)]/12 to-[var(--sage)]/4",
+            textColor: "text-[var(--sage)]",
           },
           {
             type: "copy" as const,
@@ -55,8 +55,8 @@ export function TodayQuickActions({
             desc: t
               ? "围绕选题生成多平台推广文案"
               : "Generate multi-platform marketing copy",
-            color: "from-purple-500/20 to-pink-500/20",
-            textColor: "text-purple-400",
+            color: "from-[var(--terracotta)]/12 to-[var(--terracotta)]/4",
+            textColor: "text-[var(--terracotta)]",
           },
           {
             type: "image" as const,
@@ -65,18 +65,18 @@ export function TodayQuickActions({
             desc: t
               ? "根据选题自动生成封面和配图"
               : "Auto-generate cover and illustrations for the topic",
-            color: "from-emerald-500/20 to-teal-500/20",
-            textColor: "text-emerald-400",
+            color: "from-[var(--accent)]/12 to-[var(--accent)]/4",
+            textColor: "text-[var(--accent)]",
           },
         ].map((item) => (
           <button
             key={item.label}
             onClick={() => onAction(selectedTopic.label, item.type)}
-            className="group flex flex-col items-start rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-lg"
+            className="group flex flex-col items-start rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md"
           >
             <div
               className={cn(
-                "flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br",
+                "flex size-10 items-center justify-center rounded-xl bg-gradient-to-br",
                 item.color
               )}
             >
