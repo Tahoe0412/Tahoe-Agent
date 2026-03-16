@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeScript } from "@/components/theme/theme-script";
+import { ChunkReloadScript } from "@/components/chunk-reload-script";
 import { getAppBaseUrl } from "@/lib/env";
 import { getLocale } from "@/lib/locale";
 import "./globals.css";
@@ -17,6 +18,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale === "en" ? "en" : "zh-CN"} suppressHydrationWarning>
       <body>
         <ThemeScript />
+        <ChunkReloadScript />
         {children}
       </body>
     </html>

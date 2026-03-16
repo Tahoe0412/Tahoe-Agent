@@ -1,26 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Zap,
-  FileText,
-  Clapperboard,
-  ImageIcon,
-  ArrowRight,
-  Clock,
   Flame,
   AlertTriangle,
 } from "lucide-react";
-import { apiClient, ApiError } from "@/lib/api-client";
-import { getCached, setCache, makeCacheKey } from "@/lib/search-cache";
-import { toTopicRankingItems } from "@/types/trend-discovery";
-import type {
-  HotTopicsSearchResult,
-  TopicRankingItem,
-} from "@/types/trend-discovery";
-import type { PlatformCollectResult, SupportedPlatform } from "@/types/platform-data";
-import type { NewsSearchResult } from "@/types/news-search";
+import { useHotTopics } from "@/hooks/use-hot-topics";
+import { TodayQuickActions } from "./today-quick-actions";
+import { TodayRecentProjects, type RecentProject } from "./today-recent-projects";
+import type { TopicRankingItem } from "@/types/trend-discovery";
 import { cn } from "@/lib/utils";
 
 /* ────────────────────────────────────────────
@@ -31,13 +21,6 @@ interface BrandKeywordProfile {
   id: string;
   name: string;
   keywords: string[];
-}
-
-interface RecentProject {
-  id: string;
-  title: string;
-  topic_query: string;
-  status: string;
 }
 
 /* ────────────────────────────────────────────
@@ -62,65 +45,22 @@ export function TodayWorkbench({
   const activeBrand =
     brandProfiles.find((b) => b.id === activeBrandId) ?? null;
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [topics, setTopics] = useState<TopicRankingItem[]>([]);
-  const [newsResult, setNewsResult] = useState<NewsSearchResult | null>(null);
-  const [platformResults, setPlatformResults] = useState<PlatformCollectResult[]>([]);
-  const [searched, setSearched] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<TopicRankingItem | null>(
-    null
-  );
+  const {
+    loading,
+    error,
+    searched,
+    topics,
+    news: newsResult,
+    platformResults,
+    search: handleSearch,
+  } = useHotTopics();
+
+  const [selectedTopic, setSelectedTopic] = useState<TopicRankingItem | null>(null);
   const [searchQuery, setSearchQuery] = useState(
     activeBrand?.keywords.join(" OR ") ?? ""
   );
 
-  /* ── Search handler ── */
-  const handleSearch = useCallback(
-    async (query: string) => {
-      if (!query.trim()) return;
-
-      // Check cache first — avoid redundant API calls within 10 minutes
-      const platforms: SupportedPlatform[] = ["YOUTUBE", "X"];
-      const cacheKey = makeCacheKey(query, platforms);
-      const cached = getCached<HotTopicsSearchResult>(cacheKey);
-      if (cached) {
-        setTopics(toTopicRankingItems(cached.topics));
-        setNewsResult(cached.news);
-        setPlatformResults(cached.platform_results);
-        setSearched(true);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-      setSelectedTopic(null);
-      try {
-        const result = await apiClient.post<HotTopicsSearchResult>(
-          "/api/research/hot-topics",
-          { query, platforms, mockMode: false }
-        );
-        setCache(cacheKey, result);
-        setTopics(toTopicRankingItems(result.topics));
-        setNewsResult(result.news);
-        setPlatformResults(result.platform_results);
-        setSearched(true);
-      } catch (err) {
-        setError(
-          err instanceof ApiError ? err.message : "搜索失败，请重试"
-        );
-        setNewsResult(null);
-        setPlatformResults([]);
-        setSearched(true);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
   // No auto-search — user clicks "搜索" to start
-
   const t = locale === "zh";
   const mockPlatforms = platformResults
     .filter((item) => item.mode === "mock")
@@ -133,8 +73,8 @@ export function TodayWorkbench({
       t ? `Google 新闻：${item.message}` : `Google News: ${item.message}`
     ),
     ...failedPlatforms.flatMap((item) =>
-      item.errors.map((error) =>
-        t ? `${item.platform}：${error.message}` : `${item.platform}: ${error.message}`
+      item.errors.map((err) =>
+        t ? `${item.platform}：${err.message}` : `${item.platform}: ${err.message}`
       )
     ),
   ];
@@ -426,144 +366,25 @@ export function TodayWorkbench({
 
       {/* ── Block 2: 快速操作 ── */}
       {selectedTopic && (
-        <section className="rounded-[24px] border border-[var(--accent)]/30 bg-gradient-to-r from-[var(--accent)]/5 to-transparent p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <Zap className="size-5 text-[var(--accent)]" />
-            <div>
-              <h3 className="text-base font-semibold text-[var(--text-1)]">
-                {t ? "快速产出" : "Quick Actions"}
-              </h3>
-              <p className="text-sm text-[var(--text-3)]">
-                {t
-                  ? `选题：${selectedTopic.label} — 选择产出方式`
-                  : `Topic: ${selectedTopic.label} — choose output type`}
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              {
-                icon: Clapperboard,
-                label: t ? "生成脚本" : "Generate Script",
-                desc: t
-                  ? "AI 拆解选题，输出可拍摄的分镜脚本"
-                  : "AI breaks down the topic into a shootable script",
-                color: "from-blue-500/20 to-cyan-500/20",
-                textColor: "text-blue-400",
-                action: () => {
-                  const params = new URLSearchParams({
-                    topic: selectedTopic.label,
-                    title: selectedTopic.label,
-                  });
-                  router.push(`/?prefill=true&${params.toString()}`);
-                },
-              },
-              {
-                icon: FileText,
-                label: t ? "生成文案" : "Generate Copy",
-                desc: t
-                  ? "围绕选题生成多平台推广文案"
-                  : "Generate multi-platform marketing copy",
-                color: "from-purple-500/20 to-pink-500/20",
-                textColor: "text-purple-400",
-                action: () => {
-                  const params = new URLSearchParams({
-                    topic: selectedTopic.label,
-                    title: selectedTopic.label,
-                  });
-                  router.push(`/?prefill=true&${params.toString()}`);
-                },
-              },
-              {
-                icon: ImageIcon,
-                label: t ? "AI 配图" : "AI Images",
-                desc: t
-                  ? "根据选题自动生成封面和配图"
-                  : "Auto-generate cover and illustrations for the topic",
-                color: "from-emerald-500/20 to-teal-500/20",
-                textColor: "text-emerald-400",
-                action: () => {
-                  const params = new URLSearchParams({
-                    topic: selectedTopic.label,
-                    title: selectedTopic.label,
-                  });
-                  router.push(`/?prefill=true&${params.toString()}`);
-                },
-              },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={item.action}
-                className="group flex flex-col items-start rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-lg"
-              >
-                <div
-                  className={cn(
-                    "flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br",
-                    item.color
-                  )}
-                >
-                  <item.icon className={cn("size-5", item.textColor)} />
-                </div>
-                <div className="mt-3 text-sm font-semibold text-[var(--text-1)]">
-                  {item.label}
-                </div>
-                <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">
-                  {item.desc}
-                </div>
-                <div className="mt-3 flex items-center gap-1 text-xs font-medium text-[var(--accent)] opacity-0 transition-opacity group-hover:opacity-100">
-                  {t ? "开始" : "Start"} <ArrowRight className="size-3" />
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+        <TodayQuickActions
+          selectedTopic={selectedTopic}
+          locale={locale}
+          onAction={(topicLabel, _type) => {
+            const params = new URLSearchParams({
+              topic: topicLabel,
+              title: topicLabel,
+            });
+            router.push(`/?prefill=true&${params.toString()}`);
+          }}
+        />
       )}
 
       {/* ── Block 3: 最近项目 ── */}
-      {recentProjects.length > 0 && (
-        <section className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <Clock className="size-5 text-[var(--text-3)]" />
-            <h3 className="text-base font-semibold text-[var(--text-1)]">
-              {t ? "最近项目" : "Recent Projects"}
-            </h3>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {recentProjects.slice(0, 6).map((project) => (
-              <button
-                key={project.id}
-                onClick={() => router.push(`/?projectId=${project.id}`)}
-                className="group flex items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-[var(--text-1)]">
-                    {project.title}
-                  </div>
-                  <div className="mt-1 truncate text-xs text-[var(--text-3)]">
-                    {project.topic_query}
-                  </div>
-                </div>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                    project.status === "DONE"
-                      ? "bg-emerald-500/15 text-emerald-400"
-                      : "bg-blue-500/15 text-blue-400"
-                  )}
-                >
-                  {project.status === "DONE"
-                    ? t
-                      ? "已完成"
-                      : "Done"
-                    : t
-                      ? "进行中"
-                      : "Active"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <TodayRecentProjects
+        projects={recentProjects}
+        locale={locale}
+        onProjectClick={(id) => router.push(`/?projectId=${id}`)}
+      />
     </div>
   );
 }

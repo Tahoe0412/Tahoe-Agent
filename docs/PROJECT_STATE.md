@@ -49,12 +49,12 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 | Brand Profiles (`/brand-profiles`) | ✅ Working | Brand keyword pools |
 | Settings (`/settings`) | ✅ Working | App configuration |
 | Serper News Search | ✅ Live | Returns real Google News results |
-| YouTube Connector | ⚠️ No data | Returns 0 results (needs YouTube Data API key) |
+| YouTube Connector | ✅ Live | Returns real YouTube video data via Data API v3 |
 | X/Twitter Connector | ⚠️ Failed | Connection fails (needs Twitter API credentials) |
 
 ## Known Issues
 
-1. YouTube and X connectors don't return real data — only Serper news search works
+1. X connector doesn't return real data — only Serper news search and YouTube work
 2. CI/CD runs sometimes fail if server `node_modules` gets corrupted — manual `npm ci` fixes it
 
 ## Constraints — DO NOT VIOLATE

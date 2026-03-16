@@ -8,27 +8,12 @@ _(none currently)_
 
 ## Pending
 
-### T-004 Configure YouTube Data API
-- **Problem**: YouTube connector returns 0 results because no API key is configured
-- **Goal**: Add YouTube Data API v3 key, configure the connector to fetch real video data
-- **Acceptance**:
-  - Trend search returns YouTube video results
-  - Video titles and URLs are real, not mock
-  - API key stored securely in `.env.local`
-
 ### T-005 Configure X/Twitter API
 - **Problem**: X connector fails with connection error — no API credentials
 - **Goal**: Set up Twitter API v2 credentials for tweet search
 - **Acceptance**:
   - Trend search returns X/Twitter post results
   - Error messages no longer appear for X platform
-
-### T-006 Add cache-busting headers to Next.js
-- **Problem**: After server deploys, users see "页面加载失败" because browser caches old JS chunks
-- **Goal**: Add proper `Cache-Control` headers for `/_next/static/` assets
-- **Acceptance**:
-  - Users don't need to manually clear cache after deploys
-  - JS chunks use content-hash filenames (already the case, but verify)
 
 ## Done
 
@@ -50,3 +35,16 @@ _(none currently)_
 - **Commit**: `5a57f8f`
 - **Files**: `lib/search-cache.ts` (new), `components/trend-discovery/trend-discovery-workbench.tsx`, `components/today/today-workbench.tsx`
 - **Result**: No auto-search on mount, 10-minute in-memory cache for search results
+
+### T-004 Configure YouTube Data API ✅
+- **Completed**: 2026-03-16
+- **Root cause**: `.env.local` had `YOUTUBE_API_KEY=""` (empty), overriding the real key in `.env`. Next.js gives `.env.local` higher priority.
+- **Fix**: Populated real API key in `.env.local`; also fixed empty overrides for OpenAI, Gemini, DeepSeek, and Qwen keys
+- **Files**: `.env.local`
+- **Result**: YouTube connector returns real video data with titles, URLs, view counts, and likes
+
+### T-006 Add cache-busting for deploys ✅
+- **Completed**: 2026-03-16
+- **Root cause**: Static assets already had correct `Cache-Control: immutable` headers. The real issue was stale HTML referencing deleted chunk files after redeployment → unhandled `ChunkLoadError` → white screen.
+- **Fix**: Added `ChunkReloadScript` in root layout that catches `ChunkLoadError` and auto-reloads once (uses `sessionStorage` to prevent loops).
+- **Files**: `components/chunk-reload-script.tsx` (new), `app/layout.tsx`

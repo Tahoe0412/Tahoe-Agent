@@ -4,12 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { TrendSearchBar } from "@/components/trend-discovery/trend-search-bar";
 import { TopicRankingList } from "@/components/trend-discovery/topic-ranking-list";
-import { apiClient, ApiError } from "@/lib/api-client";
-import { getCached, setCache, makeCacheKey } from "@/lib/search-cache";
-import { toTopicRankingItems } from "@/types/trend-discovery";
-import type { HotTopicsSearchResult, TopicRankingItem } from "@/types/trend-discovery";
-import type { SupportedPlatform } from "@/types/platform-data";
-import type { NewsSearchResult } from "@/types/news-search";
+import { useHotTopics } from "@/hooks/use-hot-topics";
 
 interface BrandKeywordProfile {
   id: string;
@@ -17,98 +12,40 @@ interface BrandKeywordProfile {
   keywords: string[];
 }
 
-interface DiscoveryState {
-  loading: boolean;
-  error: string | null;
-  searched: boolean;
-  query: string;
-  topics: TopicRankingItem[];
-  news: NewsSearchResult | null;
-  creatorCount: number;
-  contentCount: number;
-}
-
-const INITIAL_STATE: DiscoveryState = {
-  loading: false,
-  error: null,
-  searched: false,
-  query: "",
-  topics: [],
-  news: null,
-  creatorCount: 0,
-  contentCount: 0,
-};
-
 export function TrendDiscoveryWorkbench({
   brandProfiles = [],
 }: {
   brandProfiles?: BrandKeywordProfile[];
 }) {
   const router = useRouter();
-  const [state, setState] = useState<DiscoveryState>(INITIAL_STATE);
   const [activeBrandId, setActiveBrandId] = useState(brandProfiles[0]?.id ?? "");
-
   const activeBrand = brandProfiles.find((b) => b.id === activeBrandId) ?? null;
-
-  const handleSearch = useCallback(async (query: string, platforms: SupportedPlatform[]) => {
-    // Check cache first — avoid redundant API calls within 10 minutes
-    const cacheKey = makeCacheKey(query, platforms);
-    const cached = getCached<HotTopicsSearchResult>(cacheKey);
-    if (cached) {
-      setState({
-        loading: false,
-        error: null,
-        searched: true,
-        query,
-        topics: toTopicRankingItems(cached.topics),
-        news: cached.news,
-        creatorCount: cached.creators.length,
-        contentCount: cached.content_items.length,
-      });
-      return;
-    }
-
-    setState((prev) => ({ ...prev, loading: true, error: null, query }));
-
-    try {
-      const result = await apiClient.post<HotTopicsSearchResult>(
-        "/api/research/hot-topics",
-        { query, platforms, mockMode: false },
-      );
-
-      setCache(cacheKey, result);
-
-      setState({
-        loading: false,
-        error: null,
-        searched: true,
-        query,
-        topics: toTopicRankingItems(result.topics),
-        news: result.news,
-        creatorCount: result.creators.length,
-        contentCount: result.content_items.length,
-      });
-    } catch (err) {
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: err instanceof ApiError ? err.message : "搜索失败，请重试",
-        searched: true,
-      }));
-    }
-  }, []);
+  
+  const {
+    loading,
+    error,
+    searched,
+    topics,
+    news,
+    creatorCount,
+    contentCount,
+    search: handleSearch,
+  } = useHotTopics();
 
   // No auto-search — user clicks "搜索热点" to start
 
   const handleCreateProject = useCallback(
     (topicKey: string, label: string) => {
+      // Find the query used for this search by joining the active brand keywords 
+      // or looking at the current search bar state (which we don't have direct access to here,
+      // but we can pass 'label' as a fallback)
       const params = new URLSearchParams({
-        topic: state.query || label,
+        topic: label, // We use label as the topic query now since we removed local search query tracking
         title: label,
       });
       router.push(`/?prefill=true&${params.toString()}`);
     },
-    [router, state.query],
+    [router],
   );
 
   return (
@@ -147,27 +84,27 @@ export function TrendDiscoveryWorkbench({
         </div>
         <TrendSearchBar
           onSearch={handleSearch}
-          loading={state.loading}
+          loading={loading}
           defaultQuery={activeBrand?.keywords.join(" ") ?? ""}
         />
       </div>
 
       {/* Stats summary (after search) */}
-      {state.searched && !state.loading && !state.error && state.topics.length > 0 && (
+      {searched && !loading && !error && topics.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="热点话题" value={state.topics.length} />
-          <StatCard label="相关博主" value={state.creatorCount} />
-          <StatCard label="内容样本" value={state.contentCount} />
-          <StatCard label="新闻来源" value={state.news?.items.length ?? 0} />
+          <StatCard label="热点话题" value={topics.length} />
+          <StatCard label="相关博主" value={creatorCount} />
+          <StatCard label="内容样本" value={contentCount} />
+          <StatCard label="新闻来源" value={news?.items.length ?? 0} />
         </div>
       )}
 
       {/* Ranking list */}
       <TopicRankingList
-        items={state.topics}
-        loading={state.loading}
-        error={state.error}
-        searched={state.searched}
+        items={topics}
+        loading={loading}
+        error={error}
+        searched={searched}
         onCreateProject={handleCreateProject}
       />
     </div>

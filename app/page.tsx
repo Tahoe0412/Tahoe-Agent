@@ -18,50 +18,7 @@ function SummaryPill({ children }: { children: ReactNode }) {
   return <span className="theme-pill rounded-full px-3 py-1.5 text-xs font-medium">{children}</span>;
 }
 
-function getDashboardNextStep(
-  workspace: Awaited<ReturnType<WorkspaceQueryService["getProjectWorkspace"]>>,
-  locale: "zh" | "en",
-) {
-  if (!workspace) {
-    return {
-      href: "#new-project",
-      label: locale === "en" ? "Start a New Project" : "开始新项目",
-    };
-  }
-
-  if (!workspace.latestBrief) {
-    return {
-      href: `/brief-studio?projectId=${workspace.project.id}`,
-      label: locale === "en" ? "Fill the Brief" : "先写任务单",
-    };
-  }
-
-  if (workspace.trendRows.length === 0) {
-    return {
-      href: `/trend-explorer?projectId=${workspace.project.id}`,
-      label: locale === "en" ? "Generate Trends" : "去看趋势主题",
-    };
-  }
-
-  if (workspace.workspaceMode === "SHORT_VIDEO") {
-    if (workspace.scriptLabRows.length === 0) {
-      return {
-        href: `/script-lab?projectId=${workspace.project.id}`,
-        label: locale === "en" ? "Generate Script Scenes" : "去生成脚本镜头",
-      };
-    }
-
-    return {
-      href: `/scene-planner?projectId=${workspace.project.id}`,
-      label: locale === "en" ? "Continue Storyboard" : "去补素材与分镜",
-    };
-  }
-
-  return {
-    href: `/marketing-ops?projectId=${workspace.project.id}`,
-    label: locale === "en" ? "Continue Copy Drafting" : "去生成宣传主稿",
-  };
-}
+import { getDashboardNextStep } from "@/lib/workflow-navigator";
 
 export default async function Home({
   searchParams,
