@@ -209,6 +209,7 @@ textarea::placeholder {
 
 .theme-sidebar {
   border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text);
   background:
     radial-gradient(circle at top left, rgba(34, 184, 207, 0.08), transparent 26%),
     radial-gradient(circle at bottom left, rgba(15, 61, 94, 0.08), transparent 22%),
