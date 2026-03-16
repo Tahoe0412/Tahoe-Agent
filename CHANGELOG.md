@@ -7,6 +7,15 @@ Format: `[Date] [Commit] — Summary`
 
 ## 2026-03-16
 
+### perf: remove auto-search on mount, add 10-min result cache (`5a57f8f`)
+- **Files**: `lib/search-cache.ts` **[NEW]**, `components/trend-discovery/trend-discovery-workbench.tsx`, `components/today/today-workbench.tsx`
+- **Problem**: Both pages auto-searched on every page load, wasting Serper API calls (2,500/month limit). Short-term results are identical, making repeated calls wasteful.
+- **Fix**: Removed auto-search `useEffect` from both workbenches. Created `lib/search-cache.ts` with 10-minute TTL in-memory cache. Repeated searches for the same query return cached results instantly. Users now click "搜索" explicitly.
+
+### feat: add Today Workbench to sidebar navigation (`37fc76d`)
+- **File**: `components/dashboard/sidebar.tsx`
+- **Change**: Added `/today` link with `CalendarDays` icon to the explore section, between Dashboard and Brief Studio.
+
 ### fix: use EnvHttpProxyAgent to avoid proxying internal requests (`38d3d3c`)
 - **File**: `instrumentation.ts`
 - **Problem**: `ProxyAgent` routed ALL `fetch()` calls through the Clash proxy (`127.0.0.1:7890`), including Next.js internal requests (RSC data fetching, route prefetching, etc.). This caused intermittent "页面加载失败" errors — pages would load sometimes but crash on navigation or button clicks.
