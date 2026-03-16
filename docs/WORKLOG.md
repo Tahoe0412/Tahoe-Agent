@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-03-16 17:00 — Agent: Antigravity (Claude)
+
+### UI/UX Refactoring: Phase 1 (Tahoe Brand & Search Command Center)
+
+**Changes**:
+- **`app/globals.css`**: Completely mapped the `:root` and `[data-theme="dark"]` design tokens to the new "Lake Tahoe" brand palette requested by the user, focusing on cool blues (`#0F3D5E`, `#5FA8D3`) and a crisp Accent (`#22B8CF`). Maintained all existing token semantics to ensure zero breakage.
+- **`components/today/today-workbench.tsx`**: Redesigned Block 1 (Today's Hot Topics) into a unified "Command Center".
+  - Merged the "Keyword Pool" `<select>` and the main `<input>` into an inline, Linearesque container with a continuous `focus-within` ring.
+  - Replaced excessively large border radii (`rounded-[24px]`) with sharper `rounded-2xl` and `rounded-xl` tokens to increase professional tool feel.
+  - Ensured the original boolean query string mechanism remains fully editable and unchanged.
+
+**Reason**: Elevate the UI from a "developer demo" to a "production-ready pro tool" via layout, typography, and spacing refinements without touching core routing or API logic.
+
+**Remaining**:
+- (Phase 2) Apply unified hover interactions and styling alignment to the Quick Actions and Recent Projects blocks.
+
+---
+
 ## 2026-03-16 16:25 — Agent: Antigravity (Claude)
 
 ### Architecture Optimization: Phase 1 (Hook Extraction)

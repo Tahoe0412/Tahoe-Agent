@@ -89,69 +89,74 @@ export function TodayWorkbench({
   return (
     <div className="space-y-6">
       {/* ── Block 1: 热点发现 ── */}
-      <section className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-6">
-        <div className="mb-5 flex items-start justify-between gap-4">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-6 shadow-sm">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20">
-              <Flame className="size-5 text-orange-400" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--accent-soft)]">
+              <Flame className="size-5 text-[var(--accent-strong)]" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--text-1)]">
+              <h2 className="text-lg font-semibold text-[var(--text-1)] tracking-tight">
                 {t ? "今日热点" : "Today's Hot Topics"}
               </h2>
-              <p className="mt-0.5 text-sm text-[var(--text-3)]">
-                {activeBrand
-                  ? t
-                    ? `已加载「${activeBrand.name}」关键词池，点击搜索开始`
-                    : `"${activeBrand.name}" keywords loaded — click Search to start`
-                  : t
-                    ? "输入关键词手动搜索"
-                    : "Enter keywords to search"}
+              <p className="mt-0.5 text-sm text-[var(--text-2)]">
+                {t
+                  ? "看热点、选题、产出 — 一页搞定。"
+                  : "Discover trends, define topics, and generate content — all in one page."}
               </p>
             </div>
           </div>
-          {brandProfiles.length > 0 && (
-            <select
-              value={activeBrandId}
-              onChange={(e) => {
-                setActiveBrandId(e.target.value);
-                const brand = brandProfiles.find(
-                  (b) => b.id === e.target.value
-                );
-                if (brand && brand.keywords.length > 0) {
-                  const q = brand.keywords.join(" OR ");
-                  setSearchQuery(q);
-                  void handleSearch(q);
-                }
-              }}
-              className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-2)]"
-            >
-              {brandProfiles.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.keywords.length}{" "}
-                  {t ? "关键词" : "keywords"})
-                </option>
-              ))}
-            </select>
-          )}
         </div>
 
         {workspaceDataUnavailable ? (
-          <div className="mb-4 rounded-2xl border border-[color:color-mix(in_srgb,var(--warning-text)_28%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_86%,var(--surface-solid)),rgba(255,255,255,0.22))] px-4 py-3 text-sm leading-7 text-[var(--warning-text)] shadow-[0_10px_24px_rgba(145,108,43,0.08)]">
+          <div className="mb-5 rounded-xl border border-[color:color-mix(in_srgb,var(--warn-text)_28%,transparent)] bg-[var(--warn-bg)] px-4 py-3 text-sm leading-6 text-[var(--warn-text)]">
             {t
               ? "当前品牌关键词池和最近项目列表暂时没有从数据库成功读取，但你仍然可以手动输入关键词搜索热点。"
               : "Brand keyword pools and recent projects could not be loaded from the database right now, but you can still search with manual keywords."}
           </div>
         ) : brandProfiles.length === 0 ? (
-          <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-7 text-[var(--text-2)]">
+          <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
             {t
               ? "还没有可用的品牌关键词池。你可以先手动输入关键词搜索，或稍后去品牌档案里补充关键词池。"
               : "No brand keyword pool is available yet. You can search manually now, or add one later in Brand Profiles."}
           </div>
         ) : null}
 
-        {/* Search bar */}
-        <div className="flex gap-3">
+        {/* Command Center: Combined Select & Search Bar */}
+        <div className="group relative flex items-stretch rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)] hover:border-[var(--border-soft)]">
+          {/* Prefix: Brand Selector */}
+          {brandProfiles.length > 0 && (
+            <div className="relative flex shrink-0 items-center border-r border-[var(--border)] bg-[var(--surface-muted)] px-1 transition-colors group-focus-within:border-[var(--accent)]/30">
+              <select
+                value={activeBrandId}
+                onChange={(e) => {
+                  setActiveBrandId(e.target.value);
+                  const brand = brandProfiles.find(
+                    (b) => b.id === e.target.value
+                  );
+                  if (brand && brand.keywords.length > 0) {
+                    const q = brand.keywords.join(" OR ");
+                    setSearchQuery(q);
+                    void handleSearch(q);
+                  }
+                }}
+                className="h-full appearance-none bg-transparent py-3 pl-3 pr-8 text-sm font-medium text-[var(--text-1)] outline-none cursor-pointer"
+              >
+                {brandProfiles.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {t ? "词池:" : "Pool:"} {b.name} ({b.keywords.length})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 flex items-center text-[var(--text-3)]">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* Main Input */}
           <input
             type="text"
             value={searchQuery}
@@ -161,24 +166,34 @@ export function TodayWorkbench({
             }}
             placeholder={
               t
-                ? "输入关键词搜索热点话题..."
-                : "Search trending topics..."
+                ? "输入关键词（支持 OR / AND 布尔逻辑），按回车搜索..."
+                : "Enter boolean query (e.g. AI OR Machine Learning)..."
             }
-            className="theme-input flex-1 rounded-2xl px-4 py-3 text-sm"
+            className="flex-1 bg-transparent px-4 py-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
+            spellCheck={false}
           />
-          <button
-            onClick={() => void handleSearch(searchQuery)}
-            disabled={loading || !searchQuery.trim()}
-            className="shrink-0 rounded-2xl bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-50"
-          >
-            {loading
-              ? t
-                ? "搜索中..."
-                : "Searching..."
-              : t
-                ? "搜索"
-                : "Search"}
-          </button>
+
+          {/* Action Button */}
+          <div className="p-1.5">
+            <button
+              onClick={() => void handleSearch(searchQuery)}
+              disabled={loading || !searchQuery.trim()}
+              className="flex h-full min-w-[80px] items-center justify-center rounded-lg bg-[var(--text-1)] px-4 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading
+                ? (
+                  <div className="flex items-center gap-2">
+                    <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )
+                : t
+                  ? "搜索"
+                  : "Search"}
+            </button>
+          </div>
         </div>
 
         {/* Error */}
