@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AppSettingsService } from "@/services/app-settings.service";
-import { GoogleSearchService } from "@/services/web-search/google-search.service";
+import { SerperSearchService } from "@/services/web-search/serper-search.service";
 
 const appSettingsService = new AppSettingsService();
 
@@ -24,26 +24,26 @@ export async function POST(request: Request) {
 
     const settings = await appSettingsService.getEffectiveSettings();
 
-    if (!settings.googleSearchApiKey || !settings.googleSearchCx) {
+    if (!settings.serperApiKey) {
       return NextResponse.json(
         {
           success: false,
-          error: "GOOGLE_SEARCH_API_KEY or GOOGLE_SEARCH_CX is not configured. Please add them in Settings.",
+          error: "SERPER_API_KEY is not configured. Get one at serper.dev and add it in Settings.",
           provider: "GOOGLE",
         },
         { status: 422 },
       );
     }
 
-    const googleService = new GoogleSearchService(settings.googleSearchApiKey, settings.googleSearchCx);
+    const serperService = new SerperSearchService(settings.serperApiKey);
 
     const result = body.siteDomain
-      ? await googleService.searchPlatformContent({
+      ? await serperService.searchPlatformContent({
           query: body.query.trim(),
           siteDomain: body.siteDomain,
           limit: body.limit,
         })
-      : await googleService.searchGeneral({
+      : await serperService.searchGeneral({
           query: body.query.trim(),
           limit: body.limit,
           language: body.language,

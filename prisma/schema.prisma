@@ -550,6 +550,7 @@ model AppSettings {
   news_search_mock_mode Boolean        @default(true)
   google_search_api_key String?
   google_search_cx      String?
+  serper_api_key        String?
   app_base_url          String?
   created_at            DateTime       @default(now())
   updated_at            DateTime       @updatedAt

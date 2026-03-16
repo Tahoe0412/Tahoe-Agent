@@ -1,6 +1,6 @@
 import { AppSettingsService } from "@/services/app-settings.service";
 import { MockNewsSearchProvider } from "@/services/news-search/mock";
-import { GoogleNewsSearchProvider } from "@/services/news-search/google";
+import { SerperNewsSearchProvider } from "@/services/news-search/serper";
 
 const appSettingsService = new AppSettingsService();
 
@@ -12,21 +12,20 @@ export async function searchLatestNews(input: { topic: string; limit?: number })
   }
 
   if (settings.newsSearchProvider === "GOOGLE") {
-    if (!settings.googleSearchApiKey || !settings.googleSearchCx) {
+    if (!settings.serperApiKey) {
       return {
         provider: "GOOGLE" as const,
         mode: "live" as const,
         success: false,
         items: [],
-        errors: [{ code: "CONFIG_MISSING", message: "GOOGLE_SEARCH_API_KEY or GOOGLE_SEARCH_CX is missing." }],
+        errors: [{ code: "CONFIG_MISSING", message: "SERPER_API_KEY is missing. Get one at serper.dev" }],
         fetched_at: new Date().toISOString(),
       };
     }
 
     try {
-      return await new GoogleNewsSearchProvider(
-        settings.googleSearchApiKey,
-        settings.googleSearchCx,
+      return await new SerperNewsSearchProvider(
+        settings.serperApiKey,
       ).searchLatest(input);
     } catch (error) {
       return {

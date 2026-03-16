@@ -15,6 +15,7 @@ export interface EffectiveAppSettings {
   newsSearchMockMode: boolean;
   googleSearchApiKey: string | null;
   googleSearchCx: string | null;
+  serperApiKey: string | null;
   appBaseUrl: string | null;
 }
 
@@ -50,6 +51,7 @@ function envApiKeyDefaults() {
     qwen_api_key: trimOrNull(process.env.QWEN_API_KEY),
     google_search_api_key: trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
     google_search_cx: trimOrNull(process.env.GOOGLE_SEARCH_CX),
+    serper_api_key: trimOrNull(process.env.SERPER_API_KEY),
   };
 }
 
@@ -59,7 +61,7 @@ function defaultNewsSearchProvider() {
     return configuredProvider;
   }
 
-  return trimOrNull(process.env.GOOGLE_SEARCH_API_KEY) && trimOrNull(process.env.GOOGLE_SEARCH_CX)
+  return trimOrNull(process.env.SERPER_API_KEY)
     ? "GOOGLE"
     : "MOCK";
 }
@@ -108,6 +110,7 @@ export class AppSettingsService {
       newsSearchMockMode: record?.news_search_mock_mode ?? defaultNewsSearchMockMode(envNewsSearchProvider),
       googleSearchApiKey: trimOrNull(record?.google_search_api_key) ?? trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
       googleSearchCx: trimOrNull(record?.google_search_cx) ?? trimOrNull(process.env.GOOGLE_SEARCH_CX),
+      serperApiKey: trimOrNull(record?.serper_api_key) ?? trimOrNull(process.env.SERPER_API_KEY),
       appBaseUrl: trimOrNull(record?.app_base_url) ?? trimOrNull(process.env.APP_BASE_URL),
     };
   }
@@ -125,6 +128,7 @@ export class AppSettingsService {
     news_search_mock_mode: boolean;
     google_search_api_key?: string | null;
     google_search_cx?: string | null;
+    serper_api_key?: string | null;
     app_base_url?: string | null;
   }) {
     await this.getRecord();
@@ -144,6 +148,7 @@ export class AppSettingsService {
         news_search_mock_mode: input.news_search_mock_mode,
         google_search_api_key: trimOrNull(input.google_search_api_key),
         google_search_cx: trimOrNull(input.google_search_cx),
+        serper_api_key: trimOrNull(input.serper_api_key),
         app_base_url: trimOrNull(input.app_base_url),
       },
       create: {
@@ -160,6 +165,7 @@ export class AppSettingsService {
         news_search_mock_mode: input.news_search_mock_mode,
         google_search_api_key: trimOrNull(input.google_search_api_key),
         google_search_cx: trimOrNull(input.google_search_cx),
+        serper_api_key: trimOrNull(input.serper_api_key),
         app_base_url: trimOrNull(input.app_base_url),
       },
     });
