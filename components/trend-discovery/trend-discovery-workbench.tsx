@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { TrendSearchBar } from "@/components/trend-discovery/trend-search-bar";
 import { TopicRankingList } from "@/components/trend-discovery/topic-ranking-list";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { getCached, setCache, makeCacheKey } from "@/lib/search-cache";
 import { toTopicRankingItems } from "@/types/trend-discovery";
 import type { HotTopicsSearchResult, TopicRankingItem } from "@/types/trend-discovery";
 import type { SupportedPlatform } from "@/types/platform-data";
@@ -46,11 +47,27 @@ export function TrendDiscoveryWorkbench({
   const router = useRouter();
   const [state, setState] = useState<DiscoveryState>(INITIAL_STATE);
   const [activeBrandId, setActiveBrandId] = useState(brandProfiles[0]?.id ?? "");
-  const autoSearchFired = useRef(false);
 
   const activeBrand = brandProfiles.find((b) => b.id === activeBrandId) ?? null;
 
   const handleSearch = useCallback(async (query: string, platforms: SupportedPlatform[]) => {
+    // Check cache first — avoid redundant API calls within 10 minutes
+    const cacheKey = makeCacheKey(query, platforms);
+    const cached = getCached<HotTopicsSearchResult>(cacheKey);
+    if (cached) {
+      setState({
+        loading: false,
+        error: null,
+        searched: true,
+        query,
+        topics: toTopicRankingItems(cached.topics),
+        news: cached.news,
+        creatorCount: cached.creators.length,
+        contentCount: cached.content_items.length,
+      });
+      return;
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null, query }));
 
     try {
@@ -58,6 +75,8 @@ export function TrendDiscoveryWorkbench({
         "/api/research/hot-topics",
         { query, platforms, mockMode: false },
       );
+
+      setCache(cacheKey, result);
 
       setState({
         loading: false,
@@ -79,13 +98,7 @@ export function TrendDiscoveryWorkbench({
     }
   }, []);
 
-  // Auto-search on mount if brand keywords are available
-  useEffect(() => {
-    if (autoSearchFired.current) return;
-    if (!activeBrand || activeBrand.keywords.length === 0) return;
-    autoSearchFired.current = true;
-    void handleSearch(activeBrand.keywords.join(" "), ["YOUTUBE", "X"]);
-  }, [activeBrand, handleSearch]);
+  // No auto-search — user clicks "搜索热点" to start
 
   const handleCreateProject = useCallback(
     (topicKey: string, label: string) => {
@@ -107,7 +120,7 @@ export function TrendDiscoveryWorkbench({
             <div className="text-lg font-semibold text-[var(--text-1)]">热点发现</div>
             <div className="mt-1 text-sm text-[var(--text-3)]">
               {activeBrand
-                ? `已加载「${activeBrand.name}」的关键词池，自动搜索中`
+                ? `已加载「${activeBrand.name}」的关键词池，点击搜索热点开始`
                 : "输入关键词，系统从 YouTube、X 等平台聚合热点话题"}
             </div>
           </div>

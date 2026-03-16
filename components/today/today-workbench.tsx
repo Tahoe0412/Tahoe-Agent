@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Zap,
@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { apiClient, ApiError } from "@/lib/api-client";
+import { getCached, setCache, makeCacheKey } from "@/lib/search-cache";
 import { toTopicRankingItems } from "@/types/trend-discovery";
 import type {
   HotTopicsSearchResult,
@@ -73,20 +74,33 @@ export function TodayWorkbench({
   const [searchQuery, setSearchQuery] = useState(
     activeBrand?.keywords.join(" OR ") ?? ""
   );
-  const autoSearchFired = useRef(false);
 
   /* ── Search handler ── */
   const handleSearch = useCallback(
     async (query: string) => {
       if (!query.trim()) return;
+
+      // Check cache first — avoid redundant API calls within 10 minutes
+      const platforms: SupportedPlatform[] = ["YOUTUBE", "X"];
+      const cacheKey = makeCacheKey(query, platforms);
+      const cached = getCached<HotTopicsSearchResult>(cacheKey);
+      if (cached) {
+        setTopics(toTopicRankingItems(cached.topics));
+        setNewsResult(cached.news);
+        setPlatformResults(cached.platform_results);
+        setSearched(true);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       setSelectedTopic(null);
       try {
         const result = await apiClient.post<HotTopicsSearchResult>(
           "/api/research/hot-topics",
-          { query, platforms: ["YOUTUBE", "X"] as SupportedPlatform[], mockMode: false }
+          { query, platforms, mockMode: false }
         );
+        setCache(cacheKey, result);
         setTopics(toTopicRankingItems(result.topics));
         setNewsResult(result.news);
         setPlatformResults(result.platform_results);
@@ -105,15 +119,7 @@ export function TodayWorkbench({
     []
   );
 
-  /* ── Auto-search on mount ── */
-  useEffect(() => {
-    if (autoSearchFired.current) return;
-    if (!activeBrand || activeBrand.keywords.length === 0) return;
-    autoSearchFired.current = true;
-    const q = activeBrand.keywords.join(" OR ");
-    setSearchQuery(q);
-    void handleSearch(q);
-  }, [activeBrand, handleSearch]);
+  // No auto-search — user clicks "搜索" to start
 
   const t = locale === "zh";
   const mockPlatforms = platformResults
@@ -156,8 +162,8 @@ export function TodayWorkbench({
               <p className="mt-0.5 text-sm text-[var(--text-3)]">
                 {activeBrand
                   ? t
-                    ? `从「${activeBrand.name}」关键词池自动搜索`
-                    : `Auto-searching from "${activeBrand.name}" keywords`
+                    ? `已加载「${activeBrand.name}」关键词池，点击搜索开始`
+                    : `"${activeBrand.name}" keywords loaded — click Search to start`
                   : t
                     ? "输入关键词手动搜索"
                     : "Enter keywords to search"}
