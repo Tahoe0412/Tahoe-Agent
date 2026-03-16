@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-03-16 18:10 — Agent: Antigravity (Claude)
+
+### UI/UX Refactoring: Phase 2 (Component Alignment & Token Unification)
+
+**Changes**:
+- **`components/today/today-quick-actions.tsx`**: Replaced hardcoded Tailwind color gradients (`from-blue-500/20`, `from-purple-500/20`, `from-emerald-500/20`) with Tahoe token-based equivalents (`var(--sage)`, `var(--terracotta)`, `var(--accent)`). Tightened border-radius from `rounded-2xl`/`rounded-[24px]` to `rounded-xl`.
+- **`components/today/today-recent-projects.tsx`**: Replaced hardcoded `emerald-500/15` and `blue-500/15` status chips with `var(--ok-bg/text)` and `var(--accent-soft/accent)`. Added hover shadow.
+- **`components/today/today-workbench.tsx`**: Fixed broken `--warning-text`/`--warning-bg` references (→ `--warn-text`/`--warn-bg`). Replaced all hardcoded emerald/amber/red/orange Tailwind colors with Tahoe tokens. Cleaned up old earthy `rgba(145,108,43,...)` shadow remnants. Replaced orange heat badges with accent token.
+- **`components/dashboard/sidebar.tsx`** (via Phase 1 hotfix): Replaced 8 hardcoded accent RGBA values with CSS variable references.
+- **`app/globals.css`** (via sidebar hotfix): Added `color: var(--sidebar-text)` to `.theme-sidebar` to fix Tailwind v4 `@layer utilities` specificity issue.
+
+**Reason**: Establish complete visual consistency across all Today workspace modules and ensure the Tahoe design tokens are the single source of truth for all colors.
+
+**Remaining**: T-007 Phase 1 & 2 complete. No further UI/UX phases planned unless user requests.
+
+---
+
 ## 2026-03-16 17:00 — Agent: Antigravity (Claude)
 
 ### UI/UX Refactoring: Phase 1 (Tahoe Brand & Search Command Center)
