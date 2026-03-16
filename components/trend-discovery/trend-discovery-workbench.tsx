@@ -56,7 +56,7 @@ export function TrendDiscoveryWorkbench({
     try {
       const result = await apiClient.post<HotTopicsSearchResult>(
         "/api/research/hot-topics",
-        { query, platforms, mockMode: true },
+        { query, platforms, mockMode: false },
       );
 
       setState({
