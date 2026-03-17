@@ -82,8 +82,9 @@ export async function searchCnIndexedEvidence(input: {
   }> = [];
 
   // 1. Baidu News (real-time, full weight) — only if SerpApi key available
-  if (settings.serpApiKey) {
-    const baiduProvider = new BaiduNewsSearchProvider(settings.serpApiKey);
+  const serpApiKey = settings.serpApiKey || process.env.SERPAPI_KEY?.trim() || null;
+  if (serpApiKey) {
+    const baiduProvider = new BaiduNewsSearchProvider(serpApiKey);
     searches.push({
       key: "BAIDU_NEWS",
       promise: baiduProvider.searchLatest({
