@@ -4,7 +4,7 @@ export const scriptSceneSchema = z.object({
   scene_order: z.number().int().min(1).max(200),
   original_text: z.string().min(1).max(2000),
   rewritten_for_ai: z.string().min(1).max(2000),
-  shot_goal: z.string().min(1).max(200),
+  shot_goal: z.string().min(1).max(500),
   duration_sec: z.number().int().min(1).max(120),
   continuity_group: z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/),
   visual_priority: z.array(z.string().min(1).max(64)).min(1).max(8),
