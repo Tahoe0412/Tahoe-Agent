@@ -10,6 +10,12 @@
 - **Phase 2 (Done)**: Unified status chips, Quick Actions and Recent Projects components aligned to Tahoe tokens, fixed broken variable references, sidebar contrast fix.
 - **Phase 3 (Done)**: Fixed dark mode white gradient wash-out by extracting overlay opacities into CSS variables. Redesigned search bar to tag-based keyword input. Removed legacy "莫兰迪" branding.
 
+### T-008 Auto-Storyboard Generation (Step 1) ✅
+- **Goal**: Auto-generate StoryboardFrames from ScriptScenes via LLM, closing the script→storyboard gap.
+- **Commit**: `d8c7fda`
+- **Files**: `services/storyboard-generator.service.ts` (new), `services/storyboard-generator/json-schema.ts` (new), `app/api/projects/[id]/storyboards/generate/route.ts` (new)
+- **Result**: `POST /api/projects/{id}/storyboards/generate` reads ScriptScenes, calls LLM, persists Storyboard + Frames. Falls back to mock when LLM unavailable. No schema changes.
+
 ## Pending
 
 ### T-005 Configure X/Twitter API

@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-03-17 09:23 — Agent: Antigravity (Claude)
+
+### Auto-Storyboard Generation (Step 1)
+
+**Changes**:
+- **`services/storyboard-generator.service.ts`** (new): Core service that reads ScriptScenes from a project, sends them to LLM with rich prompts, and produces StoryboardFrames with `visual_prompt`, `camera_plan`, `motion_plan`, `narration_text`, and production metadata. Falls back to mock data when LLM unavailable.
+- **`services/storyboard-generator/json-schema.ts`** (new): JSON Schema defining the structured LLM output for storyboard frames.
+- **`app/api/projects/[id]/storyboards/generate/route.ts`** (new): POST endpoint to trigger auto-generation. Accepts optional `{ script_id }` body.
+
+**Reason**: Closes the gap between script rewrite (Stage 2) and storyboard planning (Stage 3). Previously, users had to manually create every storyboard frame. Now one API call generates a complete storyboard from script scenes.
+
+**No schema changes**: Storyboard already had `script_id` FK, StoryboardFrame already had `script_scene_id` FK. All fields existed.
+
+**Remaining**: Image/video generation (Step 2), video composition (Step 3), Douyin/XHS search coverage — all deferred per user request.
+
+---
+
 ## 2026-03-16 18:35 — Agent: Antigravity (Claude)
 
 ### UI/UX Refactoring: Phase 3 (Dark Mode Fix, Search Redesign, Brand Cleanup)
