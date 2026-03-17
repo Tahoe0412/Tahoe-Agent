@@ -16,6 +16,7 @@ export interface EffectiveAppSettings {
   googleSearchApiKey: string | null;
   googleSearchCx: string | null;
   serperApiKey: string | null;
+  serpApiKey: string | null;
   appBaseUrl: string | null;
 }
 
@@ -52,6 +53,7 @@ function envApiKeyDefaults() {
     google_search_api_key: trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
     google_search_cx: trimOrNull(process.env.GOOGLE_SEARCH_CX),
     serper_api_key: trimOrNull(process.env.SERPER_API_KEY),
+    serpapi_key: trimOrNull(process.env.SERPAPI_KEY),
   };
 }
 
@@ -111,6 +113,7 @@ export class AppSettingsService {
       googleSearchApiKey: trimOrNull(record?.google_search_api_key) ?? trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
       googleSearchCx: trimOrNull(record?.google_search_cx) ?? trimOrNull(process.env.GOOGLE_SEARCH_CX),
       serperApiKey: trimOrNull(record?.serper_api_key) ?? trimOrNull(process.env.SERPER_API_KEY),
+      serpApiKey: trimOrNull(process.env.SERPAPI_KEY),
       appBaseUrl: trimOrNull(record?.app_base_url) ?? trimOrNull(process.env.APP_BASE_URL),
     };
   }

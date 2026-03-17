@@ -2,6 +2,7 @@ import { AppSettingsService } from "@/services/app-settings.service";
 import { MockNewsSearchProvider } from "@/services/news-search/mock";
 import { SerperNewsSearchProvider } from "@/services/news-search/serper";
 import { SerperSearchService } from "@/services/web-search/serper-search.service";
+import { BaiduNewsSearchProvider } from "@/services/news-search/baidu";
 import type { NewsSearchItem, NewsSearchResult } from "@/types/news-search";
 
 const appSettingsService = new AppSettingsService();
@@ -44,17 +45,17 @@ export async function searchLatestNews(input: { topic: string; limit?: number })
   return new MockNewsSearchProvider().searchLatest({ ...input });
 }
 
-/** Weight factor for indexed evidence (lower than native platform data) */
+/** Weight factor for Google-indexed evidence (lower than real-time sources) */
 const INDEXED_SCORE_WEIGHT = 0.6;
 
 /**
  * Search for China-focused evidence:
- * 1. CN Google News (gl: "cn", hl: "zh-cn")
- * 2. site:xiaohongshu.com indexed pages
- * 3. site:douyin.com indexed pages
+ * 1. **Baidu News** (real-time, via SerpApi) — full weight
+ * 2. CN Google News (gl: "cn", hl: "zh-cn") — 0.6× weight
+ * 3. site:xiaohongshu.com indexed pages — 0.6× weight
+ * 4. site:douyin.com indexed pages — 0.6× weight
  *
- * Results are tagged with source_type "cn_news" or "indexed" and scores
- * are weighted down to avoid competing equally with native platform data.
+ * Baidu results appear first (most timely). Google-indexed results follow.
  */
 export async function searchCnIndexedEvidence(input: {
   topic: string;
@@ -62,87 +63,122 @@ export async function searchCnIndexedEvidence(input: {
 }): Promise<NewsSearchResult> {
   const settings = await appSettingsService.getEffectiveSettings();
 
-  if (settings.newsSearchMockMode || !settings.serperApiKey) {
+  if (settings.newsSearchMockMode) {
     return {
       provider: "GOOGLE",
-      mode: settings.newsSearchMockMode ? "mock" : "live",
+      mode: "mock",
       success: true,
       items: [],
-      errors: settings.serperApiKey
-        ? []
-        : [{ code: "CONFIG_MISSING", message: "SERPER_API_KEY missing for CN indexed search" }],
+      errors: [],
       fetched_at: new Date().toISOString(),
     };
   }
 
-  const newsProvider = new SerperNewsSearchProvider(settings.serperApiKey);
-  const webProvider = new SerperSearchService(settings.serperApiKey);
+  // Build list of parallel search promises
+  const searches: Array<{
+    key: string;
+    promise: Promise<NewsSearchResult>;
+    transform: (items: NewsSearchItem[]) => NewsSearchItem[];
+  }> = [];
 
-  const CN_LOCALE = { gl: "cn", hl: "zh-cn" };
-  const perSourceLimit = Math.min(input.limit ?? 5, 8);
+  // 1. Baidu News (real-time, full weight) — only if SerpApi key available
+  if (settings.serpApiKey) {
+    const baiduProvider = new BaiduNewsSearchProvider(settings.serpApiKey);
+    searches.push({
+      key: "BAIDU_NEWS",
+      promise: baiduProvider.searchLatest({
+        topic: input.topic,
+        limit: Math.min(input.limit ?? 8, 10),
+      }),
+      // Baidu results get full score weight — they are real-time
+      transform: (items) => items,
+    });
+  }
 
-  // Fire all 3 searches in parallel
-  const [cnNewsResult, xhsResult, douyinResult] = await Promise.allSettled([
-    newsProvider.searchLatest({
-      topic: input.topic,
-      limit: perSourceLimit,
-      locale: CN_LOCALE,
-      sourceType: "cn_news",
-    }),
-    webProvider.searchPlatformContent({
-      query: input.topic,
-      siteDomain: "xiaohongshu.com",
-      limit: perSourceLimit,
-      locale: CN_LOCALE,
-    }),
-    webProvider.searchPlatformContent({
-      query: input.topic,
-      siteDomain: "douyin.com",
-      limit: perSourceLimit,
-      locale: CN_LOCALE,
-    }),
-  ]);
+  // 2-4. Google-indexed sources (only if Serper key available)
+  if (settings.serperApiKey) {
+    const newsProvider = new SerperNewsSearchProvider(settings.serperApiKey);
+    const webProvider = new SerperSearchService(settings.serperApiKey);
+    const CN_LOCALE = { gl: "cn", hl: "zh-cn" };
+    const perSourceLimit = Math.min(input.limit ?? 5, 8);
+
+    searches.push({
+      key: "CN_NEWS",
+      promise: newsProvider.searchLatest({
+        topic: input.topic,
+        limit: perSourceLimit,
+        locale: CN_LOCALE,
+        sourceType: "cn_news",
+      }),
+      transform: (items) =>
+        items.map((item) => ({ ...item, score: item.score * INDEXED_SCORE_WEIGHT })),
+    });
+
+    searches.push({
+      key: "XHS_INDEXED",
+      promise: webProvider.searchPlatformContent({
+        query: input.topic,
+        siteDomain: "xiaohongshu.com",
+        limit: perSourceLimit,
+        locale: CN_LOCALE,
+      }),
+      transform: (items) =>
+        items.map((item) => ({
+          ...item,
+          id: `xhs-indexed-${item.id}`,
+          source: "小红书 (索引)",
+          source_type: "indexed",
+          score: item.score * INDEXED_SCORE_WEIGHT,
+        })),
+    });
+
+    searches.push({
+      key: "DOUYIN_INDEXED",
+      promise: webProvider.searchPlatformContent({
+        query: input.topic,
+        siteDomain: "douyin.com",
+        limit: perSourceLimit,
+        locale: CN_LOCALE,
+      }),
+      transform: (items) =>
+        items.map((item) => ({
+          ...item,
+          id: `douyin-indexed-${item.id}`,
+          source: "抖音 (索引)",
+          source_type: "indexed",
+          score: item.score * INDEXED_SCORE_WEIGHT,
+        })),
+    });
+  }
+
+  if (searches.length === 0) {
+    return {
+      provider: "GOOGLE",
+      mode: "live",
+      success: true,
+      items: [],
+      errors: [{ code: "CONFIG_MISSING", message: "No search API keys configured for CN evidence" }],
+      fetched_at: new Date().toISOString(),
+    };
+  }
+
+  // Fire all searches in parallel
+  const results = await Promise.allSettled(searches.map((s) => s.promise));
 
   const allItems: NewsSearchItem[] = [];
   const errors: Array<{ code: string; message: string }> = [];
 
-  // Collect CN news
-  if (cnNewsResult.status === "fulfilled" && cnNewsResult.value.success) {
-    for (const item of cnNewsResult.value.items) {
-      allItems.push({ ...item, score: item.score * INDEXED_SCORE_WEIGHT });
-    }
-  } else if (cnNewsResult.status === "rejected") {
-    errors.push({ code: "CN_NEWS_FAILED", message: String(cnNewsResult.reason) });
-  }
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    const search = searches[i];
 
-  // Collect XHS indexed results
-  if (xhsResult.status === "fulfilled" && xhsResult.value.success) {
-    for (const item of xhsResult.value.items) {
-      allItems.push({
-        ...item,
-        id: `xhs-indexed-${item.id}`,
-        source: "小红书 (索引)",
-        source_type: "indexed",
-        score: item.score * INDEXED_SCORE_WEIGHT,
-      });
+    if (result.status === "fulfilled" && result.value.success) {
+      allItems.push(...search.transform(result.value.items));
+    } else if (result.status === "rejected") {
+      errors.push({ code: `${search.key}_FAILED`, message: String(result.reason) });
+    } else if (result.status === "fulfilled" && !result.value.success) {
+      errors.push(...result.value.errors);
     }
-  } else if (xhsResult.status === "rejected") {
-    errors.push({ code: "XHS_INDEXED_FAILED", message: String(xhsResult.reason) });
-  }
-
-  // Collect Douyin indexed results
-  if (douyinResult.status === "fulfilled" && douyinResult.value.success) {
-    for (const item of douyinResult.value.items) {
-      allItems.push({
-        ...item,
-        id: `douyin-indexed-${item.id}`,
-        source: "抖音 (索引)",
-        source_type: "indexed",
-        score: item.score * INDEXED_SCORE_WEIGHT,
-      });
-    }
-  } else if (douyinResult.status === "rejected") {
-    errors.push({ code: "DOUYIN_INDEXED_FAILED", message: String(douyinResult.reason) });
   }
 
   return {
@@ -154,4 +190,5 @@ export async function searchCnIndexedEvidence(input: {
     fetched_at: new Date().toISOString(),
   };
 }
+
 
