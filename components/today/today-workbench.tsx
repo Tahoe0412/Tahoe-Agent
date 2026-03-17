@@ -51,6 +51,7 @@ export function TodayWorkbench({
     searched,
     topics,
     news: newsResult,
+    cnIndexed,
     platformResults,
     search: handleSearch,
   } = useHotTopics();
@@ -332,6 +333,39 @@ export function TodayWorkbench({
                       {t ? "当前没有拿到新闻结果。" : "No news results were returned."}
                     </div>
                   ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {/* CN indexed evidence: 中文新闻 + 抖音/小红书索引 */}
+            {cnIndexed && cnIndexed.items.length > 0 ? (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
+                  {t ? "国内热点证据" : "China Indexed Evidence"}
+                  <span className="ml-2 rounded-md bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-normal text-[var(--accent)]">
+                    {cnIndexed.items.length} 条
+                  </span>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {cnIndexed.items.slice(0, 8).map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3 transition hover:border-[var(--accent)]/40"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
+                        <span className="shrink-0 rounded-md bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">
+                          {item.source}
+                        </span>
+                      </div>
+                      {item.snippet ? (
+                        <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
+                      ) : null}
+                    </a>
+                  ))}
                 </div>
               </div>
             ) : null}

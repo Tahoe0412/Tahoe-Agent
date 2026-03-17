@@ -14,6 +14,7 @@ export interface UseHotTopicsResult {
   searched: boolean;
   topics: TopicRankingItem[];
   news: NewsSearchResult | null;
+  cnIndexed: NewsSearchResult | null;
   platformResults: PlatformCollectResult[];
   creatorCount: number;
   contentCount: number;
@@ -31,6 +32,7 @@ export function useHotTopics(): UseHotTopicsResult {
   const [searched, setSearched] = useState(false);
   const [topics, setTopics] = useState<TopicRankingItem[]>([]);
   const [news, setNews] = useState<NewsSearchResult | null>(null);
+  const [cnIndexed, setCnIndexed] = useState<NewsSearchResult | null>(null);
   const [platformResults, setPlatformResults] = useState<PlatformCollectResult[]>([]);
   const [creatorCount, setCreatorCount] = useState(0);
   const [contentCount, setContentCount] = useState(0);
@@ -45,6 +47,7 @@ export function useHotTopics(): UseHotTopicsResult {
     if (cached) {
       setTopics(toTopicRankingItems(cached.topics));
       setNews(cached.news);
+      setCnIndexed(cached.cn_indexed ?? null);
       setPlatformResults(cached.platform_results ?? []);
       setCreatorCount(cached.creators.length);
       setContentCount(cached.content_items.length);
@@ -66,6 +69,7 @@ export function useHotTopics(): UseHotTopicsResult {
       
       setTopics(toTopicRankingItems(result.topics));
       setNews(result.news);
+      setCnIndexed(result.cn_indexed ?? null);
       setPlatformResults(result.platform_results ?? []);
       setCreatorCount(result.creators.length);
       setContentCount(result.content_items.length);
@@ -74,6 +78,7 @@ export function useHotTopics(): UseHotTopicsResult {
       setError(err instanceof ApiError ? err.message : "搜索失败，请重试");
       setTopics([]);
       setNews(null);
+      setCnIndexed(null);
       setPlatformResults([]);
       setCreatorCount(0);
       setContentCount(0);
@@ -89,6 +94,7 @@ export function useHotTopics(): UseHotTopicsResult {
     setSearched(false);
     setTopics([]);
     setNews(null);
+    setCnIndexed(null);
     setPlatformResults([]);
     setCreatorCount(0);
     setContentCount(0);
@@ -100,6 +106,7 @@ export function useHotTopics(): UseHotTopicsResult {
     searched,
     topics,
     news,
+    cnIndexed,
     platformResults,
     creatorCount,
     contentCount,

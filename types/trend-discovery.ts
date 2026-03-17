@@ -21,6 +21,7 @@ export interface HotTopicsSearchResult {
   creators: Creator[];
   content_items: ContentItem[];
   news: NewsSearchResult;
+  cn_indexed?: NewsSearchResult;
   platform_results: PlatformCollectResult[];
   fetched_at: string;
 }
