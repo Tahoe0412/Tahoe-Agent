@@ -545,6 +545,18 @@ export class WorkspaceQueryService {
       scenePlannerRows,
       priorities,
       latestReport: project.research_reports[0] ?? null,
+      latestScriptPreview: latestScript
+        ? {
+            id: latestScript.id,
+            title: latestScript.title,
+            originalText: latestScript.original_text,
+            structuredOutput: latestScript.structured_output,
+            rawPayload: latestScript.raw_payload,
+            modelName: latestScript.model_name,
+            sourceType: latestScript.source_type,
+            createdAt: latestScript.created_at,
+          }
+        : null,
     });
   }
 }
