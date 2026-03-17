@@ -1,17 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Zap,
   Flame,
   AlertTriangle,
+  Check,
+  FileText,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useHotTopics } from "@/hooks/use-hot-topics";
+import { useGenerateScript } from "@/hooks/use-generate-script";
 import { TodayQuickActions } from "./today-quick-actions";
 import { TodayRecentProjects, type RecentProject } from "./today-recent-projects";
 import type { TopicRankingItem } from "@/types/trend-discovery";
 import { cn } from "@/lib/utils";
+
+/* ────────────────────────────────────────────
+   Selectable news item shape
+   ──────────────────────────────────────────── */
+
+interface SelectableNewsItem {
+  id: string;
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
+  source_type: string;
+  published_at: string;
+}
 
 /* ────────────────────────────────────────────
    Types
@@ -60,6 +79,35 @@ export function TodayWorkbench({
   const [searchQuery, setSearchQuery] = useState(
     activeBrand?.keywords.join(" OR ") ?? ""
   );
+
+  /* ── News selection state ── */
+  const [selectedNews, setSelectedNews] = useState<Map<string, SelectableNewsItem>>(new Map());
+  const { generate: generateScript, loading: generatingScript, error: generateError } = useGenerateScript();
+
+  const toggleNewsItem = useCallback((item: SelectableNewsItem) => {
+    setSelectedNews((prev) => {
+      const next = new Map(prev);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.set(item.id, item);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedNews(new Map());
+  }, []);
+
+  const handleGenerateScript = useCallback(async () => {
+    if (selectedNews.size === 0) return;
+    const items = Array.from(selectedNews.values());
+    const result = await generateScript(searchQuery || "热点新闻", items);
+    if (result?.projectId) {
+      router.push(`/script-lab?projectId=${result.projectId}`);
+    }
+  }, [selectedNews, searchQuery, generateScript, router]);
 
   // No auto-search — user clicks "搜索" to start
   const t = locale === "zh";
@@ -316,18 +364,49 @@ export function TodayWorkbench({
                   {t ? "Google 新闻样本" : "Google News Samples"}
                 </div>
                 <div className="mt-3 space-y-2">
-                  {newsResult.items.slice(0, 3).map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3 transition hover:border-[var(--accent)]/40"
-                    >
-                      <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
-                      <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
-                    </a>
-                  ))}
+                  {newsResult.items.slice(0, 5).map((item) => {
+                    const selectable: SelectableNewsItem = {
+                      id: item.id,
+                      title: item.title,
+                      url: item.url,
+                      snippet: item.snippet ?? "",
+                      source: item.source ?? "Google News",
+                      source_type: item.source_type ?? "google_news",
+                      published_at: item.published_at ?? "",
+                    };
+                    const isSelected = selectedNews.has(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "group flex items-start gap-3 rounded-xl border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
+                          isSelected
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
+                            : "border-[var(--border)] hover:border-[var(--accent)]/40",
+                        )}
+                        onClick={() => toggleNewsItem(selectable)}
+                      >
+                        {/* Checkbox */}
+                        <div
+                          className={cn(
+                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+                            isSelected
+                              ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                              : "border-[var(--text-3)]/30 group-hover:border-[var(--accent)]/50",
+                          )}
+                        >
+                          {isSelected && <Check className="size-3" strokeWidth={3} />}
+                        </div>
+                        {/* Content */}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
+                          <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
+                        </div>
+                        {/* External link */}
+                        <a href={item.url} target="_blank" rel="noreferrer" className="shrink-0 text-[10px] text-[var(--text-3)] hover:text-[var(--accent)] transition" onClick={(e) => e.stopPropagation()}>↗</a>
+                      </div>
+                    );
+                  })}
                   {newsResult.items.length === 0 ? (
                     <div className="text-xs leading-6 text-[var(--text-3)]">
                       {t ? "当前没有拿到新闻结果。" : "No news results were returned."}
@@ -347,25 +426,56 @@ export function TodayWorkbench({
                   </span>
                 </div>
                 <div className="mt-3 space-y-2">
-                  {cnIndexed.items.slice(0, 8).map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3 transition hover:border-[var(--accent)]/40"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
-                        <span className="shrink-0 rounded-md bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">
-                          {item.source}
-                        </span>
+                  {cnIndexed.items.slice(0, 12).map((item) => {
+                    const selectable: SelectableNewsItem = {
+                      id: item.id,
+                      title: item.title,
+                      url: item.url,
+                      snippet: item.snippet ?? "",
+                      source: item.source ?? "未知来源",
+                      source_type: item.source_type ?? "cn_news",
+                      published_at: item.published_at ?? "",
+                    };
+                    const isSelected = selectedNews.has(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "group flex items-start gap-3 rounded-xl border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
+                          isSelected
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
+                            : "border-[var(--border)] hover:border-[var(--accent)]/40",
+                        )}
+                        onClick={() => toggleNewsItem(selectable)}
+                      >
+                        {/* Checkbox */}
+                        <div
+                          className={cn(
+                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+                            isSelected
+                              ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                              : "border-[var(--text-3)]/30 group-hover:border-[var(--accent)]/50",
+                          )}
+                        >
+                          {isSelected && <Check className="size-3" strokeWidth={3} />}
+                        </div>
+                        {/* Content */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
+                            <span className="shrink-0 rounded-md bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">
+                              {item.source}
+                            </span>
+                          </div>
+                          {item.snippet ? (
+                            <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
+                          ) : null}
+                        </div>
+                        {/* External link */}
+                        <a href={item.url} target="_blank" rel="noreferrer" className="shrink-0 text-[10px] text-[var(--text-3)] hover:text-[var(--accent)] transition" onClick={(e) => e.stopPropagation()}>↗</a>
                       </div>
-                      {item.snippet ? (
-                        <div className="mt-1 text-xs leading-5 text-[var(--text-3)]">{item.snippet}</div>
-                      ) : null}
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : null}
@@ -487,6 +597,61 @@ export function TodayWorkbench({
         locale={locale}
         onProjectClick={(id) => router.push(`/?projectId=${id}`)}
       />
+
+      {/* ── Floating Selection Bar ── */}
+      {selectedNews.size > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center pb-5 pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-solid)] px-5 py-3.5 shadow-[0_-6px_36px_rgba(0,0,0,0.12)] backdrop-blur-lg">
+            {/* Selected count */}
+            <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-1)]">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent)] text-white text-xs font-bold">
+                {selectedNews.size}
+              </div>
+              {t ? "条新闻已选" : "news selected"}
+            </div>
+
+            {/* Divider */}
+            <div className="h-6 w-px bg-[var(--border)]" />
+
+            {/* Clear */}
+            <button
+              onClick={clearSelection}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--text-2)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
+            >
+              <X className="size-3.5" />
+              {t ? "清空" : "Clear"}
+            </button>
+
+            {/* Generate Script */}
+            <button
+              onClick={handleGenerateScript}
+              disabled={generatingScript}
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all",
+                generatingScript
+                  ? "bg-[var(--accent)]/60 cursor-wait"
+                  : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
+              )}
+            >
+              {generatingScript ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileText className="size-4" />
+              )}
+              {generatingScript
+                ? (t ? "正在生成…" : "Generating…")
+                : (t ? "生成脚本" : "Generate Script")}
+            </button>
+          </div>
+
+          {/* Error toast */}
+          {generateError && (
+            <div className="pointer-events-auto absolute bottom-20 rounded-xl border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)] shadow-lg">
+              {generateError}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
