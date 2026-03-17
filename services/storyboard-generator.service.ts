@@ -159,6 +159,7 @@ export class StoryboardGeneratorService {
     let output: StoryboardGenerateOutput;
 
     if (!llmEnabled) {
+      console.warn("[storyboard-generator] LLM unavailable, using mock fallback");
       output = buildMockFrames(scenes);
     } else {
       output = await generateStructuredJson<StoryboardGenerateOutput>({
@@ -166,6 +167,21 @@ export class StoryboardGeneratorService {
         schemaName: "storyboard_generate_output",
         schema: storyboardGenerateJsonSchema,
         zodSchema: storyboardGenerateOutputSchema,
+        preprocess: (raw: unknown) => {
+          // LLMs sometimes return a bare array instead of { frames: [...] }
+          if (Array.isArray(raw)) {
+            return { frames: raw };
+          }
+          // Or wrap in { storyboard_frames: [...] } or similar
+          if (raw && typeof raw === "object" && !("frames" in raw)) {
+            const obj = raw as Record<string, unknown>;
+            const arrayKey = Object.keys(obj).find((k) => Array.isArray(obj[k]));
+            if (arrayKey) {
+              return { ...obj, frames: obj[arrayKey] };
+            }
+          }
+          return raw;
+        },
         systemPrompt: [
           "You are a professional short-video storyboard designer.",
           "You convert script scenes into detailed storyboard frames for AI image/video generation.",
@@ -173,7 +189,7 @@ export class StoryboardGeneratorService {
           "subject, lighting, color palette, and mood — ready for text-to-image or text-to-video models.",
           "Keep narration_text as concise voiceover text aligned with the scene.",
           "Use production_class to indicate complexity: A (simple text), C (stock-level), E (custom shoot), T (VFX).",
-          "Output valid JSON only.",
+          "Output valid JSON only. The output MUST be an object with a 'frames' array, not a bare array.",
         ].join(" "),
         userPrompt: [
           `Project: ${project.title}`,
