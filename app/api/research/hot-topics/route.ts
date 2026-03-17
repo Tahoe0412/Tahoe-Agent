@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPlatformConnector } from "@/services/platform-connectors";
 import { TrendScoringEngine } from "@/services/trend-scoring";
-import { searchLatestNews } from "@/services/news-search";
+import { searchLatestNews, searchCnIndexedEvidence } from "@/services/news-search";
 import { MockNewsSearchProvider } from "@/services/news-search/mock";
 import { prepareTrendContentItems } from "@/services/hot-topics/prepare-trend-content";
 import type { SupportedPlatform, ContentItem, Creator, PlatformCollectResult } from "@/types/platform-data";
@@ -25,6 +25,7 @@ interface HotTopicsResponse {
   creators: Creator[];
   content_items: ContentItem[];
   news: NewsSearchResult;
+  cn_indexed: NewsSearchResult;
   platform_results: PlatformCollectResult[];
   fetched_at: string;
 }
@@ -47,13 +48,24 @@ export async function POST(request: Request) {
     const limit = Math.min(body.limit ?? 10, 25);
     const mockMode = body.mockMode ?? false;
 
-    // 1. Parallel: platform connectors + news search
+    // 1. Parallel: platform connectors + news search + CN indexed evidence
     //    In mock mode, bypass AppSettingsService (requires DB) and use mock directly.
     const newsSearchPromise = mockMode
       ? new MockNewsSearchProvider().searchLatest({ topic: query, limit: 5 })
       : searchLatestNews({ topic: query, limit: 5 });
 
-    const [platformResults, newsResult] = await Promise.all([
+    const cnIndexedPromise = mockMode
+      ? Promise.resolve<NewsSearchResult>({
+          provider: "GOOGLE",
+          mode: "mock",
+          success: true,
+          items: [],
+          errors: [],
+          fetched_at: new Date().toISOString(),
+        })
+      : searchCnIndexedEvidence({ topic: query, limit: 5 });
+
+    const [platformResults, newsResult, cnIndexedResult] = await Promise.all([
       Promise.all(
         platforms.map((platform) =>
           getPlatformConnector(platform).collect({
@@ -64,6 +76,7 @@ export async function POST(request: Request) {
         )
       ),
       newsSearchPromise,
+      cnIndexedPromise,
     ]);
 
     // 2. Dedupe and aggregate
@@ -95,6 +108,7 @@ export async function POST(request: Request) {
       creators,
       content_items: contentItems,
       news: newsResult,
+      cn_indexed: cnIndexedResult,
       platform_results: platformResults,
       fetched_at: new Date().toISOString(),
     };
@@ -108,3 +122,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

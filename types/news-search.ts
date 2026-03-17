@@ -8,6 +8,8 @@ export interface NewsSearchItem {
   published_at: string;
   source: string;
   score: number;
+  /** "news" = Google News, "indexed" = site-scoped indexed search, "platform" = native connector */
+  source_type?: string;
   raw_payload?: unknown;
 }
 

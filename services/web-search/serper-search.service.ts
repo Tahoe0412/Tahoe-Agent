@@ -28,7 +28,13 @@ export class SerperSearchService {
     query: string;
     limit?: number;
     language?: string;
+    locale?: { gl: string; hl: string };
+    sourceType?: string;
   }): Promise<WebSearchResult> {
+    const gl = input.locale?.gl ?? "us";
+    const hl = input.locale?.hl ?? (input.language?.includes("zh") ? "zh-cn" : "en");
+    const sourceType = input.sourceType ?? "web";
+
     const response = await fetch("https://google.serper.dev/search", {
       method: "POST",
       headers: {
@@ -37,8 +43,8 @@ export class SerperSearchService {
       },
       body: JSON.stringify({
         q: input.query,
-        gl: "us",
-        hl: input.language?.includes("zh") ? "zh-cn" : "en",
+        gl,
+        hl,
         num: Math.min(input.limit ?? 8, 10),
       }),
       signal: AbortSignal.timeout(15_000),
@@ -55,13 +61,14 @@ export class SerperSearchService {
     const items: NewsSearchItem[] = (payload.organic ?? [])
       .filter((item) => item.title && item.link)
       .map((item, index) => ({
-        id: `serper-${index + 1}`,
+        id: `serper-${gl}-${index + 1}`,
         title: item.title ?? "Untitled",
         url: item.link ?? "",
         snippet: item.snippet ?? "",
         published_at: item.date ?? new Date().toISOString(),
         source: "Google",
         score: 1 - index * 0.1,
+        source_type: sourceType,
         raw_payload: item,
       }));
 
@@ -89,10 +96,14 @@ export class SerperSearchService {
     query: string;
     siteDomain: string;
     limit?: number;
+    locale?: { gl: string; hl: string };
   }): Promise<WebSearchResult> {
     return this.searchGeneral({
       query: `site:${input.siteDomain} ${input.query}`,
       limit: input.limit ?? 6,
+      locale: input.locale ?? { gl: "cn", hl: "zh-cn" },
+      sourceType: "indexed",
     });
   }
 }
+

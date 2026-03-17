@@ -15,12 +15,23 @@ interface SerperNewsResponse {
   searchParameters?: Record<string, string>;
 }
 
+export interface SerperLocale {
+  gl: string;
+  hl: string;
+}
+
 export class SerperNewsSearchProvider implements NewsSearchProviderAdapter {
   readonly provider = "GOOGLE" as const; // keep "GOOGLE" for UI compatibility
 
   constructor(private readonly apiKey: string) {}
 
-  async searchLatest(input: { topic: string; limit?: number; mock?: boolean }): Promise<NewsSearchResult> {
+  async searchLatest(input: {
+    topic: string;
+    limit?: number;
+    mock?: boolean;
+    locale?: SerperLocale;
+    sourceType?: string;
+  }): Promise<NewsSearchResult> {
     if (input.mock) {
       return {
         provider: this.provider,
@@ -32,6 +43,9 @@ export class SerperNewsSearchProvider implements NewsSearchProviderAdapter {
       };
     }
 
+    const locale = input.locale ?? { gl: "us", hl: "en" };
+    const sourceType = input.sourceType ?? "news";
+
     const response = await fetch("https://google.serper.dev/news", {
       method: "POST",
       headers: {
@@ -40,8 +54,8 @@ export class SerperNewsSearchProvider implements NewsSearchProviderAdapter {
       },
       body: JSON.stringify({
         q: input.topic,
-        gl: "us",
-        hl: "en",
+        gl: locale.gl,
+        hl: locale.hl,
         num: Math.min(input.limit ?? 5, 10),
       }),
       signal: AbortSignal.timeout(15_000),
@@ -56,13 +70,14 @@ export class SerperNewsSearchProvider implements NewsSearchProviderAdapter {
     const items: NewsSearchItem[] = (payload.news ?? [])
       .filter((item) => item.title && item.link)
       .map((item, index) => ({
-        id: `serper-news-${index + 1}`,
+        id: `serper-news-${locale.gl}-${index + 1}`,
         title: item.title ?? "Untitled",
         url: item.link ?? "",
         snippet: item.snippet ?? "",
         published_at: item.date ?? new Date().toISOString(),
         source: item.source ?? "Google",
         score: 1 - index * 0.05,
+        source_type: sourceType,
         raw_payload: item,
       }));
 
@@ -76,3 +91,4 @@ export class SerperNewsSearchProvider implements NewsSearchProviderAdapter {
     };
   }
 }
+
