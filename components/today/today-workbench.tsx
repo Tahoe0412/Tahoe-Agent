@@ -72,6 +72,7 @@ export function TodayWorkbench({
     news: newsResult,
     cnIndexed,
     platformResults,
+    batchProgress,
     search: handleSearch,
   } = useHotTopics();
 
@@ -290,11 +291,17 @@ export function TodayWorkbench({
           {/* Layer 3: Search action */}
           <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-2">
             <span className="text-xs text-[var(--text-3)] truncate max-w-[70%]">
-              {selectedKeywords.length > 0
-                ? selectedKeywords.map((k) => k.text).join(" OR ")
-                : t
-                  ? "请选中至少一个关键词"
-                  : "Select at least one keyword"}
+              {loading && batchProgress
+                ? t
+                  ? `正在搜索… (${batchProgress.completed}/${batchProgress.total} 批完成)`
+                  : `Searching… (${batchProgress.completed}/${batchProgress.total} batches)`
+                : selectedKeywords.length === 0
+                  ? t ? "请选中至少一个关键词" : "Select at least one keyword"
+                  : selectedKeywords.length <= 3
+                    ? `${t ? "搜索" : "Search"}: ${selectedKeywords.map((k) => k.text).join("、")}`
+                    : t
+                      ? `搜索 ${selectedKeywords.length} 个关键词 · 分 ${Math.ceil(selectedKeywords.length / 3)} 批执行`
+                      : `${selectedKeywords.length} keywords · ${Math.ceil(selectedKeywords.length / 3)} batches`}
             </span>
             <button
               onClick={() => {
