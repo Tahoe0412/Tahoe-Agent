@@ -333,62 +333,42 @@ export function TodayWorkbench({
         )}
 
         {searched && !loading && (platformResults.length > 0 || newsResult) ? (
-          <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
-                {t ? "数据源状态" : "Source Status"}
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {platformResults.map((item) => (
-                  <span
-                    key={item.platform}
-                    className={cn(
-                      "rounded-full px-3 py-1.5 text-xs font-medium",
-                      item.success && item.mode === "live"
-                        ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
-                        : item.mode === "mock"
-                          ? "bg-[var(--warn-bg)] text-[var(--warn-text)]"
-                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]"
-                    )}
-                  >
-                    {item.platform} · {item.mode}
+          <>
+            {/* Compact source warnings (if any) */}
+            {(mockPlatforms.length > 0 || failedPlatforms.length > 0) && (
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                {mockPlatforms.length > 0 && (
+                  <span className="rounded-full bg-[var(--warn-bg)] px-3 py-1 text-[var(--warn-text)]">
+                    {t ? `${mockPlatforms.join(" / ")} 返回 mock 数据` : `${mockPlatforms.join(" / ")} mock data`}
                   </span>
-                ))}
-                {newsResult ? (
+                )}
+                {failedPlatforms.length > 0 && (
+                  <span className="rounded-full bg-[var(--danger-bg)] px-3 py-1 text-[var(--danger-text)]">
+                    {t ? `${failedPlatforms.map((p) => p.platform).join(" / ")} 请求失败` : `${failedPlatforms.map((p) => p.platform).join(" / ")} failed`}
+                  </span>
+                )}
+              </div>
+            )}
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {newsResult ? (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
+                    {t ? "Google 新闻样本" : "Google News Samples"}
+                  </span>
                   <span
                     className={cn(
-                      "rounded-full px-3 py-1.5 text-xs font-medium",
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
                       newsResult.success && newsResult.mode === "live"
                         ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                         : newsResult.mode === "mock"
                           ? "bg-[var(--warn-bg)] text-[var(--warn-text)]"
-                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]"
+                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]",
                     )}
                   >
-                    Google News · {newsResult.mode}
+                    {newsResult.mode === "live" ? "live" : newsResult.mode} · {newsResult.items.length}
                   </span>
-                ) : null}
-              </div>
-              {mockPlatforms.length > 0 ? (
-                <div className="mt-3 text-xs leading-6 text-[var(--warn-text)]">
-                  {t
-                    ? `当前 ${mockPlatforms.join(" / ")} 仍在返回 mock 数据，热点卡片会受影响。`
-                    : `${mockPlatforms.join(" / ")} is still returning mock data, so topic quality will be affected.`}
-                </div>
-              ) : null}
-              {failedPlatforms.length > 0 ? (
-                <div className="mt-2 text-xs leading-6 text-[var(--danger-text)]">
-                  {t
-                    ? `以下平台请求失败：${failedPlatforms.map((item) => item.platform).join(" / ")}`
-                    : `These platforms failed: ${failedPlatforms.map((item) => item.platform).join(" / ")}`}
-                </div>
-              ) : null}
-            </div>
-
-            {newsResult ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
-                  {t ? "Google 新闻样本" : "Google News Samples"}
                 </div>
                 <div className="mt-3 space-y-2">
                   {newsResult.items.slice(0, 5).map((item) => {
@@ -443,17 +423,30 @@ export function TodayWorkbench({
               </div>
             ) : null}
 
-            {/* CN indexed evidence: 中文新闻 + 抖音/小红书索引 */}
-            {cnIndexed && cnIndexed.items.length > 0 ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
+            {/* CN indexed evidence */}
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
                   {t ? "国内热点证据" : "China Indexed Evidence"}
-                  <span className="ml-2 rounded-md bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-normal text-[var(--accent)]">
-                    {cnIndexed.items.length} 条
+                </span>
+                {cnIndexed ? (
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      cnIndexed.success && cnIndexed.mode === "live"
+                        ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
+                        : cnIndexed.mode === "mock"
+                          ? "bg-[var(--warn-bg)] text-[var(--warn-text)]"
+                          : "bg-[var(--danger-bg)] text-[var(--danger-text)]",
+                    )}
+                  >
+                    {cnIndexed.mode === "live" ? "live" : cnIndexed.mode} · {cnIndexed.items.length}
                   </span>
-                </div>
-                <div className="mt-3 space-y-2">
-                  {cnIndexed.items.slice(0, 12).map((item) => {
+                ) : null}
+              </div>
+              <div className="mt-3 space-y-2">
+                {cnIndexed && cnIndexed.items.length > 0 ? (
+                  cnIndexed.items.slice(0, 12).map((item) => {
                     const selectable: SelectableNewsItem = {
                       id: item.id,
                       title: item.title,
@@ -502,11 +495,16 @@ export function TodayWorkbench({
                         <a href={item.url} target="_blank" rel="noreferrer" className="shrink-0 text-[10px] text-[var(--text-3)] hover:text-[var(--accent)] transition" onClick={(e) => e.stopPropagation()}>↗</a>
                       </div>
                     );
-                  })}
-                </div>
+                  })
+                ) : (
+                  <div className="text-xs leading-6 text-[var(--text-3)]">
+                    {t ? "暂无国内热点证据。" : "No China indexed results."}
+                  </div>
+                )}
               </div>
-            ) : null}
+            </div>
           </div>
+          </>
         ) : null}
 
         {/* Loading skeleton */}
