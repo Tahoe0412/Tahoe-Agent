@@ -296,12 +296,12 @@ export function TodayWorkbench({
                   ? `正在搜索… (${batchProgress.completed}/${batchProgress.total} 批完成)`
                   : `Searching… (${batchProgress.completed}/${batchProgress.total} batches)`
                 : selectedKeywords.length === 0
-                  ? t ? "请选中至少一个关键词" : "Select at least one keyword"
+                  ? t ? "点击关键词可勾选 · 请选中至少一个" : "Click keywords to select · At least one required"
                   : selectedKeywords.length <= 3
                     ? `${t ? "搜索" : "Search"}: ${selectedKeywords.map((k) => k.text).join("、")}`
                     : t
-                      ? `搜索 ${selectedKeywords.length} 个关键词 · 分 ${Math.ceil(selectedKeywords.length / 3)} 批执行`
-                      : `${selectedKeywords.length} keywords · ${Math.ceil(selectedKeywords.length / 3)} batches`}
+                      ? `点击关键词可勾选 · 搜索 ${selectedKeywords.length} 个关键词 · 分 ${Math.ceil(selectedKeywords.length / 3)} 批执行`
+                      : `Click to toggle · ${selectedKeywords.length} keywords · ${Math.ceil(selectedKeywords.length / 3)} batches`}
             </span>
             <button
               onClick={() => {
