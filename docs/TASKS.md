@@ -25,6 +25,20 @@
   - Trend search returns X/Twitter post results
   - Error messages no longer appear for X platform
 
+### T-009 Expand Hot Topics with China-Focused Indexed Search
+- **Problem**: Current hot-topics search is biased toward US/English results because Serper requests use `gl: "us"` and `hl: "en"`. Tahoe lacks reliable domestic evidence sources for Chinese trend discovery.
+- **Goal**: Increase mainland China trend coverage without introducing fragile scrapers or unsupported "official search APIs".
+- **Recommended approach**:
+  - Keep Serper as the base provider; do **not** pivot to unverified Baidu/Sogou/360 "search APIs"
+  - Add CN-oriented Serper configuration (`gl: "cn"`, `hl: "zh-cn"`) for Chinese topic discovery
+  - Add scoped indexed search for public platform pages and sites, e.g. `site:xiaohongshu.com`, `site:douyin.com`, and selected Chinese news/community domains
+  - Feed these results into the hot-topics aggregation pipeline as lower-confidence indexed evidence, distinct from first-party platform connector data
+- **Acceptance**:
+  - Chinese queries return more Chinese-language evidence in `/api/research/hot-topics`
+  - Hot-topic results can include indexed Douyin/XHS public pages without scraping
+  - Response metadata clearly distinguishes indexed/search-derived evidence from native platform connector evidence
+  - No global proxy changes, no scrapers, no Tailwind, no mock-by-default regressions
+
 ## Done
 
 ### T-001 Replace Google Custom Search with Serper.dev ✅

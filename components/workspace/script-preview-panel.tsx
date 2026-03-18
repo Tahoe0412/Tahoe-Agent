@@ -1,6 +1,18 @@
 "use client";
 
-import { FileText, Clock, Newspaper, ExternalLink } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  FileText,
+  Clock,
+  Newspaper,
+  ExternalLink,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  LayoutGrid,
+} from "lucide-react";
+import { useSceneSplitStatus } from "@/hooks/use-scene-split-status";
 
 interface ScriptPreviewData {
   id: string;
@@ -21,12 +33,14 @@ export function ScriptPreviewPanel({
   locale?: "zh" | "en";
 }) {
   const t = locale === "zh";
+  const router = useRouter();
   const structured = script.structuredOutput as {
     title?: string;
     opening?: string;
     body?: string;
     closing?: string;
     estimated_duration_sec?: number;
+    scene_split_status?: string;
   } | null;
   const rawPayload = script.rawPayload as {
     origin?: string;
@@ -40,6 +54,29 @@ export function ScriptPreviewPanel({
   } | null;
   const isNewsRoundup = rawPayload?.origin === "news_roundup";
   const newsItems = rawPayload?.news_items ?? [];
+
+  // Determine if we should poll
+  const initialStatus = structured?.scene_split_status;
+  const shouldPoll =
+    initialStatus === "pending" || initialStatus === "splitting";
+
+  const { status: splitStatus, isPolling } = useSceneSplitStatus(
+    shouldPoll ? script.id : null,
+    { enabled: shouldPoll },
+  );
+
+  // When split is done, refresh the page to let RSC re-render with scenes
+  const currentSplitStatus =
+    splitStatus?.scene_split_status ?? initialStatus ?? "unknown";
+  const sceneCount = splitStatus?.scene_count ?? 0;
+
+  useEffect(() => {
+    if (currentSplitStatus === "done" && sceneCount > 0) {
+      // Small delay to let data settle, then refresh
+      const timer = setTimeout(() => router.refresh(), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentSplitStatus, sceneCount, router]);
 
   return (
     <div className="space-y-5">
@@ -75,6 +112,22 @@ export function ScriptPreviewPanel({
           </div>
         </div>
       </div>
+
+      {/* Scene split status banner */}
+      <SceneSplitBanner
+        status={currentSplitStatus}
+        sceneCount={sceneCount}
+        isPolling={isPolling}
+        error={splitStatus?.scene_split_error ?? null}
+        locale={locale}
+        onRetry={() => {
+          fetch(`/api/scripts/${script.id}/split-scenes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ force: true }),
+          }).then(() => router.refresh());
+        }}
+      />
 
       {/* Script body — structured sections */}
       {structured && (structured.opening || structured.body || structured.closing) ? (
@@ -142,6 +195,74 @@ export function ScriptPreviewPanel({
       )}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function SceneSplitBanner({
+  status,
+  sceneCount,
+  isPolling,
+  error,
+  locale,
+  onRetry,
+}: {
+  status: string;
+  sceneCount: number;
+  isPolling: boolean;
+  error: string | null;
+  locale: "zh" | "en";
+  onRetry: () => void;
+}) {
+  const t = locale === "zh";
+
+  if (status === "pending" || status === "splitting" || isPolling) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-5 py-3.5">
+        <Loader2 className="size-4 animate-spin text-[var(--accent)]" />
+        <span className="text-sm text-[var(--text-2)]">
+          {t ? "正在拆分场景…" : "Splitting into scenes…"}
+        </span>
+      </div>
+    );
+  }
+
+  if (status === "done" && sceneCount > 0) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-50/60 px-5 py-3.5">
+        <CheckCircle2 className="size-4 text-emerald-600" />
+        <span className="text-sm text-emerald-800">
+          {t
+            ? `已拆分为 ${sceneCount} 个场景，正在刷新…`
+            : `Split into ${sceneCount} scenes, refreshing…`}
+        </span>
+        <LayoutGrid className="ml-auto size-4 text-emerald-600" />
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-red-300/30 bg-red-50/60 px-5 py-3.5">
+        <AlertTriangle className="size-4 text-red-500" />
+        <span className="text-sm text-red-700">
+          {t ? "场景拆分失败" : "Scene split failed"}
+          {error ? `: ${error}` : ""}
+        </span>
+        <button
+          onClick={onRetry}
+          className="ml-auto rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-700 transition hover:bg-red-200"
+        >
+          {t ? "重试" : "Retry"}
+        </button>
+      </div>
+    );
+  }
+
+  // status === "unknown" or no status — don't show anything
+  return null;
 }
 
 function ScriptSection({

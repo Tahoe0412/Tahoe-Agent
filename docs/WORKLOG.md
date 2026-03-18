@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-03-17 10:29 — Agent: Codex
+
+### Hot Topics: China-Focused Search Strategy Evaluation
+
+**Context**:
+- User wants to improve Stage 1 hot-topic collection by adding domestic Chinese data sources.
+- Reviewed `pipeline_analysis.md.resolved` and current search pipeline implementation.
+
+**What we confirmed**:
+- The current hot-topics route only aggregates platform connectors plus one news search call: `app/api/research/hot-topics/route.ts`.
+- Current Serper requests are US/English biased:
+  - `services/news-search/serper.ts` uses `gl: "us"` and `hl: "en"`
+  - `services/web-search/serper-search.service.ts` also defaults to `gl: "us"`
+- `services/web-search/serper-search.service.ts` already has a useful primitive for scoped search: `searchPlatformContent({ siteDomain })`.
+
+**Recommendation**:
+- Do **not** build the domestic trend expansion around unverified "official" Baidu / Sogou / 360 search APIs from AI-generated suggestions. Treat that route as unreliable unless a real, stable, documented API is verified later.
+- Prefer a lower-risk extension of the existing Serper pipeline:
+  - add CN-oriented search settings (`gl: "cn"`, `hl: "zh-cn"`) for Chinese queries
+  - add indexed public-page search such as `site:xiaohongshu.com` and `site:douyin.com`
+  - optionally add selected Chinese news/community domains as extra evidence sources
+  - ingest this data as **indexed evidence**, not as first-party platform data
+
+**Why this path**:
+- Reuses the existing production search provider and avoids a new provider migration
+- Avoids scraper/legal/anti-bot maintenance burden
+- Matches the existing code structure with minimal surface-area changes
+- Gives broader Chinese coverage even though it is not true real-time platform-native search
+
+**Important caveat for next agents**:
+- The earlier `pipeline_analysis.md.resolved` note saying Stage 3 auto-storyboard generation was missing is now outdated. `T-008` completed auto-storyboard generation on 2026-03-17. Use that document only for the Stage 1 search expansion idea, not as the current source of truth for the whole pipeline.
+
+**Suggested implementation order**:
+- 1. Add CN search profile support to Serper-backed services
+- 2. Extend `/api/research/hot-topics` to fetch indexed CN evidence in parallel
+- 3. Tag and weight indexed evidence separately in scoring/aggregation
+- 4. Surface source labels clearly in UI so users know whether evidence is native-platform or search-index derived
+
+**Left undone**:
+- No code changes yet to the search pipeline
+- Logged follow-up task as `T-009`
+
 ## 2026-03-17 09:23 — Agent: Antigravity (Claude)
 
 ### Auto-Storyboard Generation (Step 1)

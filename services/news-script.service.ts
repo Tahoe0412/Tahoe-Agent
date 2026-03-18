@@ -141,6 +141,7 @@ export class NewsScriptService {
           body: generatedScript.body,
           closing: generatedScript.closing,
           estimated_duration_sec: generatedScript.estimated_duration_sec,
+          scene_split_status: "pending",
         }),
         raw_payload: toJson({
           origin: "news_roundup",

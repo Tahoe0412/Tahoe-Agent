@@ -44,6 +44,15 @@ export function useGenerateScript() {
 
         const data = payload.data as GenerateScriptResult;
         setResult(data);
+
+        // Fire-and-forget: trigger async scene split in background
+        fetch(`/api/scripts/${data.scriptId}/split-scenes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }).catch((err) => {
+          console.warn("[use-generate-script] Background split-scenes failed:", err);
+        });
+
         return data;
       } catch (err) {
         const msg = err instanceof Error ? err.message : "生成脚本失败";
