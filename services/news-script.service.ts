@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { generateStructuredJson } from "@/lib/openai-json";
-import { buildNewsScriptPrompt, type NewsItemForPrompt } from "@/lib/news-script-prompt";
+import { buildNewsScriptPrompt, type NewsItemForPrompt, type TrendItemForPrompt } from "@/lib/news-script-prompt";
 import type { Prisma } from "@prisma/client";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
@@ -58,15 +58,24 @@ export class NewsScriptService {
       },
     });
 
-    // 2. Build prompt and call LLM
-    const promptItems: NewsItemForPrompt[] = newsItems.map((item) => ({
+    // 2. Build prompt — split by role
+    const factNewsItems = newsItems.filter((i) => i.source_type !== "trend_signal");
+    const trendNewsItems = newsItems.filter((i) => i.source_type === "trend_signal");
+
+    const factPromptItems: NewsItemForPrompt[] = factNewsItems.map((item) => ({
       title: item.title,
       source: item.source,
       published_at: item.published_at,
       snippet: item.snippet,
     }));
 
-    const { systemPrompt, userPrompt } = buildNewsScriptPrompt(promptItems, searchQuery);
+    const trendPromptItems: TrendItemForPrompt[] = trendNewsItems.map((item) => ({
+      title: item.title,
+      source: item.source,
+      snippet: item.snippet,
+    }));
+
+    const { systemPrompt, userPrompt } = buildNewsScriptPrompt(factPromptItems, trendPromptItems, searchQuery);
 
     let generatedScript: GeneratedScript;
     try {

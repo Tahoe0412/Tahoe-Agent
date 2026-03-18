@@ -2,15 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Zap,
-  Flame,
-  AlertTriangle,
-  Check,
-  FileText,
-  X,
-  Loader2,
-} from "lucide-react";
+import { Check, FileText, Flame, Loader2, X, Zap, AlertTriangle, Radar } from "lucide-react";
 import { useHotTopics } from "@/hooks/use-hot-topics";
 import { useGenerateScript } from "@/hooks/use-generate-script";
 import { TodayQuickActions } from "./today-quick-actions";
@@ -106,15 +98,21 @@ export function TodayWorkbench({
     setSelectedNews(new Map());
   }, []);
 
+  /* ── Material basket computed groups ── */
+  const allSelected = Array.from(selectedNews.values());
+  const factItems = allSelected.filter((i) => i.source_type !== "trend_signal");
+  const trendItems = allSelected.filter((i) => i.source_type === "trend_signal");
+  const hasFactItems = factItems.length > 0;
+
   const handleGenerateScript = useCallback(async () => {
-    if (selectedNews.size === 0) return;
+    if (!hasFactItems) return;
     const items = Array.from(selectedNews.values());
     const query = selectedKeywords.map((k) => k.text).join(" OR ") || "热点新闻";
     const result = await generateScript(query, items);
     if (result?.projectId) {
       router.push(`/script-lab?projectId=${result.projectId}`);
     }
-  }, [selectedNews, selectedKeywords, generateScript, router]);
+  }, [selectedNews, selectedKeywords, hasFactItems, generateScript, router]);
 
   // No auto-search — user clicks "搜索" to start
   const t = locale === "zh";
@@ -553,6 +551,31 @@ export function TodayWorkbench({
                     {t ? "已选中 — 见下方快速操作" : "Selected — see quick actions below"}
                   </div>
                 )}
+                {/* + 选题参考 button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleNewsItem({
+                      id: `trend_${topic.topicKey}`,
+                      title: topic.label,
+                      url: topic.topEvidence[0]?.url ?? "",
+                      snippet: `趋势信号: ${topic.sourcePlatforms.join(" / ")} 热度 ${topic.score} · ${topic.topEvidence.slice(0, 3).map((e) => e.title).join(" / ")}`,
+                      source: topic.sourcePlatforms.join(" / "),
+                      source_type: "trend_signal",
+                      published_at: "",
+                    });
+                  }}
+                  className={cn(
+                    "mt-3 w-full rounded-lg py-1.5 text-xs font-medium transition",
+                    selectedNews.has(`trend_${topic.topicKey}`)
+                      ? "bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30"
+                      : "bg-[var(--surface-solid)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]",
+                  )}
+                >
+                  {selectedNews.has(`trend_${topic.topicKey}`)
+                    ? (t ? "✓ 已加入选题参考" : "✓ Added")
+                    : (t ? "+ 选题参考" : "+ Add as reference")}
+                </button>
               </button>
             ))}
           </div>
@@ -623,39 +646,111 @@ export function TodayWorkbench({
         onProjectClick={(id) => router.push(`/?projectId=${id}`)}
       />
 
-      {/* ── Floating Selection Bar ── */}
+      {/* ── Material Basket ── */}
       {selectedNews.size > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center pb-5 pointer-events-none">
-          <div className="pointer-events-auto flex items-center gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-solid)] px-5 py-3.5 shadow-[0_-6px_36px_rgba(0,0,0,0.12)] backdrop-blur-lg">
-            {/* Selected count */}
-            <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-1)]">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent)] text-white text-xs font-bold">
-                {selectedNews.size}
+        <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--surface-solid)] p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--accent)]/10">
+                <FileText className="size-4 text-[var(--accent)]" />
               </div>
-              {t ? "条新闻已选" : "news selected"}
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--text-1)]">
+                  {t ? "🧰 本次素材" : "🧰 Materials"}
+                </h3>
+                <p className="text-xs text-[var(--text-3)]">
+                  {t
+                    ? `${factItems.length} 条事实素材 · ${trendItems.length} 条选题参考`
+                    : `${factItems.length} facts · ${trendItems.length} trends`}
+                </p>
+              </div>
             </div>
-
-            {/* Divider */}
-            <div className="h-6 w-px bg-[var(--border)]" />
-
-            {/* Clear */}
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--text-2)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-[var(--text-3)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
             >
-              <X className="size-3.5" />
+              <X className="size-3" />
               {t ? "清空" : "Clear"}
             </button>
+          </div>
 
-            {/* Generate Script */}
+          {/* Fact items */}
+          {factItems.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-600">
+                  <FileText className="size-3" />
+                  {t ? "事实素材" : "Facts"}
+                </span>
+                <span className="text-[var(--text-3)]">{t ? "— 作为脚本主体内容" : "— script body content"}</span>
+              </div>
+              <div className="space-y-1.5">
+                {factItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 px-3 py-2">
+                    <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+                    <span className="min-w-0 flex-1 truncate text-xs text-[var(--text-1)]">{item.title}</span>
+                    <span className="shrink-0 rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">{item.source}</span>
+                    <button
+                      onClick={() => toggleNewsItem(item)}
+                      className="shrink-0 rounded p-0.5 text-[var(--text-3)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--danger-text)]"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Trend items */}
+          {trendItems.length > 0 && (
+            <div className="mt-3">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-violet-600">
+                  <Radar className="size-3" />
+                  {t ? "选题参考" : "Trends"}
+                </span>
+                <span className="text-[var(--text-3)]">{t ? "— 影响角度和叙事框架，不作事实引用" : "— framing only, not cited as fact"}</span>
+              </div>
+              <div className="space-y-1.5">
+                {trendItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 rounded-lg bg-violet-500/5 border border-violet-500/10 px-3 py-2">
+                    <span className="size-1.5 shrink-0 rounded-full bg-violet-500" />
+                    <span className="min-w-0 flex-1 truncate text-xs text-[var(--text-1)]">{item.title}</span>
+                    <span className="shrink-0 rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">{item.source}</span>
+                    <button
+                      onClick={() => toggleNewsItem(item)}
+                      className="shrink-0 rounded p-0.5 text-[var(--text-3)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--danger-text)]"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Generate CTA */}
+          <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-4">
+            {!hasFactItems && trendItems.length > 0 ? (
+              <span className="text-xs text-[var(--warn-text)]">
+                {t ? "至少添加 1 条事实素材后才能生成脚本" : "Add at least 1 fact item to generate"}
+              </span>
+            ) : (
+              <span className="text-xs text-[var(--text-3)]">
+                {t ? "将基于事实素材撰写脚本，参考选题方向调整角度" : "Script based on facts, informed by trend signals"}
+              </span>
+            )}
             <button
               onClick={handleGenerateScript}
-              disabled={generatingScript}
+              disabled={generatingScript || !hasFactItems}
               className={cn(
                 "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all",
                 generatingScript
                   ? "bg-[var(--accent)]/60 cursor-wait"
-                  : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
+                  : !hasFactItems
+                    ? "bg-[var(--text-3)]/30 cursor-not-allowed"
+                    : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
               )}
             >
               {generatingScript ? (
@@ -671,11 +766,11 @@ export function TodayWorkbench({
 
           {/* Error toast */}
           {generateError && (
-            <div className="pointer-events-auto absolute bottom-20 rounded-xl border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)] shadow-lg">
+            <div className="mt-3 rounded-xl border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)]">
               {generateError}
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );
