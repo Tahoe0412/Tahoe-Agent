@@ -76,9 +76,14 @@ export function TodayWorkbench({
   } = useHotTopics();
 
   const [selectedTopic, setSelectedTopic] = useState<TopicRankingItem | null>(null);
-  const [searchQuery, setSearchQuery] = useState(
-    activeBrand?.keywords.join(" OR ") ?? ""
+
+  /* ── Keyword pool state ── */
+  interface KeywordItem { text: string; selected: boolean }
+  const [keywords, setKeywords] = useState<KeywordItem[]>(
+    () => (activeBrand?.keywords ?? []).map((k) => ({ text: k, selected: true }))
   );
+  const selectedKeywords = keywords.filter((k) => k.selected);
+  const searchQuery = selectedKeywords.map((k) => k.text).join(" OR ");
 
   /* ── News selection state ── */
   const [selectedNews, setSelectedNews] = useState<Map<string, SelectableNewsItem>>(new Map());
@@ -103,11 +108,12 @@ export function TodayWorkbench({
   const handleGenerateScript = useCallback(async () => {
     if (selectedNews.size === 0) return;
     const items = Array.from(selectedNews.values());
-    const result = await generateScript(searchQuery || "热点新闻", items);
+    const query = selectedKeywords.map((k) => k.text).join(" OR ") || "热点新闻";
+    const result = await generateScript(query, items);
     if (result?.projectId) {
       router.push(`/script-lab?projectId=${result.projectId}`);
     }
-  }, [selectedNews, searchQuery, generateScript, router]);
+  }, [selectedNews, selectedKeywords, generateScript, router]);
 
   // No auto-search — user clicks "搜索" to start
   const t = locale === "zh";
@@ -171,132 +177,146 @@ export function TodayWorkbench({
           </div>
         ) : null}
 
-        {/* Command Center: Tags + Add Keyword Input + Search */}
-        {(() => {
-          const queryKeywords = searchQuery
-            .split(/\s+OR\s+/i)
-            .map((k) => k.trim())
-            .filter(Boolean);
-
-          return (
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)] transition-all focus-within:border-[var(--accent)] focus-within:ring-4 focus-within:ring-[var(--accent-soft)]">
-              {/* Tags + Inline Add Input */}
-              <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-                {/* Brand Selector (compact) */}
-                {brandProfiles.length > 0 && (
-                  <div className="relative flex shrink-0 items-center">
-                    <select
-                      value={activeBrandId}
-                      onChange={(e) => {
-                        setActiveBrandId(e.target.value);
-                        const brand = brandProfiles.find(
-                          (b) => b.id === e.target.value
-                        );
-                        if (brand && brand.keywords.length > 0) {
-                          const q = brand.keywords.join(" OR ");
-                          setSearchQuery(q);
-                          void handleSearch(q);
-                        }
-                      }}
-                      className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--text-1)] outline-none cursor-pointer transition-colors hover:border-[var(--accent)]/40"
-                    >
-                      {brandProfiles.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {t ? "词池:" : "Pool:"} {b.name} ({b.keywords.length})
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute right-2 flex items-center text-[var(--text-3)]">
-                      <svg width="8" height="5" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
-                {/* Keyword Tags */}
-                {queryKeywords.map((keyword, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center rounded-lg border border-[var(--accent)]/15 bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text-1)] transition-colors"
-                  >
-                    {keyword}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = queryKeywords.filter((_, j) => j !== i).join(" OR ");
-                        setSearchQuery(updated);
-                      }}
-                      className="ml-1.5 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-colors"
-                      aria-label={`Remove ${keyword}`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-
-                {/* Inline Add Keyword Input */}
-                <input
-                  type="text"
-                  onKeyDown={(e) => {
-                    const input = e.currentTarget;
-                    const val = input.value.trim();
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (val) {
-                        // If user pastes a full OR query, accept it
-                        const newQuery = searchQuery
-                          ? searchQuery + " OR " + val
-                          : val;
-                        setSearchQuery(newQuery);
-                        input.value = "";
-                      } else {
-                        // Enter on empty input → trigger search
-                        void handleSearch(searchQuery);
-                      }
+        {/* ── Command Center: 3-layer keyword pool ── */}
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)]">
+          {/* Layer 1: Pool control + count */}
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[var(--border)]">
+            {brandProfiles.length > 0 ? (
+              <div className="relative flex shrink-0 items-center">
+                <select
+                  value={activeBrandId}
+                  onChange={(e) => {
+                    setActiveBrandId(e.target.value);
+                    const brand = brandProfiles.find((b) => b.id === e.target.value);
+                    if (brand) {
+                      setKeywords(brand.keywords.map((k) => ({ text: k, selected: true })));
                     }
                   }}
-                  placeholder={
-                    queryKeywords.length > 0
-                      ? t ? "+ 添加关键词" : "+ Add keyword"
-                      : t ? "输入关键词，回车添加..." : "Type keyword and press Enter..."
-                  }
-                  className="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
-                  spellCheck={false}
-                />
-              </div>
-
-              {/* Divider + Search Button Row */}
-              <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-2">
-                <span className="text-xs text-[var(--text-3)]">
-                  {queryKeywords.length > 0
-                    ? t
-                      ? `${queryKeywords.length} 个关键词`
-                      : `${queryKeywords.length} keywords`
-                    : t
-                      ? "输入关键词后按回车"
-                      : "Type and press Enter to add"}
-                </span>
-                <button
-                  onClick={() => void handleSearch(searchQuery)}
-                  disabled={loading || !searchQuery.trim()}
-                  className="flex items-center justify-center rounded-lg bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--text-1)] outline-none cursor-pointer transition-colors hover:border-[var(--accent)]/40"
                 >
-                  {loading
-                    ? (
-                      <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    )
-                    : t
-                      ? "搜索"
-                      : "Search"}
-                </button>
+                  {brandProfiles.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {t ? "词池:" : "Pool:"} {b.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute right-2 flex items-center text-[var(--text-3)]">
+                  <svg width="8" height="5" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
               </div>
-            </div>
-          );
-        })()}
+            ) : (
+              <span className="text-xs text-[var(--text-3)]">
+                {t ? "手动添加关键词" : "Add keywords manually"}
+              </span>
+            )}
+            <span className="text-xs text-[var(--text-3)] tabular-nums">
+              {keywords.length > 0
+                ? t
+                  ? `已选 ${selectedKeywords.length} / ${keywords.length} 个关键词`
+                  : `${selectedKeywords.length} / ${keywords.length} selected`
+                : t
+                  ? "暂无关键词"
+                  : "No keywords"}
+            </span>
+          </div>
+
+          {/* Layer 2: Keyword tags + inline add */}
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+            {keywords.map((kw, i) => (
+              <span
+                key={`${kw.text}-${i}`}
+                className={cn(
+                  "group inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-all cursor-pointer select-none",
+                  kw.selected
+                    ? "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[var(--text-1)] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    : "border-[var(--border)] bg-transparent text-[var(--text-3)]"
+                )}
+                onClick={() => {
+                  setKeywords((prev) =>
+                    prev.map((k, j) =>
+                      j === i ? { ...k, selected: !k.selected } : k
+                    )
+                  );
+                }}
+                title={kw.selected ? (t ? "点击取消选中" : "Click to deselect") : (t ? "点击选中" : "Click to select")}
+              >
+                {kw.text}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setKeywords((prev) => prev.filter((_, j) => j !== i));
+                  }}
+                  className="ml-1.5 opacity-0 group-hover:opacity-100 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-all"
+                  aria-label={`Delete ${kw.text}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Inline add input */}
+            <input
+              type="text"
+              onKeyDown={(e) => {
+                const input = e.currentTarget;
+                const val = input.value.trim();
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (val) {
+                    // Deduplicate
+                    if (!keywords.some((k) => k.text === val)) {
+                      setKeywords((prev) => [...prev, { text: val, selected: true }]);
+                    }
+                    input.value = "";
+                  } else if (selectedKeywords.length > 0) {
+                    // Enter on empty → trigger search
+                    void handleSearch(selectedKeywords.map((k) => k.text).join(" OR "));
+                  }
+                }
+              }}
+              placeholder={
+                keywords.length > 0
+                  ? t ? "输入新关键词，回车添加" : "Type and press Enter"
+                  : t ? "输入关键词，回车添加…" : "Type keyword and press Enter…"
+              }
+              className="min-w-[140px] flex-1 bg-transparent py-1 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none"
+              spellCheck={false}
+            />
+          </div>
+
+          {/* Layer 3: Search action */}
+          <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-2">
+            <span className="text-xs text-[var(--text-3)] truncate max-w-[70%]">
+              {selectedKeywords.length > 0
+                ? selectedKeywords.map((k) => k.text).join(" OR ")
+                : t
+                  ? "请选中至少一个关键词"
+                  : "Select at least one keyword"}
+            </span>
+            <button
+              onClick={() => {
+                const q = selectedKeywords.map((k) => k.text).join(" OR ");
+                void handleSearch(q);
+              }}
+              disabled={loading || selectedKeywords.length === 0}
+              className="flex items-center justify-center rounded-lg bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading
+                ? (
+                  <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )
+                : t
+                  ? "搜索"
+                  : "Search"}
+            </button>
+          </div>
+        </div>
 
         {/* Error */}
         {error && (
