@@ -1,8 +1,9 @@
 import { Prisma, type PlatformSurface, type StrategyTaskStatus, type StrategyTaskType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { canUseModelRoute } from "@/lib/model-routing";
+import { buildOutputTypeCopyInstruction } from "@/lib/output-type-copy-prompt";
+import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
 import { generateStructuredJson } from "@/lib/openai-json";
-import { getWorkspaceMode } from "@/lib/workspace-mode";
 import { promotionalCopyDiagnosisSchema, promotionalCopyOutputSchema, type PromotionalCopyOutput } from "@/schemas/promotional-copy";
 import { AppSettingsService } from "@/services/app-settings.service";
 import { MarketingContextService } from "@/services/marketing-context.service";
@@ -366,6 +367,12 @@ function buildMockCopy(params: {
   };
 }
 
+function getPromotionalCopySurfaces(workspaceMode: "SHORT_VIDEO" | "COPYWRITING" | "PROMOTION") {
+  return workspaceMode === "COPYWRITING"
+    ? ["XIAOHONGSHU_POST", "COMMENT_REPLY", "COVER_COPY"] satisfies PlatformSurface[]
+    : ["XIAOHONGSHU_POST", "DOUYIN_VIDEO", "DOUYIN_TITLE", "COMMENT_REPLY", "COVER_COPY"] satisfies PlatformSurface[];
+}
+
 export class PromotionalCopyService {
   private readonly appSettingsService = new AppSettingsService();
   private readonly marketingContextService = new MarketingContextService();
@@ -394,11 +401,10 @@ export class PromotionalCopyService {
       throw new Error("Project not found.");
     }
 
-    const workspaceMode = getWorkspaceMode((project.metadata as { workspace_mode?: string } | null)?.workspace_mode);
-    const surfaces: PlatformSurface[] =
-      workspaceMode === "COPYWRITING"
-        ? ["XIAOHONGSHU_POST", "COMMENT_REPLY", "COVER_COPY"]
-        : ["XIAOHONGSHU_POST", "DOUYIN_VIDEO", "DOUYIN_TITLE", "COMMENT_REPLY", "COVER_COPY"];
+    const intent = resolveProjectIntentFromMetadata(
+      (project.metadata as Record<string, unknown> | null) ?? undefined,
+    );
+    const surfaces = getPromotionalCopySurfaces(intent.workspaceMode);
 
     const settings = await this.appSettingsService.getEffectiveSettings();
     const context = await this.marketingContextService.getProjectContext(projectId);
@@ -430,6 +436,7 @@ export class PromotionalCopyService {
                 "要重点回答：用户当前有什么问题、产品到底解决了什么、为什么这个解决方案值得现在购买或了解。",
                 "要突出差异化、使用场景和转化驱动。",
             ].join("\n");
+    const outputInstruction = buildOutputTypeCopyInstruction(intent.contentLine, intent.outputType);
     const styleInstruction =
       styleTemplate === "WARM_HEALING"
         ? "输出风格：温暖疗愈。语气温和、有人味、强调陪伴感和生活感，不要冷硬销售。"
@@ -520,7 +527,7 @@ export class PromotionalCopyService {
           "请直接生成一版高质量宣传主稿。",
           "",
           "【写作任务】",
-          [writingInstruction, styleInstruction, lengthInstruction, scenarioInstruction].join(" "),
+          [writingInstruction, outputInstruction, styleInstruction, lengthInstruction, scenarioInstruction].join(" "),
           styleTemplate === "RESTRAINED_SPATIAL"
             ? "特别要求：先从城市观察、生活方式、材料与空间气质切入，再慢慢引出品牌。"
             : "特别要求：保持可发布感，避免空泛理念化表达。",
@@ -535,7 +542,7 @@ export class PromotionalCopyService {
             : "",
           "",
           "【写作素材】",
-          `工作模式：${workspaceMode}`,
+          `工作模式：${intent.workspaceMode}`,
           creativeBrief,
           "",
           "输出字段：master_angle（主打角度）、headline_options（至少 3 条可发标题）、hero_copy（60-180 字开场）、long_form_copy（完整主稿）、proof_points（3-6 条证明点）、call_to_action、risk_notes。",
@@ -795,11 +802,10 @@ export class PromotionalCopyService {
     const route = settings.llmRouting.PROMOTIONAL_COPY;
     const context = await this.marketingContextService.getProjectContext(projectId);
     const contextPrompt = this.marketingContextService.formatPromptContext(context);
-    const workspaceMode = getWorkspaceMode((project.metadata as { workspace_mode?: string } | null)?.workspace_mode);
-    const surfaces: PlatformSurface[] =
-      workspaceMode === "COPYWRITING"
-        ? ["XIAOHONGSHU_POST", "COMMENT_REPLY", "COVER_COPY"]
-        : ["XIAOHONGSHU_POST", "DOUYIN_VIDEO", "DOUYIN_TITLE", "COMMENT_REPLY", "COVER_COPY"];
+    const intent = resolveProjectIntentFromMetadata(
+      (project.metadata as Record<string, unknown> | null) ?? undefined,
+    );
+    const surfaces = getPromotionalCopySurfaces(intent.workspaceMode);
     const latestBrief = project.creative_briefs[0] ?? null;
     const sourceMessage = compactLines([
       context?.projectIntroduction,

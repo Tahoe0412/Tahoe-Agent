@@ -4,6 +4,7 @@ import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ErrorPanel } from "@/components/ui/state-panel";
 import { WorkspaceLayout } from "@/components/workspace/layout";
+import { getContentLineMeta, getOutputTypeMeta } from "@/lib/content-line";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 
@@ -28,14 +29,8 @@ export default async function HelpCenterPage({
   const workspace = workspaceResult.value;
   const workspaceLoadFailed = Boolean(projectId) && !workspaceResult.ok;
 
-  const modeLabel =
-    workspace?.workspaceMode === "SHORT_VIDEO"
-      ? locale === "en" ? "Short Video" : "短视频"
-      : workspace?.workspaceMode === "COPYWRITING"
-        ? locale === "en" ? "Copywriting" : "文案写作"
-        : workspace?.workspaceMode === "PROMOTION"
-          ? locale === "en" ? "Promotion" : "宣传推广"
-          : null;
+  const lineLabel = workspace ? getContentLineMeta(workspace.contentLine, locale).label : null;
+  const outputLabel = workspace ? getOutputTypeMeta(workspace.outputType, locale).label : null;
 
   const zh = locale === "zh";
 
@@ -52,11 +47,11 @@ export default async function HelpCenterPage({
     step5: zh ? "5. 在底部素材篮子确认后，点「生成脚本」" : "5. Review the material basket, then click 'Generate Script'",
     step6: zh ? "6. 系统会自动生成脚本并拆分为镜头（ScriptScene）" : "6. The system generates a script and splits it into scenes automatically",
     step7: zh ? "7. 在脚本实验台预览和编辑，之后进入分镜、素材和生成执行" : "7. Preview and edit in Script Lab, then move to storyboard, assets, and rendering",
-    currentMode: (mode: string) => zh ? `当前项目模式是「${mode}」。` : `Current project mode is "${mode}".`,
+    currentIntent: (line: string, output: string) => zh ? `当前项目属于「${line}」，目标产物是「${output}」。` : `Current project belongs to "${line}" and targets "${output}".`,
     noProjectYet: zh ? "还没有选定项目。" : "No project selected yet.",
     shortestPath: zh
-      ? "最短路径：今日工作台 → 选素材 → 生成脚本 → 脚本实验台 → 分镜。"
-      : "Shortest path: Today → select materials → generate script → Script Lab → storyboard.",
+      ? "最短路径：先确定业务主线和目标产物，再直接去拿第一版产物。"
+      : "Shortest path: decide the business line and target output, then go straight for the first draft.",
     goToToday: zh ? "去今日工作台" : "Go to Today",
     backToOverview: zh ? "返回总览" : "Back to Overview",
 
@@ -97,21 +92,21 @@ export default async function HelpCenterPage({
       ? "来自 YouTube / X 热度卡片。仅用于影响开场、重点排序和叙事框架，不作为事实引用。"
       : "From YouTube/X trend cards. Only influences opening, focus priority, and narrative framing — never cited as fact.",
 
-    // ── Work Modes ──
-    workModesTitle: zh ? "三种工作模式" : "Three Work Modes",
-    workModesDesc: zh ? "模式不同，页面导航和推荐流程会自动收缩。" : "Navigation and recommended flow adjust automatically based on mode.",
-    shortVideoLabel: zh ? "短视频" : "Short Video",
+    // ── Business Lines ──
+    workModesTitle: zh ? "两条业务主线" : "Two Business Lines",
+    workModesDesc: zh ? "Tahoe 共享一套底座，但上层只有两条业务线：火星公民和 Marketing。" : "Tahoe shares one base, but the top-level product only has two business lines: Mars Citizen and Marketing.",
+    shortVideoLabel: zh ? "火星公民" : "Mars Citizen",
     shortVideoDesc: zh
-      ? "关注：今日工作台 → 趋势 → 脚本 → 镜头拆解 → 分镜与素材准备。"
-      : "Focus: Today → trends → script → scene decomposition → storyboard & assets.",
-    copywritingLabel: zh ? "文案写作" : "Copywriting",
+      ? "关注：科技热点、科普脚本、分镜、生成准备和发布表达。"
+      : "Focus: science trends, narrative scripts, storyboard, render prep, and publish copy.",
+    copywritingLabel: zh ? "Marketing" : "Marketing",
     copywritingDesc: zh
-      ? "关注：任务单 → 宣传主稿 → 平台适配稿 → 文案质量增强。"
-      : "Focus: brief → master copy → platform adaptations → copy quality enhancement.",
-    promotionLabel: zh ? "宣传推广" : "Promotion",
+      ? "关注：任务背景、平台文案、广告脚本、广告分镜和合规。"
+      : "Focus: brief context, platform copy, ad scripts, ad storyboard, and compliance.",
+    promotionLabel: zh ? "目标产物" : "Target Outputs",
     promotionDesc: zh
-      ? "关注：推广目标 → 平台适配 → 合规检查 → 复盘优化。"
-      : "Focus: promotion goals → platform adaptation → compliance → post-campaign review.",
+      ? "你真正要选的是这次想产出什么，例如叙事脚本、广告脚本、平台文案或广告分镜。"
+      : "What you really choose each round is the target output: narrative script, ad script, platform copy, ad storyboard, and so on.",
 
     // ── Page Guide ──
     pageGuideTitle: zh ? "主要页面怎么用" : "Page Guide",
@@ -234,7 +229,7 @@ export default async function HelpCenterPage({
               {ui.step7}
             </div>
             <div>
-              {modeLabel ? ui.currentMode(modeLabel) : ui.noProjectYet}{" "}
+              {lineLabel && outputLabel ? ui.currentIntent(lineLabel, outputLabel) : ui.noProjectYet}{" "}
               {ui.shortestPath}
             </div>
             <div className="flex flex-wrap gap-3">
@@ -288,7 +283,7 @@ export default async function HelpCenterPage({
           </div>
         </PanelCard>
 
-        {/* ── Work Modes ── */}
+        {/* ── Business Lines ── */}
         <PanelCard title={ui.workModesTitle} description={ui.workModesDesc}>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-xl bg-[var(--surface-muted)] p-4">

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { TrendSearchBar } from "@/components/trend-discovery/trend-search-bar";
 import { TopicRankingList } from "@/components/trend-discovery/topic-ranking-list";
+import { buildDashboardCreateHref } from "@/lib/project-intent";
 import { useHotTopics } from "@/hooks/use-hot-topics";
 
 interface BrandKeywordProfile {
@@ -35,15 +37,13 @@ export function TrendDiscoveryWorkbench({
   // No auto-search — user clicks "搜索热点" to start
 
   const handleCreateProject = useCallback(
-    (topicKey: string, label: string) => {
-      // Find the query used for this search by joining the active brand keywords 
-      // or looking at the current search bar state (which we don't have direct access to here,
-      // but we can pass 'label' as a fallback)
-      const params = new URLSearchParams({
-        topic: label, // We use label as the topic query now since we removed local search query tracking
-        title: label,
-      });
-      router.push(`/?prefill=true&${params.toString()}`);
+    (_topicKey: string, label: string) => {
+      router.push(
+        buildDashboardCreateHref({
+          topic: label,
+          title: label,
+        }) as Route,
+      );
     },
     [router],
   );

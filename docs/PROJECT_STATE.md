@@ -1,11 +1,15 @@
 # Project State
 
-> Last updated: 2026-03-16 by Antigravity (Claude)
+> Last updated: 2026-03-20 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
 
-Build **Tahoe** — a production-ready marketing intelligence workspace that helps content creators research trends, generate scripts, and produce marketing copy. The platform aggregates data from YouTube, X (Twitter), Google News, and other sources to surface actionable hot topics.
+Build **Tahoe** — a shared AI content-production base that serves two business lines:
+- **火星公民 / Mars Citizen**: science-tech short videos, frontier tech explainers, and AI-generated publishable video assets
+- **Marketing**: commercial copywriting, platform-ready messaging, and AI-assisted ad generation
+
+The platform aggregates trend and research signals, then routes users toward the smallest set of actions needed to produce a usable output.
 
 ## Stack
 
@@ -39,18 +43,32 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| Dashboard (`/`) | ✅ Working | Project creation, workspace overview |
+| Dashboard (`/`) | ✅ Working | Simplified project creation and one primary next action |
 | Today Workbench (`/today`) | ✅ Working | Hot topics search with real Serper news data |
 | Trend Explorer (`/trend-explorer`) | ✅ Working | Trend research with Serper integration |
 | Script Lab (`/script-lab`) | ✅ Working | Script generation |
-| Scene Planner (`/scene-planner`) | ✅ Working | Storyboard planning |
-| Render Lab (`/render-lab`) | ✅ Working | Image/video generation |
+| Scene Planner (`/scene-planner`) | ✅ Working | Storyboard planning, including direct generate-from-topic entry |
+| Render Lab (`/render-lab`) | ✅ Working | Image/video generation from storyboard-capable projects |
 | Marketing Ops (`/marketing-ops`) | ✅ Working | Copy generation and distribution |
 | Brand Profiles (`/brand-profiles`) | ✅ Working | Brand keyword pools |
 | Settings (`/settings`) | ✅ Working | App configuration |
 | Serper News Search | ✅ Live | Returns real Google News results |
 | YouTube Connector | ✅ Live | Returns real YouTube video data via Data API v3 |
 | X/Twitter Connector | ⚠️ Failed | Connection fails (needs Twitter API credentials) |
+
+### Architecture Note
+
+- `ContentLine` (`MARS_CITIZEN` / `MARKETING`) is now the primary business-domain boundary.
+- `OutputType` is persisted on new projects as the requested artifact intent.
+- `WorkspaceMode` is still present for UI/workbench compatibility, but new routing should prefer centralized project-intent resolution over raw `workspace_mode` checks.
+- Project creation is now intent-first: users select `contentLine + outputType`, while `workspaceMode` is derived automatically.
+- Default project creation is now minimal-first: `topic` is the only required content input, `title` can be left blank and will fall back to the topic, and advanced controls stay collapsed by default.
+- Dashboard and Settings now share the same project-creation component/submit path, so new create-flow changes should be implemented once and reused instead of evolving two parallel forms.
+- `sourceScript` is optional during project creation; empty input creates a project shell without an initial user script version.
+- Storyboard generation is now also intent-first: if a project has no ready script scenes, Tahoe will derive them from `raw_script_text` or synthesize storyboard seed scenes from topic + domain context before generating storyboard frames.
+- Storyboard-first scenes are automatically pushed through scene classification and asset-dependency analysis, so Scene Planner and Render Lab get production metadata without requiring a separate manual prep pass.
+- Dashboard routing is now intentionally sparse: Tahoe shows one primary next step by default and treats briefs, trend review, and deeper workflow detail as optional supporting context rather than universal gates.
+- News-script generation now has an explicit output-type registry for currently supported news entry outputs (`NARRATIVE_SCRIPT`, `AD_SCRIPT`) so future output expansion can add handlers without growing one large conditional block.
 
 ## Known Issues
 

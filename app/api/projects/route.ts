@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
 import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { prisma } from "@/lib/db";
+import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
 import { projectCreateSchema } from "@/schemas/project";
 import { ResearchOrchestratorService } from "@/services/research-orchestrator.service";
 
@@ -39,18 +40,26 @@ export async function GET() {
     });
 
     return ok(
-      projects.map((project) => ({
-        id: project.id,
-        title: project.title,
-        topic_query: project.topic_query,
-        status: project.status,
-        created_at: project.created_at,
-        workspace_mode: ((project.metadata as Record<string, unknown> | null)?.workspace_mode as string | undefined) ?? "SHORT_VIDEO",
-        trend_count: project.trend_topics.length,
-        brief_count: project.creative_briefs.length,
-        storyboard_count: project.storyboards.length,
-        scene_count: project.scripts.flatMap((script) => script.script_scenes).length,
-      })),
+      projects.map((project) => {
+        const intent = resolveProjectIntentFromMetadata(
+          (project.metadata as Record<string, unknown> | null) ?? undefined,
+        );
+
+        return {
+          id: project.id,
+          title: project.title,
+          topic_query: project.topic_query,
+          status: project.status,
+          created_at: project.created_at,
+          workspace_mode: intent.workspaceMode,
+          content_line: intent.contentLine,
+          output_type: intent.outputType,
+          trend_count: project.trend_topics.length,
+          brief_count: project.creative_briefs.length,
+          storyboard_count: project.storyboards.length,
+          scene_count: project.scripts.flatMap((script) => script.script_scenes).length,
+        };
+      }),
     );
   } catch (error) {
     return fail("读取项目列表失败。", 500, error instanceof Error ? error.message : undefined);

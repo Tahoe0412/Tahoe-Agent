@@ -29,8 +29,12 @@ export default async function ScriptLabPage({
   const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
   const workspaceLoadFailed = workspaceResult.status === "rejected";
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
+  const routesToStoryboard =
+    workspace?.outputType === "STORYBOARD_SCRIPT" ||
+    workspace?.outputType === "AD_STORYBOARD" ||
+    workspace?.workspaceMode === "SHORT_VIDEO";
   const nextHref =
-    workspace?.workspaceMode === "SHORT_VIDEO"
+    routesToStoryboard
       ? projectId
         ? `/scene-planner?projectId=${projectId}`
         : "/scene-planner"
@@ -38,7 +42,7 @@ export default async function ScriptLabPage({
         ? `/marketing-ops?projectId=${projectId}`
         : "/marketing-ops";
   const nextLabel =
-    workspace?.workspaceMode === "SHORT_VIDEO"
+    routesToStoryboard
       ? locale === "en"
         ? "Next: Plan Storyboard"
         : "下一步：做分镜与素材"
@@ -114,7 +118,7 @@ export default async function ScriptLabPage({
         ) : workspace.scriptLabRows.length === 0 ? (
           <EmptyPanel title={locale === "en" ? "No Scenes Yet" : "暂无 scene 数据"} description={locale === "en" ? "Run the full dashboard workflow or trigger script rewrite first, then return to edit scenes." : "先在 Dashboard 执行全流程，或先触发 script rewrite，再回来编辑 scene。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Run Workflow First" : "先去总览跑流程"} />} />
         ) : (
-          <ScriptLabWorkbench projectId={projectId} rows={workspace.scriptLabRows} />
+          <ScriptLabWorkbench projectId={projectId} rows={workspace.scriptLabRows} marsOutputs={workspace.marsOutputs} />
         )}
       </div>
     </WorkspaceLayout>

@@ -4,17 +4,32 @@
 
 ## In Progress
 
-### T-007 UI/UX Enhancement (Phase 1–3) ✅
-- **Goal**: Elevate UI from demo quality to a professional, "Tahoe" branded pro-tool. Focus on layout, whitespace, hierarchy, and brand colors without altering logic.
-- **Phase 1 (Done)**: App-wide brand color mapping (`globals.css`) and unified Command Center redesign for the Hot Topics search bar.
-- **Phase 2 (Done)**: Unified status chips, Quick Actions and Recent Projects components aligned to Tahoe tokens, fixed broken variable references, sidebar contrast fix.
-- **Phase 3 (Done)**: Fixed dark mode white gradient wash-out by extracting overlay opacities into CSS variables. Redesigned search bar to tag-based keyword input. Removed legacy "莫兰迪" branding.
-
-### T-008 Auto-Storyboard Generation (Step 1) ✅
-- **Goal**: Auto-generate StoryboardFrames from ScriptScenes via LLM, closing the script→storyboard gap.
-- **Commit**: `d8c7fda`
-- **Files**: `services/storyboard-generator.service.ts` (new), `services/storyboard-generator/json-schema.ts` (new), `app/api/projects/[id]/storyboards/generate/route.ts` (new)
-- **Result**: `POST /api/projects/{id}/storyboards/generate` reads ScriptScenes, calls LLM, persists Storyboard + Frames. Falls back to mock when LLM unavailable. No schema changes.
+### T-010 Dual Content Line Architecture 🔴
+- **Goal**: Restructure system around two content lines: 火星公民 (science content) and Marketing (commercial content).
+- **Phase 1 (Done)**: ContentLine/OutputType type system, Mars Citizen narrative prompt, Marketing ad script prompt, branching in `NewsScriptService`, API/hook/schema/orchestrator updates.
+- **Foundation slice (Done)**: Added a centralized project-intent resolver so routing is driven by `contentLine + outputType`, while `workspaceMode` is now treated as a compatible UI/workflow hint. News-script generation now dispatches by `outputType`; project create/list/workflow paths normalize the same intent fields.
+- **Phase 2 (Done)**: Upgraded project creation UI to choose `contentLine + outputType` first. The system now derives `workspaceMode` from the selected intent, and `sourceScript` is optional so users can create a project shell from topic + intent alone.
+- **Phase 3 (Done)**: Storyboard generation can now start directly from project topic + intent. Tahoe first reuses existing scene data when available, otherwise rewrites `raw_script_text` or synthesizes storyboard seed scenes from the project domain context before producing storyboard frames. Newly resolved scenes are also auto-classified and sent through asset-dependency analysis so Scene Planner is immediately usable.
+- **Phase 4 (Done)**: Simplified the default UX around first principles. Dashboard now shows one primary next action instead of a multi-panel workflow overview; project creation defaults to minimal inputs; advanced controls stay collapsed; `title` is optional and falls back to `topic`; brief/trend detail remains available but is no longer treated as a universal front-door requirement.
+- **Phase 5 (Done)**: Removed the duplicated project-creation path in Settings by reusing the shared `ProjectForm` in compact mode. Added an initial news-script output registry so `OutputType -> Generator` dispatch is explicit for the current news entry (`NARRATIVE_SCRIPT`, `AD_SCRIPT`) instead of living as ad-hoc branching inside one service.
+- **Entry sync slice (Done)**: Replaced the old `/?prefill=true...` shortcut with intent-aware dashboard prefill links. Today/Trend entry points now route into the minimal project-create flow with explicit topic + intent prefill, and Today's fact-to-script generation now passes `contentLine + outputType` explicitly instead of silently falling back to `MARS_CITIZEN`.
+- **Workflow compatibility slice (Done)**: `WorkflowService` no longer hard-fails when `raw_script_text` is empty. Shell projects can still run trend research and reporting; storyboard outputs now escalate to storyboard generation when appropriate, while script-only outputs return an explicit skipped status instead of crashing.
+- **UI language sync slice (Done)**: `Trend Explorer`, `Brief Studio`, `Help Center`, and `WorkflowActions` now describe Tahoe in terms of business line + target output + next artifact, with `workspaceMode` reduced to compatibility plumbing instead of the main user-facing model.
+- **Prompt quality slice (Done)**: Prompting is now more output-aware and generation-aware. Marketing copy receives explicit `outputType` instructions, narrative/ad scripts emphasize shot-ready structure, and storyboard generation/seed prompts now include concrete guidance for Nano Banana 2 / Pro, Seedance 2.0, and Veo 3.1 style visual prompting.
+- **Project output generator slice (Done)**: Added a unified project-level output generation entry. `PLATFORM_COPY`, `VIDEO_TITLE`, `PUBLISH_COPY`, `AD_CREATIVE`, and `AD_STORYBOARD` can now be triggered through one service/route contract instead of living only as type definitions or scattered capability routes.
+- **Output Studio UI slice (Done)**: The dashboard now exposes a compact “Output Studio” surface for the current project. Users can trigger same-line outputs directly from the workspace, and the surrounding header/card styling has been tightened toward a calmer editorial production-desk aesthetic.
+- **Artifact review slice (Done)**: Newly generated `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE` outputs now surface inside their natural workbenches instead of only existing as backend artifacts. Script Lab shows the latest title pack + publish copy; Marketing Ops now shows the latest ad creative brief alongside copy operations; Output Studio redirects these artifacts into the place where they can actually be reviewed.
+- **Artifact action slice (Done)**: The new artifact panels now support lightweight in-place actions instead of forcing another workflow hop. Script Lab can copy title packs and publish copy directly; Marketing Ops can copy the current ad creative brief or apply its direction into the master-copy editor as a starting point.
+- **Mars packaging edit slice (Done)**: `VIDEO_TITLE` and `PUBLISH_COPY` are now lightly editable inside Script Lab and can be saved as new `strategy_task` versions in place. This keeps Mars Citizen packaging work inside the same polishing surface instead of introducing a separate packaging editor.
+- **Marketing creative edit slice (Done)**: `AD_CREATIVE` is now lightly editable inside Marketing Ops and can be saved as a new `strategy_task` version in place. The current ad creative pack is no longer just a read-only brief; it can be revised, copied, and used to seed downstream copy/script work from the same surface.
+- **Marketing storyboard bridge slice (Done)**: Marketing Ops now includes a compact ad-storyboard bridge card with current storyboard version/frame readiness, plus direct actions to generate a storyboard or open Scene Planner. This keeps ad creative, ad copy, and ad storyboard visibly connected without duplicating the full planner UI.
+- **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, and the first small generator registry seam.
+- **Remaining push (next)**:
+  - Sweep the remaining lower-priority `workspaceMode` compatibility branches in secondary helpers and edge routes, but the main user-facing surfaces are now aligned.
+  - Continue moving read models and navigation toward “latest artifact / next output” instead of “which workflow stage are we on”.
+  - Decide whether a lightweight storyboard preview/edit surface should also appear directly inside Marketing Ops, or whether the current bridge card + Scene Planner split is the right long-term boundary.
+- **Files (new)**: `lib/content-line.ts`, `lib/mars-citizen-prompt.ts`, `lib/ad-script-prompt.ts`, `lib/project-intent.ts`, `lib/storyboard-seed-prompt.ts`, `components/dashboard/project-intent-picker.tsx`, `components/workspace/generate-storyboard-button.tsx`
+- **Files (modified)**: `services/news-script.service.ts`, `hooks/use-generate-script.ts`, `app/api/scripts/generate-from-news/route.ts`, `schemas/project.ts`, `services/research-orchestrator.service.ts`, `app/api/projects/route.ts`, `services/workflow.service.ts`, `services/promotional-copy.service.ts`, `services/workspace-query.service.ts`, `components/dashboard/project-form.tsx`, `components/settings/project-manager.tsx`, `services/storyboard-generator.service.ts`, `app/scene-planner/page.tsx`, `app/script-lab/page.tsx`, `app/render-lab/page.tsx`, `app/page.tsx`, `lib/workflow-navigator.ts`, `services/news-script-generator-registry.ts`
 
 ## Pending
 
@@ -40,6 +55,14 @@
   - No global proxy changes, no scrapers, no Tailwind, no mock-by-default regressions
 
 ## Done
+
+### T-007 UI/UX Enhancement (Phase 1–3) ✅
+- **Completed**: 2026-03-16
+- **Result**: Tahoe brand tokens, dark mode fix, tag-based search, sidebar improvements
+
+### T-008 Auto-Storyboard Generation (Step 1) ✅
+- **Completed**: 2026-03-17
+- **Result**: Auto-storyboard from ScriptScenes via LLM
 
 ### T-001 Replace Google Custom Search with Serper.dev ✅
 - **Completed**: 2026-03-16

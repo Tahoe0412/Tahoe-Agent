@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Check, FileText, Flame, Loader2, X, Zap, AlertTriangle, Radar } from "lucide-react";
 import { useHotTopics } from "@/hooks/use-hot-topics";
 import { useGenerateScript } from "@/hooks/use-generate-script";
+import { buildDashboardCreateHref } from "@/lib/project-intent";
 import { TodayQuickActions } from "./today-quick-actions";
 import { TodayRecentProjects, type RecentProject } from "./today-recent-projects";
 import type { TopicRankingItem } from "@/types/trend-discovery";
@@ -108,7 +110,10 @@ export function TodayWorkbench({
     if (!hasFactItems) return;
     const items = Array.from(selectedNews.values());
     const query = selectedKeywords.map((k) => k.text).join(" OR ") || "热点新闻";
-    const result = await generateScript(query, items);
+    const result = await generateScript(query, items, {
+      contentLine: "MARS_CITIZEN",
+      outputType: "NARRATIVE_SCRIPT",
+    });
     if (result?.projectId) {
       router.push(`/script-lab?projectId=${result.projectId}`);
     }
@@ -629,12 +634,27 @@ export function TodayWorkbench({
         <TodayQuickActions
           selectedTopic={selectedTopic}
           locale={locale}
-          onAction={(topicLabel, _type) => {
-            const params = new URLSearchParams({
-              topic: topicLabel,
-              title: topicLabel,
-            });
-            router.push(`/?prefill=true&${params.toString()}`);
+          onAction={(topicLabel, type) => {
+            if (type === "copy") {
+              router.push(
+                buildDashboardCreateHref({
+                  topic: topicLabel,
+                  title: topicLabel,
+                  contentLine: "MARKETING",
+                  outputType: "PLATFORM_COPY",
+                }) as Route,
+              );
+              return;
+            }
+
+            router.push(
+              buildDashboardCreateHref({
+                topic: topicLabel,
+                title: topicLabel,
+                contentLine: "MARS_CITIZEN",
+                outputType: type === "image" ? "STORYBOARD_SCRIPT" : "NARRATIVE_SCRIPT",
+              }) as Route,
+            );
           }}
         />
       )}

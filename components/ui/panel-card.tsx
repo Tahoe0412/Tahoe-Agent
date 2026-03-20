@@ -16,7 +16,7 @@ export function PanelCard({
     <section className={cn("theme-panel rounded-[28px] p-8", className)}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-[var(--text-1)]">{title}</h3>
+          <h3 className="theme-font-display text-[1.45rem] leading-[1.04] text-[var(--text-1)]">{title}</h3>
           {description ? <p className="mt-1.5 text-sm leading-6 text-[var(--text-2)]">{description}</p> : null}
         </div>
       </div>

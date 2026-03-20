@@ -13,8 +13,10 @@ import { PageStateView } from "@/components/workspace/page-state";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { TrendDiscoveryWorkbench } from "@/components/trend-discovery/trend-discovery-workbench";
+import { getOutputTypeMeta } from "@/lib/content-line";
 import type { PageState } from "@/lib/demo-workspace-data";
 import { copy, getLocale } from "@/lib/locale";
+import { getDashboardNextStep } from "@/lib/workflow-navigator";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 import type { SupportedPlatform } from "@/types/platform-data";
 
@@ -131,22 +133,8 @@ export default async function TrendExplorerPage({
   const primaryTrend = activeTrendRows[0] ?? null;
   const topTrends = activeTrendRows.slice(0, 3);
   const secondaryTrends = activeTrendRows.slice(3);
-  const nextHref =
-    workspace?.workspaceMode === "SHORT_VIDEO"
-      ? projectId
-        ? `/script-lab?projectId=${projectId}`
-        : "/script-lab"
-      : projectId
-        ? `/marketing-ops?projectId=${projectId}`
-        : "/marketing-ops";
-  const nextLabel =
-    workspace?.workspaceMode === "SHORT_VIDEO"
-      ? locale === "en"
-        ? "Next: Rewrite Script"
-        : "下一步：生成脚本"
-      : locale === "en"
-        ? "Next: Generate Copy"
-        : "下一步：生成宣传主稿";
+  const nextStep = getDashboardNextStep(workspace, locale);
+  const currentOutputLabel = workspace ? getOutputTypeMeta(workspace.outputType, locale).label : null;
 
   function buildHref(nextPlatform: string): Route {
     const params = new URLSearchParams();
@@ -163,7 +151,7 @@ export default async function TrendExplorerPage({
           title={text.pages.trend.title}
           description={text.pages.trend.description}
           locale={locale}
-          action={projectId ? <NextStepLink href={nextHref} label={nextLabel} /> : null}
+          action={projectId ? <NextStepLink href={nextStep.href} label={nextStep.label} /> : null}
         />
         <ProjectContext
           project={
@@ -275,7 +263,7 @@ export default async function TrendExplorerPage({
                         </div>
                         <div>
                           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep3}</div>
-                          <div className="mt-2">{projectId ? <NextStepLink href={nextHref} label={nextLabel} /> : null}</div>
+                          <div className="mt-2">{projectId ? <NextStepLink href={nextStep.href} label={nextStep.label} /> : null}</div>
                         </div>
                       </div>
                       {primaryTrend ? (
@@ -389,7 +377,12 @@ export default async function TrendExplorerPage({
                     </div>
                     <div className="grid gap-3 rounded-[24px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
                       <div className="text-sm font-medium text-[var(--text-inverse)]">{ui.nextStepTitle}</div>
-                      <div>{workspace?.workspaceMode === "SHORT_VIDEO" ? ui.nextStepVideo : ui.nextStepCopy}</div>
+                      <div>
+                        {workspace?.contentLine === "MARS_CITIZEN"
+                          ? ui.nextStepVideo
+                          : ui.nextStepCopy}
+                      </div>
+                      {currentOutputLabel ? <div>{locale === "en" ? `Current target output: ${currentOutputLabel}.` : `当前目标产物：${currentOutputLabel}。`}</div> : null}
                       <div className="flex flex-wrap gap-2">
                         <MetaPill>{ui.totalLabel} {primaryTrend.total}</MetaPill>
                         <MetaPill>{primaryTrend.evidence} {ui.evidenceLabel}</MetaPill>

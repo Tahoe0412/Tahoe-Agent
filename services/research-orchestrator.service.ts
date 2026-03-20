@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { deriveProjectTitle, resolveProjectIntent } from "@/lib/project-intent";
 import { finalResearchReportOutputSchema } from "@/schemas/ai-output";
 import { projectCreateSchema, type ProjectCreateInput } from "@/schemas/project";
-import { getWorkspaceMode } from "@/lib/workspace-mode";
 import { searchLatestNews } from "@/services/news-search";
 import { getPlatformConnector } from "@/services/platform-connectors";
 import { TrendScoringEngine } from "@/services/trend-scoring";
@@ -33,7 +33,17 @@ export class ResearchOrchestratorService {
 
   async run(payload: ProjectCreateInput) {
     const input = projectCreateSchema.parse(payload);
-    const workspaceMode = getWorkspaceMode(input.workspaceMode);
+    const intent = resolveProjectIntent({
+      contentLine: input.contentLine,
+      outputType: input.outputType,
+      workspaceMode: input.workspaceMode,
+    });
+    const projectTitle = deriveProjectTitle({
+      title: input.title,
+      topic: input.topic,
+    });
+    const sourceScript = input.sourceScript.trim();
+    const hasSourceScript = sourceScript.length > 0;
 
     const collectionResults = await Promise.all(
       input.platforms.map((platform) =>
@@ -72,7 +82,7 @@ export class ResearchOrchestratorService {
         top_topic_key: trendTopics[0]?.topic_key ?? input.topic.toLowerCase().replace(/\s+/g, "_"),
       },
       script_summary: {
-        version_number: 1,
+        version_number: hasSourceScript ? 1 : 0,
         story_structure: "PROBLEM_SOLUTION",
         shot_count: 0,
       },
@@ -88,15 +98,17 @@ export class ResearchOrchestratorService {
 
     const project = await prisma.project.create({
       data: {
-        title: input.title,
+        title: projectTitle,
         topic_query: input.topic,
         primary_platform: input.platforms[0],
         status: "COMPLETED",
-        raw_script_text: input.sourceScript,
+        raw_script_text: hasSourceScript ? sourceScript : null,
         metadata: toJson({
           requested_platforms: input.platforms,
           mock_mode: input.mockMode ?? false,
-          workspace_mode: workspaceMode,
+          workspace_mode: intent.workspaceMode,
+          content_line: intent.contentLine,
+          output_type: intent.outputType,
           project_introduction: input.projectIntroduction?.trim() || "",
           core_idea: input.coreIdea?.trim() || "",
           style_reference_sample: input.styleReferenceSample?.trim() || "",
@@ -167,20 +179,22 @@ export class ResearchOrchestratorService {
             raw_payload: toJson(topic),
           })),
         },
-        script_versions: {
-          create: [
-            {
-              source_type: "USER_INPUT",
-              script_status: "ACTIVE",
-              version_number: 1,
-              content_text: input.sourceScript,
-              structured_output: toJson({
-                topic: input.topic,
-                source_script_text: input.sourceScript,
-              }),
-            },
-          ],
-        },
+        script_versions: hasSourceScript
+          ? {
+              create: [
+                {
+                  source_type: "USER_INPUT",
+                  script_status: "ACTIVE",
+                  version_number: 1,
+                  content_text: sourceScript,
+                  structured_output: toJson({
+                    topic: input.topic,
+                    source_script_text: sourceScript,
+                  }),
+                },
+              ],
+            }
+          : undefined,
         research_reports: {
           create: [
             {

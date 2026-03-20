@@ -6,9 +6,20 @@ import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { apiRequest } from "@/lib/client-api";
+import type { ContentLine, OutputType } from "@/lib/content-line";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
 
-export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { projectId: string; workspaceMode?: WorkspaceMode }) {
+export function WorkflowActions({
+  projectId,
+  workspaceMode = "SHORT_VIDEO",
+  contentLine,
+  outputType,
+}: {
+  projectId: string;
+  workspaceMode?: WorkspaceMode;
+  contentLine?: ContentLine;
+  outputType?: OutputType;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,21 +55,23 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
     }
   }
 
+  const isStoryboardOutput = outputType === "STORYBOARD_SCRIPT" || outputType === "AD_STORYBOARD";
+  const isMarsCitizen = contentLine === "MARS_CITIZEN" || (!contentLine && workspaceMode === "SHORT_VIDEO");
+  const showFullWorkflow = isMarsCitizen || isStoryboardOutput;
+
   return (
     <div className="theme-panel rounded-[24px] p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-sm font-medium text-[var(--text-1)]">流程操作</div>
           <div className="mt-1 text-sm text-[var(--text-2)]">
-            {workspaceMode === "SHORT_VIDEO"
-              ? "一键串联趋势研究、脚本重构、场景分类、素材判断和报告生成。"
-              : workspaceMode === "COPYWRITING"
-                ? "当前以文案与平台改写为主，建议优先用任务单、趋势和内容运营模块。"
-                : "当前以宣传推广为主，建议优先用任务单、内容运营和合规检查模块。"}
+            {showFullWorkflow
+              ? "一键串联趋势研究，并在条件满足时继续推进脚本、分镜、素材判断和报告。"
+              : "当前项目更适合先产出营销内容，再按需要补充合规与报告。"}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {workspaceMode === "SHORT_VIDEO" ? (
+          {showFullWorkflow ? (
             <Button onClick={() => void run("full")} disabled={pending !== null}>
               {pending === "full" ? "运行中..." : "运行全流程"}
             </Button>
@@ -71,9 +84,9 @@ export function WorkflowActions({ projectId, workspaceMode = "SHORT_VIDEO" }: { 
           </Button>
         </div>
       </div>
-      {workspaceMode !== "SHORT_VIDEO" ? (
+      {!showFullWorkflow ? (
         <div className="mt-3 text-sm text-[var(--text-3)]">
-          当前项目不是“短视频模式”，所以隐藏了视频编排型全流程按钮。
+          当前目标不是脚本 / 分镜型产物，所以默认只保留报告刷新，避免把不必要流程暴露到前台。
         </div>
       ) : null}
       {message ? <div className="mt-3 text-sm text-[var(--text-2)]">{message}</div> : null}

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getWorkspaceMode } from "@/lib/workspace-mode";
+import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
 import { AssetDependencyAnalyzerService } from "@/services/asset-dependency-analyzer.service";
 import { ComplianceCheckService } from "@/services/compliance-check.service";
 import { PromotionalCopyService } from "@/services/promotional-copy.service";
@@ -8,6 +8,7 @@ import { ResearchJobService } from "@/services/research-job.service";
 import { SceneClassificationService } from "@/services/scene-classification.service";
 import { ScriptRewriterService } from "@/services/script-rewriter.service";
 import { ScriptService } from "@/services/script.service";
+import { StoryboardGeneratorService } from "@/services/storyboard-generator.service";
 
 type PlatformValue = "YOUTUBE" | "X" | "TIKTOK" | "XHS" | "DOUYIN";
 
@@ -33,6 +34,7 @@ export class WorkflowService {
   private readonly reportService = new ReportService();
   private readonly promotionalCopyService = new PromotionalCopyService();
   private readonly complianceCheckService = new ComplianceCheckService();
+  private readonly storyboardGeneratorService = new StoryboardGeneratorService();
 
   async runFullWorkflow(projectId: string) {
     const project = await prisma.project.findUnique({
@@ -51,14 +53,12 @@ export class WorkflowService {
       throw new Error("Project not found.");
     }
 
-    if (!project.raw_script_text) {
-      throw new Error("Project raw script is empty.");
-    }
-
-    const rawScriptText = project.raw_script_text;
+    const rawScriptText = project.raw_script_text?.trim() ? project.raw_script_text : null;
     const platforms = readRequestedPlatforms(project);
     const metadata = (project.metadata ?? {}) as { mock_mode?: boolean };
-    const workspaceMode = getWorkspaceMode((project.metadata as { workspace_mode?: unknown } | null)?.workspace_mode);
+    const intent = resolveProjectIntentFromMetadata(
+      (project.metadata as Record<string, unknown> | null) ?? undefined,
+    );
 
     const jobGroup = await this.runStep("trend_job_create", () =>
       this.researchJobService.createJob({
@@ -74,7 +74,7 @@ export class WorkflowService {
       trendRuns.push(await this.runStep(`trend_task:${task.platform ?? "UNKNOWN"}`, () => this.researchJobService.runTask(task.id)));
     }
 
-    if (workspaceMode !== "SHORT_VIDEO") {
+    if (intent.workflowKind === "MARKETING") {
       const promotionalCopy = await this.runStep("promotional_copy", () => this.promotionalCopyService.generateForProject(projectId));
       const complianceRuns = [];
       for (const adaptationId of promotionalCopy.platform_adaptation_ids) {
@@ -93,7 +93,9 @@ export class WorkflowService {
       return {
         job_group_id: jobGroup.job_group_id,
         trend_task_count: trendRuns.length,
-        workflow_mode: workspaceMode,
+        workflow_mode: intent.workspaceMode,
+        content_line: intent.contentLine,
+        output_type: intent.outputType,
         promotional_copy_task_id: promotionalCopy.strategy_task_id,
         adaptation_count: promotionalCopy.platform_adaptation_count,
         compliance_check_count: complianceRuns.length,
@@ -101,53 +103,84 @@ export class WorkflowService {
       };
     }
 
-    const existingUserScript = await prisma.script.findFirst({
-      where: {
-        project_id: projectId,
-        source_type: "USER_INPUT",
-      },
-      orderBy: { created_at: "asc" },
-    });
+    const shouldGenerateStoryboard =
+      intent.outputType === "STORYBOARD_SCRIPT" || intent.outputType === "AD_STORYBOARD";
+    let userScript: { id: string } | null = null;
+    let rewrittenScript: { id: string; script_scenes: Array<{ id: string; scene_order: number }> } | null = null;
+    let storyboard: { id: string; frame_count: number } | null = null;
+    let sceneResults: Awaited<ReturnType<WorkflowService["collectSceneResults"]>> = [];
+    let scriptGenerationStatus: "generated" | "skipped_missing_raw_script" = "generated";
 
-    const userScript =
-      existingUserScript ??
-      (await this.runStep("user_script_create", () =>
-        this.scriptService.createUserScript({
+    if (rawScriptText) {
+      const existingUserScript = await prisma.script.findFirst({
+        where: {
+          project_id: projectId,
+          source_type: "USER_INPUT",
+        },
+        orderBy: { created_at: "asc" },
+        select: { id: true },
+      });
+
+      userScript =
+        existingUserScript ??
+        (await this.runStep("user_script_create", () =>
+          this.scriptService.createUserScript({
+            projectId,
+            title: project.title,
+            originalText: rawScriptText,
+          }),
+        ));
+
+      rewrittenScript = await this.runStep("script_rewrite", () =>
+        this.scriptRewriterService.rewriteAndSave({
           projectId,
           title: project.title,
-          originalText: rawScriptText,
-        }),
-      ));
-
-    const rewrittenScript = await this.runStep("script_rewrite", () =>
-      this.scriptRewriterService.rewriteAndSave({
-        projectId,
-        title: project.title,
-        scriptText: rawScriptText,
-      }),
-    );
-
-    const sceneResults = [];
-    for (const scene of rewrittenScript.script_scenes) {
-      const classification = await this.runStep(`scene_classify:${scene.scene_order}`, () =>
-        this.sceneClassificationService.classifyAndSave({
-          projectId,
-          sceneId: scene.id,
+          scriptText: rawScriptText,
         }),
       );
-      const assets = await this.runStep(`scene_assets:${scene.scene_order}`, () =>
-        this.assetDependencyAnalyzerService.analyzeAndSave({
-          projectId,
-          sceneId: scene.id,
-        }),
-      );
+    } else {
+      scriptGenerationStatus = "skipped_missing_raw_script";
+    }
 
-      sceneResults.push({
-        scene_id: scene.id,
-        scene_order: scene.scene_order,
-        classification,
-        assets,
+    if (shouldGenerateStoryboard) {
+      storyboard = await this.runStep("storyboard_generate", async () => {
+        const generated = await this.storyboardGeneratorService.generate({
+          projectId,
+          scriptId: rewrittenScript?.id,
+        });
+
+        return {
+          id: generated.id,
+          frame_count: generated.frame_count,
+        };
       });
+    } else if (rewrittenScript) {
+      for (const scene of rewrittenScript.script_scenes) {
+        const classification = await this.runStep(`scene_classify:${scene.scene_order}`, () =>
+          this.sceneClassificationService.classifyAndSave({
+            projectId,
+            sceneId: scene.id,
+          }),
+        );
+        const assets = await this.runStep(`scene_assets:${scene.scene_order}`, () =>
+          this.assetDependencyAnalyzerService.analyzeAndSave({
+            projectId,
+            sceneId: scene.id,
+          }),
+        );
+
+        sceneResults.push({
+          scene_id: scene.id,
+          scene_order: scene.scene_order,
+          production_class: classification.classification.production_class,
+          difficulty_score: classification.classification.difficulty_score,
+          is_asset_ready: assets.is_asset_ready,
+        });
+      }
+    }
+
+    if (rewrittenScript) {
+      sceneResults = await this.collectSceneResults(rewrittenScript.id);
     }
 
     const report = await this.runStep("report_generate", () => this.reportService.generateProjectReport(projectId));
@@ -155,17 +188,17 @@ export class WorkflowService {
     return {
       job_group_id: jobGroup.job_group_id,
       trend_task_count: trendRuns.length,
-      user_script_id: userScript.id,
-      rewritten_script_id: rewrittenScript.id,
-      scene_count: rewrittenScript.script_scenes.length,
+      workflow_mode: intent.workspaceMode,
+      content_line: intent.contentLine,
+      output_type: intent.outputType,
+      user_script_id: userScript?.id ?? null,
+      rewritten_script_id: rewrittenScript?.id ?? null,
+      script_generation_status: scriptGenerationStatus,
+      scene_count: sceneResults.length,
+      storyboard_id: storyboard?.id ?? null,
+      storyboard_frame_count: storyboard?.frame_count ?? 0,
       report_id: report.id,
-      scene_results: sceneResults.map((item) => ({
-        scene_id: item.scene_id,
-        scene_order: item.scene_order,
-        production_class: item.classification.classification.production_class,
-        difficulty_score: item.classification.classification.difficulty_score,
-        is_asset_ready: item.assets.is_asset_ready,
-      })),
+      scene_results: sceneResults,
     };
   }
 
@@ -180,5 +213,37 @@ export class WorkflowService {
       const message = error instanceof Error ? error.message : "Unknown workflow error.";
       throw new Error(`[${step}] ${message}`);
     }
+  }
+
+  private async collectSceneResults(scriptId: string) {
+    const scenes = await prisma.scriptScene.findMany({
+      where: { script_id: scriptId },
+      orderBy: { scene_order: "asc" },
+      select: {
+        id: true,
+        scene_order: true,
+        scene_classifications: {
+          select: {
+            production_class: true,
+            difficulty_score: true,
+          },
+          orderBy: { created_at: "desc" },
+          take: 1,
+        },
+        required_assets: {
+          select: { is_asset_ready: true },
+          orderBy: { created_at: "desc" },
+          take: 1,
+        },
+      },
+    });
+
+    return scenes.map((scene) => ({
+      scene_id: scene.id,
+      scene_order: scene.scene_order,
+      production_class: scene.scene_classifications[0]?.production_class ?? null,
+      difficulty_score: scene.scene_classifications[0]?.difficulty_score ?? null,
+      is_asset_ready: scene.required_assets[0]?.is_asset_ready ?? false,
+    }));
   }
 }

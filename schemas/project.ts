@@ -1,16 +1,18 @@
 import { z } from "zod";
+import { allOutputTypes, type OutputType } from "@/lib/content-line";
 
 const platformSchema = z.enum(["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"]);
 const workspaceModeSchema = z.enum(["SHORT_VIDEO", "COPYWRITING", "PROMOTION"]);
+const outputTypeSchema = z.enum(allOutputTypes as [OutputType, ...OutputType[]]);
 const writingModeSchema = z.enum(["BRAND_INTRO", "PRODUCT_PROMO", "CAMPAIGN_PROMO", "RECRUITMENT"]);
 const styleTemplateSchema = z.enum(["RATIONAL_PRO", "WARM_HEALING", "LIGHT_LUXURY", "HIGH_CONVERSION", "FOUNDER_VOICE", "STORE_TRUST"]);
 const copyLengthSchema = z.enum(["SHORT", "STANDARD", "LONG"]);
 const usageScenarioSchema = z.enum(["XIAOHONGSHU_POST", "BRAND_LANDING", "PRODUCT_DETAIL", "CAMPAIGN_LAUNCH", "STORE_PROMOTION", "FOUNDER_IP"]);
 
 export const projectCreateSchema = z.object({
-  title: z.string().min(3).max(120),
+  title: z.string().max(120).default(""),
   topic: z.string().min(3).max(200),
-  sourceScript: z.string().min(20),
+  sourceScript: z.string().max(20000).default(""),
   projectIntroduction: z.string().max(2000).optional(),
   coreIdea: z.string().max(500).optional(),
   styleReferenceSample: z.string().max(12000).optional(),
@@ -20,6 +22,8 @@ export const projectCreateSchema = z.object({
   usageScenario: usageScenarioSchema.optional(),
   platforms: z.array(platformSchema).min(1).max(3),
   workspaceMode: workspaceModeSchema.optional(),
+  contentLine: z.enum(["MARS_CITIZEN", "MARKETING"]).optional(),
+  outputType: outputTypeSchema.optional(),
   mockMode: z.boolean().optional(),
 });
 
@@ -38,6 +42,8 @@ export const projectUpdateSchema = z.object({
   brand_profile_id: z.string().cuid().nullable().optional(),
   industry_template_id: z.string().cuid().nullable().optional(),
   project_tags: z.array(z.string().min(1).max(32)).max(12).optional(),
+  content_line: z.enum(["MARS_CITIZEN", "MARKETING"]).optional(),
+  output_type: outputTypeSchema.optional(),
   is_pinned: z.boolean().optional(),
   last_opened_at: z.string().optional(),
 });

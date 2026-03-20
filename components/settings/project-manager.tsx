@@ -2,13 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ProjectForm } from "@/components/dashboard/project-form";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
-import { ProjectModePicker } from "@/components/dashboard/project-mode-picker";
-import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
-import { getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
-import { getWritingModeMeta, type WritingMode, writingModeList } from "@/lib/writing-mode";
 import { getWorkspaceModeMeta, type WorkspaceMode } from "@/lib/workspace-mode";
 import { cn } from "@/lib/utils";
 
@@ -53,11 +50,6 @@ export function ProjectManager({
 }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("SHORT_VIDEO");
-  const [writingMode, setWritingMode] = useState<WritingMode>("PRODUCT_PROMO");
-  const [styleTemplate, setStyleTemplate] = useState<StyleTemplate>("RATIONAL_PRO");
-  const [copyLength, setCopyLength] = useState<CopyLength>("STANDARD");
-  const [usageScenario, setUsageScenario] = useState<UsageScenario>("XIAOHONGSHU_POST");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ProjectSummary["status"]>("ALL");
   const [modeFilter, setModeFilter] = useState<"ALL" | WorkspaceMode>("ALL");
@@ -66,13 +58,9 @@ export function ProjectManager({
   const [bulkBrandId, setBulkBrandId] = useState("");
   const [bulkIndustryId, setBulkIndustryId] = useState("");
   const [bulkTags, setBulkTags] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [bulkPending, setBulkPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const modeMeta = useMemo(() => getWorkspaceModeMeta(workspaceMode, locale), [locale, workspaceMode]);
-  const writingMeta = useMemo(() => getWritingModeMeta(writingMode, locale), [locale, writingMode]);
-  const styleMeta = useMemo(() => getStyleTemplateMeta(styleTemplate, locale), [locale, styleTemplate]);
   const ui = locale === "en"
     ? {
         createFailed: "Could not create the project.",
@@ -88,8 +76,10 @@ export function ProjectManager({
         count: (all: number, visible: number) => visible !== all ? `${all} projects total, ${visible} in the current view.` : `${all} projects total.`,
         refresh: "Refresh List",
         createDisclosure: "Create Project",
-        projectName: "Project Name",
+        projectName: "Project Name (Optional)",
+        projectNamePlaceholder: "Leave blank to use the topic as the project name",
         topic: "Topic",
+        topicPlaceholder: "Start from the topic or campaign you want to work on",
         sourceShortVideo: "Source Script / Core Idea",
         sourceCopy: "Copy Brief / Core Message",
         sourcePromo: "Campaign Need / Promotion Goal",
@@ -98,6 +88,13 @@ export function ProjectManager({
         projectIntroPlaceholder: "Who is this project for, what problem does it solve, and what stage is it in?",
         coreIdea: "Core Message",
         coreIdeaPlaceholder: "Describe the one message this round needs to land.",
+        sourceLabelScience: "Optional Script / Narration Seed",
+        sourceLabelCopy: "Optional Copy Brief / Core Message",
+        sourceLabelAd: "Optional Ad Context / Selling Angle",
+        sourcePlaceholderScience: "Leave this blank if you only have a topic for now. Tahoe can create the project shell first.",
+        sourcePlaceholderCopy: "Paste any draft, product note, or message here. You can also leave it blank and start from topic + brief.",
+        sourcePlaceholderAd: "Paste a rough ad angle or campaign note here. It is optional.",
+        sourceHint: "Optional. Blank input creates the project shell first so you can continue later.",
         writingMode: "Writing Mode",
         currentWritingMode: "Current writing mode",
         copyLength: "Copy Length",
@@ -159,8 +156,10 @@ export function ProjectManager({
         count: (all: number, visible: number) => visible !== all ? `共 ${all} 个项目，当前筛选显示 ${visible} 个` : `共 ${all} 个项目`,
         refresh: "刷新列表",
         createDisclosure: "创建新项目",
-        projectName: "项目名称",
+        projectName: "项目名称（可选）",
+        projectNamePlaceholder: "可以留空，系统会默认用主题来命名项目",
         topic: "选题主题",
+        topicPlaceholder: "从你现在想推进的主题、产品或 campaign 开始",
         sourceShortVideo: "原始脚本 / 核心想法",
         sourceCopy: "文案需求 / 核心表达",
         sourcePromo: "推广需求 / 宣传目标",
@@ -169,6 +168,13 @@ export function ProjectManager({
         projectIntroPlaceholder: "这个项目服务谁、解决什么问题、当前阶段如何。",
         coreIdea: "核心想法",
         coreIdeaPlaceholder: "一句话写清本轮内容最想打中的表达。",
+        sourceLabelScience: "可选背景脚本 / 口播想法",
+        sourceLabelCopy: "可选文案需求 / 主表达",
+        sourceLabelAd: "可选广告背景 / 核心卖点",
+        sourcePlaceholderScience: "如果你现在只有主题，没有完整脚本，也可以先留空，先创建项目壳。",
+        sourcePlaceholderCopy: "可以粘贴现有文案、产品说明或一句核心表达；没整理好也可以先留空。",
+        sourcePlaceholderAd: "可以粘贴广告方向、Campaign 备注或核心卖点；没有也可以留空。",
+        sourceHint: "这是可选输入。留空时系统会先创建项目壳，后续再继续生成。",
         writingMode: "写作模式",
         currentWritingMode: "当前写作模式",
         copyLength: "文案长度",
@@ -216,13 +222,6 @@ export function ProjectManager({
         archive: "归档",
         emptyFiltered: "当前筛选条件下没有项目。可以调整搜索词、模式或状态筛选。",
       };
-  const sourceLabel =
-    workspaceMode === "SHORT_VIDEO"
-      ? ui.sourceShortVideo
-      : workspaceMode === "COPYWRITING"
-        ? ui.sourceCopy
-        : ui.sourcePromo;
-
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const filtered = projects.filter((project) => {
@@ -259,51 +258,6 @@ export function ProjectManager({
       setProjects(payload.data);
       setSelectedIds((current) => current.filter((id) => payload.data?.some((project) => project.id === id)));
     }
-  }
-
-  async function createProject(formData: FormData) {
-    setSubmitting(true);
-    setMessage(null);
-    setError(null);
-
-    const payload = {
-      title: String(formData.get("title") || ""),
-      topic: String(formData.get("topic") || ""),
-      sourceScript: String(formData.get("sourceScript") || ""),
-      projectIntroduction: String(formData.get("projectIntroduction") || ""),
-      coreIdea: String(formData.get("coreIdea") || ""),
-      styleReferenceSample: String(formData.get("styleReferenceSample") || ""),
-      writingMode,
-      styleTemplate,
-      copyLength,
-      usageScenario,
-      platforms: modeMeta.platforms,
-      workspaceMode,
-    };
-
-    const response = await fetch("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const result = (await response.json()) as {
-      success: boolean;
-      data?: { project: { id: string } };
-      error?: { message?: string; detail?: string };
-    };
-
-    if (!result.success || !result.data) {
-      setError(result.error?.detail || result.error?.message || ui.createFailed);
-      setSubmitting(false);
-      return;
-    }
-
-    setMessage(ui.created(result.data.project.id));
-    setSubmitting(false);
-    await refreshProjects();
-    router.push(`/?projectId=${result.data.project.id}`);
-    router.refresh();
   }
 
   async function updateProjectStatus(projectId: string, status: ProjectSummary["status"]) {
@@ -416,147 +370,7 @@ export function ProjectManager({
         summaryClassName="py-1"
         contentClassName="mt-4 space-y-5"
       >
-        <form action={createProject} className="space-y-5">
-          <ProjectModePicker value={workspaceMode} locale={locale} onChange={setWorkspaceMode} />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.projectName}</span>
-              <input name="title" key={`${workspaceMode}-title`} defaultValue={modeMeta.titleDefault} className="theme-input rounded-xl px-4 py-3 text-sm" />
-            </label>
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.topic}</span>
-              <input name="topic" key={`${workspaceMode}-topic`} defaultValue={modeMeta.topicDefault} className="theme-input rounded-xl px-4 py-3 text-sm" />
-            </label>
-          </div>
-
-          <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
-              {sourceLabel}
-            </span>
-            <textarea name="sourceScript" rows={4} key={`${workspaceMode}-script`} defaultValue={modeMeta.sourceScriptDefault} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
-          </label>
-
-          {/* ── Advanced settings: collapsed by default ── */}
-          <Disclosure
-            title={<span className="text-xs font-medium text-[var(--text-2)]">{ui.advanced}</span>}
-            className="theme-panel rounded-xl p-3"
-            summaryClassName="py-1"
-            contentClassName="mt-3 space-y-4"
-          >
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.projectIntro}</span>
-              <textarea name="projectIntroduction" rows={3} placeholder={ui.projectIntroPlaceholder} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
-            </label>
-            <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.coreIdea}</span>
-              <textarea name="coreIdea" rows={2} placeholder={ui.coreIdeaPlaceholder} className="theme-input rounded-xl px-4 py-3 text-sm leading-7" />
-            </label>
-
-            {(workspaceMode === "COPYWRITING" || workspaceMode === "PROMOTION") ? (
-              <>
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-[var(--text-2)]">{ui.writingMode}</div>
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    {writingModeList.map((mode) => {
-                      const meta = getWritingModeMeta(mode, locale);
-                      const active = writingMode === mode;
-                      return (
-                        <button
-                          key={mode}
-                          type="button"
-                          onClick={() => setWritingMode(mode)}
-                          className={cn(
-                            "rounded-xl border p-3 text-left transition",
-                            active
-                              ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
-                              : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
-                          )}
-                        >
-                          <div className="text-sm font-semibold text-[var(--text-1)]">{meta.label}</div>
-                          <div className="mt-1.5 text-sm leading-6 text-[var(--text-2)]">{meta.description}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="text-xs text-[var(--text-3)]">{ui.currentWritingMode}: {writingMeta.label}</div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="space-y-2">
-                    <span className="text-sm font-medium text-[var(--text-2)]">{ui.copyLength}</span>
-                    <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-xl px-4 py-3 text-sm">
-                      {copyLengthList.map((item) => (
-                        <option key={item} value={item}>
-                          {getCopyLengthMeta(item, locale).label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="space-y-2">
-                    <span className="text-sm font-medium text-[var(--text-2)]">{ui.usageScenario}</span>
-                    <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-xl px-4 py-3 text-sm">
-                      {usageScenarioList.map((item) => (
-                        <option key={item} value={item}>
-                          {getUsageScenarioMeta(item, locale).label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputStyle}</div>
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {styleTemplateList.map((style) => {
-                      const meta = getStyleTemplateMeta(style, locale);
-                      const active = styleTemplate === style;
-                      return (
-                        <button
-                          key={style}
-                          type="button"
-                          onClick={() => setStyleTemplate(style)}
-                          className={cn(
-                            "rounded-xl border p-3 text-left transition",
-                            active
-                              ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
-                              : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
-                          )}
-                        >
-                          <div className="text-sm font-semibold text-[var(--text-1)]">{meta.label}</div>
-                          <div className="mt-1.5 text-sm leading-6 text-[var(--text-2)]">{meta.description}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="text-xs text-[var(--text-3)]">{ui.currentStyle}: {styleMeta.label}</div>
-                </div>
-
-                <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.styleReference}</span>
-                  <textarea
-                    name="styleReferenceSample"
-                    rows={4}
-                    placeholder={ui.styleReferencePlaceholder}
-                    className="theme-input rounded-xl px-4 py-3 text-sm leading-7"
-                  />
-                </label>
-              </>
-            ) : null}
-          </Disclosure>
-
-          <div className="flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
-            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">{ui.defaultPlatforms}: {modeMeta.platforms.join(" / ")}</span>
-            <span className="rounded-full border border-[var(--border)] px-3 py-1.5">{ui.currentMode}: {modeMeta.label}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button type="submit" disabled={submitting}>
-              {submitting ? ui.creating : ui.createProject}
-            </Button>
-            {message ? <div className="text-sm text-[var(--ok-text)]">{message}</div> : null}
-            {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
-          </div>
-        </form>
+        <ProjectForm locale={locale} variant="compact" />
       </Disclosure>
 
       {/* ── Search & Filter bar ── */}

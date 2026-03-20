@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
+import { GenerateStoryboardButton } from "@/components/workspace/generate-storyboard-button";
+import { NextStepLink } from "@/components/workspace/next-step-link";
+import { apiRequest } from "@/lib/client-api";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
 import { getAdaptationStatusLabel, getPlatformSurfaceMeta, platformSurfaceList, type PlatformSurface } from "@/lib/platform-surface";
@@ -29,6 +32,16 @@ type PromotionalCopyPayload = {
   call_to_action?: string;
   risk_notes?: string[];
   recommended_next_steps?: string[];
+};
+
+type AdCreativePayload = {
+  target_audience?: string;
+  lead_angle?: string;
+  core_hook?: string;
+  selling_points?: unknown;
+  visual_direction?: string;
+  shot_tone?: string;
+  cta_direction?: string;
 };
 
 type MarketingOverview = {
@@ -79,6 +92,27 @@ type MarketingOverview = {
     createdAt: string | Date;
     taskJson: unknown;
   }>;
+  latestAdCreative: {
+    id: string;
+    title: string;
+    summary: string | null;
+    createdAt: string | Date;
+    taskJson: unknown;
+  } | null;
+  adCreativeVersions: Array<{
+    id: string;
+    title: string;
+    summary: string | null;
+    createdAt: string | Date;
+    taskJson: unknown;
+  }>;
+  storyboardSummary: {
+    latestStoryboardId: string | null;
+    versionNumber: number | null;
+    frameCount: number;
+    readyFrameCount: number;
+    sceneCount: number;
+  };
   platformAdaptations: Array<{
     id: string;
     surface: string;
@@ -189,6 +223,31 @@ function parsePayload(value: unknown): PromotionalCopyPayload | null {
   };
 }
 
+function parseAdCreativePayload(value: unknown): AdCreativePayload | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+  return {
+    target_audience: typeof source.target_audience === "string" ? source.target_audience : undefined,
+    lead_angle: typeof source.lead_angle === "string" ? source.lead_angle : undefined,
+    core_hook: typeof source.core_hook === "string" ? source.core_hook : undefined,
+    selling_points: source.selling_points,
+    visual_direction: typeof source.visual_direction === "string" ? source.visual_direction : undefined,
+    shot_tone: typeof source.shot_tone === "string" ? source.shot_tone : undefined,
+    cta_direction: typeof source.cta_direction === "string" ? source.cta_direction : undefined,
+  };
+}
+
+async function copyToClipboard(text: string) {
+  if (typeof navigator === "undefined" || !navigator.clipboard) {
+    throw new Error("当前环境不支持剪贴板复制。");
+  }
+
+  await navigator.clipboard.writeText(text);
+}
+
 export function MarketingOpsWorkbench({
   projectId,
   marketingOverview,
@@ -229,6 +288,14 @@ export function MarketingOpsWorkbench({
   const [recommendedNextSteps, setRecommendedNextSteps] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null);
+  const [creativeAudience, setCreativeAudience] = useState("");
+  const [creativeAngle, setCreativeAngle] = useState("");
+  const [creativeHook, setCreativeHook] = useState("");
+  const [creativeSellingPoints, setCreativeSellingPoints] = useState("");
+  const [creativeVisualDirection, setCreativeVisualDirection] = useState("");
+  const [creativeShotTone, setCreativeShotTone] = useState("");
+  const [creativeCtaDirection, setCreativeCtaDirection] = useState("");
+  const [creativePending, setCreativePending] = useState(false);
 
   const activeBrandId = marketingOverview.brandProfile?.id;
   const activeSprintId = marketingOverview.latestSprint?.id;
@@ -340,6 +407,29 @@ export function MarketingOpsWorkbench({
         issueReasonFallback: "This item needs human review.",
         noCheckYetSelected: "There is no compliance record for this draft yet. Run the check from the button above.",
         noCheckYet: "Choose a draft to view its compliance history.",
+        creativeTitle: "Ad Creative Direction",
+        creativeDesc: "Keep one clear creative pack visible so the ad script and storyboard stay on the same brief.",
+        creativeEmpty: "No ad creative pack yet. Use Output Studio on the dashboard to generate one.",
+        creativeAudience: "Audience",
+        creativeAngle: "Lead angle",
+        creativeHook: "Core hook",
+        creativeVisual: "Visual direction",
+        creativeTone: "Shot tone",
+        creativeCta: "CTA direction",
+        creativeSellingPoints: "Selling points",
+        creativeLatest: "Latest creative",
+        creativeHistory: "History",
+        creativeCopy: "Copy brief",
+        creativeApply: "Use in editor",
+        storyboardTitle: "Ad Storyboard",
+        storyboardDesc: "Keep ad creative, ad copy, and storyboard linked without leaving Marketing Ops too early.",
+        storyboardVersion: "Storyboard version",
+        storyboardFrames: "Frames",
+        storyboardReady: "Ready frames",
+        storyboardGenerate: "Generate ad storyboard",
+        storyboardOpen: "Open storyboard planner",
+        storyboardHintEmpty: "No storyboard yet. Generate one directly from the current project intent and creative direction.",
+        storyboardHintReady: "Storyboard already exists. Open it to keep refining shots, prompts, and assets.",
       }
     : {
         nonJson: "服务器返回了非 JSON 响应。",
@@ -443,6 +533,29 @@ export function MarketingOpsWorkbench({
         issueReasonFallback: "需要人工进一步判断。",
         noCheckYetSelected: "当前平台稿还没有检查记录。请点击上方按钮执行合规检查。",
         noCheckYet: "选择平台稿后可查看检查记录。",
+        creativeTitle: "广告创意方向",
+        creativeDesc: "把当前广告创意包固定在前面，让广告脚本和分镜始终围绕同一个 brief 展开。",
+        creativeEmpty: "还没有广告创意包。先回总览页点一下“广告创意”即可生成。",
+        creativeAudience: "目标受众",
+        creativeAngle: "主传播角度",
+        creativeHook: "核心钩子",
+        creativeVisual: "视觉方向",
+        creativeTone: "镜头气质",
+        creativeCta: "CTA 方向",
+        creativeSellingPoints: "核心卖点",
+        creativeLatest: "当前创意包",
+        creativeHistory: "历史版本",
+        creativeCopy: "复制创意包",
+        creativeApply: "带入当前编辑",
+        storyboardTitle: "广告分镜",
+        storyboardDesc: "让广告创意、广告文案和广告分镜在 Marketing Ops 里保持同一条线，不必过早跳走。",
+        storyboardVersion: "分镜版本",
+        storyboardFrames: "镜头条目",
+        storyboardReady: "就绪镜头",
+        storyboardGenerate: "生成广告分镜",
+        storyboardOpen: "进入分镜页",
+        storyboardHintEmpty: "当前还没有分镜。可以直接基于项目意图和创意方向生成第一版。",
+        storyboardHintReady: "当前已经有分镜版本了，进入后可以继续细化镜头、提示词和素材。",
       };
   const styleReferenceSample = projectConfig.styleReferenceSample?.trim() ?? "";
   const styleReferenceInsight = projectConfig.styleReferenceInsight ?? null;
@@ -486,6 +599,16 @@ export function MarketingOpsWorkbench({
   }, [marketingOverview.platformAdaptations, selectedAdaptationId]);
 
   const selectedAdaptation = marketingOverview.platformAdaptations.find((item) => item.id === selectedAdaptationId) ?? null;
+  const latestAdCreative = marketingOverview.latestAdCreative ? parseAdCreativePayload(marketingOverview.latestAdCreative.taskJson) : null;
+  useEffect(() => {
+    setCreativeAudience(latestAdCreative?.target_audience ?? "");
+    setCreativeAngle(latestAdCreative?.lead_angle ?? "");
+    setCreativeHook(latestAdCreative?.core_hook ?? "");
+    setCreativeSellingPoints(toLines(normalizeStringList(latestAdCreative?.selling_points)));
+    setCreativeVisualDirection(latestAdCreative?.visual_direction ?? "");
+    setCreativeShotTone(latestAdCreative?.shot_tone ?? "");
+    setCreativeCtaDirection(latestAdCreative?.cta_direction ?? "");
+  }, [marketingOverview.latestAdCreative?.id, latestAdCreative]);
   const latestCheckForSelected = useMemo(
     () => marketingOverview.complianceChecks.find((item) => item.targetId === selectedAdaptationId),
     [marketingOverview.complianceChecks, selectedAdaptationId],
@@ -700,6 +823,96 @@ export function MarketingOpsWorkbench({
     );
   }
 
+  async function copyCreativeBrief() {
+    if (!latestAdCreative) {
+      return;
+    }
+
+    const text = [
+      `${ui.creativeAudience}：${latestAdCreative.target_audience ?? "-"}`,
+      `${ui.creativeAngle}：${latestAdCreative.lead_angle ?? "-"}`,
+      `${ui.creativeHook}：${latestAdCreative.core_hook ?? "-"}`,
+      normalizeStringList(latestAdCreative.selling_points).length
+        ? `${ui.creativeSellingPoints}：\n${normalizeStringList(latestAdCreative.selling_points).map((item) => `- ${item}`).join("\n")}`
+        : "",
+      `${ui.creativeVisual}：${latestAdCreative.visual_direction ?? "-"}`,
+      `${ui.creativeTone}：${latestAdCreative.shot_tone ?? "-"}`,
+      `${ui.creativeCta}：${latestAdCreative.cta_direction ?? "-"}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    try {
+      await copyToClipboard(text);
+      setMessage(locale === "en" ? "Creative brief copied." : "广告创意包已复制。");
+      setError(null);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : locale === "en" ? "Copy failed." : "复制失败。");
+    }
+  }
+
+  function applyCreativeToEditor() {
+    if (!latestAdCreative) {
+      return;
+    }
+
+    setMasterAngle((current) => current.trim() || latestAdCreative.lead_angle || "");
+    setHeroCopy((current) => current.trim() || latestAdCreative.core_hook || "");
+    setProofPoints((current) => current.trim() || toLines(normalizeStringList(latestAdCreative.selling_points)));
+    setCallToAction((current) => current.trim() || latestAdCreative.cta_direction || "");
+    setRiskNotes((current) => current.trim() || latestAdCreative.visual_direction || "");
+    setShowAdvanced(true);
+    setMessage(locale === "en" ? "Creative direction applied to the editor." : "广告创意方向已带入当前编辑区。");
+    setError(null);
+  }
+
+  async function saveCreativeBriefVersion() {
+    if (!creativeHook.trim() || !creativeAngle.trim()) {
+      setError(locale === "en" ? "Please fill in the lead angle and core hook first." : "请先填写主传播角度和核心钩子。");
+      return;
+    }
+
+    setCreativePending(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      await apiRequest(`/api/projects/${projectId}/strategy-tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand_profile_id: activeBrandId,
+          campaign_sprint_id: activeSprintId,
+          task_type: "TOPIC_PLAN",
+          task_status: "DONE",
+          task_title: `广告创意 · ${creativeHook.trim()}`,
+          task_summary: creativeHook.trim(),
+          priority_score: 86,
+          task_json: {
+            kind: "AD_CREATIVE",
+            output_type: "AD_CREATIVE",
+            generated_at: new Date().toISOString(),
+            target_audience: creativeAudience.trim(),
+            lead_angle: creativeAngle.trim(),
+            core_hook: creativeHook.trim(),
+            selling_points: fromLines(creativeSellingPoints),
+            visual_direction: creativeVisualDirection.trim(),
+            shot_tone: creativeShotTone.trim(),
+            cta_direction: creativeCtaDirection.trim(),
+            edited_in_place: true,
+          },
+        }),
+      });
+
+      setMessage(locale === "en" ? "Creative brief saved as a new version." : "广告创意包已另存为新版本。");
+      router.refresh();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : locale === "en" ? "Save failed." : "保存失败。");
+    } finally {
+      setCreativePending(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* ── Header: Project Context & Config ── */}
@@ -788,6 +1001,117 @@ export function MarketingOpsWorkbench({
 
         {message ? <div className="mt-4 rounded-xl bg-[var(--ok-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--ok-text)]">{message}</div> : null}
         {error ? <div className="mt-4 rounded-xl bg-[var(--danger-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--danger-text)]">{error}</div> : null}
+      </PanelCard>
+
+      <PanelCard title={ui.creativeTitle} description={ui.creativeDesc}>
+        {marketingOverview.latestAdCreative && latestAdCreative ? (
+          <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+            <div className="theme-panel-muted rounded-[24px] p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeLatest}</div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyCreativeBrief()}>
+                    {ui.creativeCopy}
+                  </Button>
+                  <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={applyCreativeToEditor}>
+                    {ui.creativeApply}
+                  </Button>
+                  <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void saveCreativeBriefVersion()} disabled={creativePending}>
+                    {creativePending ? (locale === "en" ? "Saving..." : "保存中...") : (locale === "en" ? "Save as version" : "另存新版本")}
+                  </Button>
+                  <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">
+                    {new Date(marketingOverview.latestAdCreative.createdAt).toLocaleString(timeLocale)}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeAudience}</div>
+                  <textarea value={creativeAudience} onChange={(event) => setCreativeAudience(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+                <div>
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeAngle}</div>
+                  <textarea value={creativeAngle} onChange={(event) => setCreativeAngle(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeHook}</div>
+                  <textarea value={creativeHook} onChange={(event) => setCreativeHook(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+                <div>
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeVisual}</div>
+                  <textarea value={creativeVisualDirection} onChange={(event) => setCreativeVisualDirection(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+                <div>
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeTone}</div>
+                  <textarea value={creativeShotTone} onChange={(event) => setCreativeShotTone(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeCta}</div>
+                <textarea value={creativeCtaDirection} onChange={(event) => setCreativeCtaDirection(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeSellingPoints}</div>
+                <div className="mt-3">
+                  <textarea value={creativeSellingPoints} onChange={(event) => setCreativeSellingPoints(event.target.value)} rows={8} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+              </div>
+
+              {marketingOverview.adCreativeVersions.length > 1 ? (
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeHistory}</div>
+                  <div className="mt-3 space-y-2">
+                    {marketingOverview.adCreativeVersions.slice(1).map((item) => (
+                      <div key={item.id} className="rounded-xl bg-[var(--surface-muted)] px-3 py-3">
+                        <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
+                        <div className="mt-1 text-sm leading-7 text-[var(--text-2)]">{item.summary ?? ""}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+            {ui.creativeEmpty}
+          </div>
+        )}
+      </PanelCard>
+
+      <PanelCard title={ui.storyboardTitle} description={ui.storyboardDesc}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardVersion}</div>
+            <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">
+              {marketingOverview.storyboardSummary.versionNumber ? `v${marketingOverview.storyboardSummary.versionNumber}` : "-"}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardFrames}</div>
+            <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">{marketingOverview.storyboardSummary.frameCount}</div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardReady}</div>
+            <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">
+              {marketingOverview.storyboardSummary.readyFrameCount}/{Math.max(marketingOverview.storyboardSummary.frameCount, marketingOverview.storyboardSummary.sceneCount)}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <GenerateStoryboardButton projectId={projectId} locale={locale} label={ui.storyboardGenerate} />
+          <NextStepLink href={`/scene-planner?projectId=${projectId}`} label={ui.storyboardOpen} />
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-sm leading-7 text-[var(--text-2)]">
+          {marketingOverview.storyboardSummary.frameCount > 0 ? ui.storyboardHintReady : ui.storyboardHintEmpty}
+        </div>
       </PanelCard>
 
       {/* ── Phase 1: Master Copy Workspace ── */}

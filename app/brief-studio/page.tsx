@@ -5,7 +5,9 @@ import { ApprovalBoard } from "@/components/workspace/approval-board";
 import { BriefStudioWorkbench } from "@/components/workspace/brief-studio-workbench";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { NextStepLink } from "@/components/workspace/next-step-link";
+import { getOutputTypeMeta } from "@/lib/content-line";
 import { copy, getLocale } from "@/lib/locale";
+import { getDashboardNextStep } from "@/lib/workflow-navigator";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 
 const workspaceQueryService = new WorkspaceQueryService();
@@ -27,26 +29,22 @@ export default async function BriefStudioPage({
   const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
   const workspaceLoadFailed = workspaceResult.status === "rejected";
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
+  const nextStep = getDashboardNextStep(workspace, locale);
+  const outputLabel = workspace ? getOutputTypeMeta(workspace.outputType, locale).label : null;
   const pageCopy =
-    workspace?.workspaceMode === "SHORT_VIDEO"
+    workspace?.contentLine === "MARS_CITIZEN"
       ? {
-          eyebrow: "项目起点",
+          eyebrow: locale === "en" ? "Science Context" : "科普起点",
           title: "快速任务单",
-          description: "先把视频目标、核心表达和平台写清楚，再进入趋势、脚本和分镜。",
+          description: locale === "en" ? "Use this page only when you need to sharpen the angle before script or storyboard generation." : "只有在你需要先把角度和表达收清时，再来这里补充上下文，然后继续做脚本或分镜。",
         }
-      : workspace?.workspaceMode === "COPYWRITING"
+      : workspace?.contentLine === "MARKETING"
         ? {
-            eyebrow: "文案起点",
+            eyebrow: locale === "en" ? "Marketing Context" : "营销起点",
             title: "快速任务单",
-            description: "先把传播目标、核心表达和 CTA 写清楚，再生成主稿和平台稿。",
+            description: locale === "en" ? "Use this page to clarify brand goal, key message, and constraints before generating the first marketing draft." : "先把品牌目标、核心表达和约束写清楚，再去生成第一版营销内容。",
           }
-        : workspace?.workspaceMode === "PROMOTION"
-          ? {
-              eyebrow: "推广起点",
-              title: "快速任务单",
-              description: "先把推广目标、核心卖点和目标平台写清楚，再推进宣传文案与合规检查。",
-            }
-          : text.pages.brief;
+        : text.pages.brief;
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
@@ -59,12 +57,20 @@ export default async function BriefStudioPage({
           action={
             projectId ? (
               <NextStepLink
-                href={`/trend-explorer?projectId=${projectId}`}
-                label={locale === "en" ? "Next: Review Trends" : "下一步：看趋势主题"}
+                href={nextStep.href}
+                label={nextStep.label}
               />
             ) : null
           }
         />
+
+        {workspace && outputLabel ? (
+          <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
+            {locale === "en"
+              ? `Current target output is ${outputLabel}. Treat Brief Studio as optional context, not a mandatory front door.`
+              : `当前目标产物是「${outputLabel}」。把这里当成补充上下文的地方，而不是所有项目的必经入口。`}
+          </div>
+        ) : null}
 
         <ProjectContext
           project={

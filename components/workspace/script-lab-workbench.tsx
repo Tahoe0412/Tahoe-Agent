@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
@@ -41,6 +41,37 @@ type ScriptLabRow = {
   continuityGroup: string;
 };
 
+type OutputArtifact = {
+  id: string;
+  title: string;
+  summary: string | null;
+  createdAt: string | Date;
+  taskJson: unknown;
+};
+
+type MarsOutputs = {
+  latestVideoTitlePack: OutputArtifact | null;
+  videoTitlePacks: OutputArtifact[];
+  latestPublishCopy: OutputArtifact | null;
+  publishCopyPacks: OutputArtifact[];
+};
+
+function normalizeStringList(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+}
+
+function normalizeString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function copyToClipboard(text: string) {
+  if (typeof navigator === "undefined" || !navigator.clipboard) {
+    throw new Error("当前环境不支持剪贴板复制。");
+  }
+
+  await navigator.clipboard.writeText(text);
+}
+
 function Tag({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "danger" | "success" }) {
   const className =
     tone === "danger"
@@ -65,9 +96,11 @@ function StatCard({ label, value, caption }: { label: string; value: string; cap
 export function ScriptLabWorkbench({
   projectId,
   rows,
+  marsOutputs,
 }: {
   projectId: string;
   rows: ScriptLabRow[];
+  marsOutputs: MarsOutputs;
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
@@ -82,8 +115,38 @@ export function ScriptLabWorkbench({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [recommendedTitle, setRecommendedTitle] = useState("");
+  const [titleAngleSummary, setTitleAngleSummary] = useState("");
+  const [titleOptionsText, setTitleOptionsText] = useState("");
+  const [publishPrimaryTitle, setPublishPrimaryTitle] = useState("");
+  const [publishLeadIn, setPublishLeadIn] = useState("");
+  const [publishDescription, setPublishDescription] = useState("");
+  const [publishHighlightsText, setPublishHighlightsText] = useState("");
+  const [publishCta, setPublishCta] = useState("");
+  const [artifactPending, setArtifactPending] = useState<"title" | "publish" | null>(null);
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
+  const latestVideoTitlePayload = (marsOutputs.latestVideoTitlePack?.taskJson as Record<string, unknown> | null) ?? null;
+  const latestPublishCopyPayload = (marsOutputs.latestPublishCopy?.taskJson as Record<string, unknown> | null) ?? null;
+
+  useEffect(() => {
+    setRecommendedTitle(
+      normalizeString(latestVideoTitlePayload?.recommended_title) ||
+        marsOutputs.latestVideoTitlePack?.summary ||
+        marsOutputs.latestVideoTitlePack?.title ||
+        "",
+    );
+    setTitleAngleSummary(normalizeString(latestVideoTitlePayload?.angle_summary));
+    setTitleOptionsText(normalizeStringList(latestVideoTitlePayload?.title_options).join("\n"));
+  }, [latestVideoTitlePayload, marsOutputs.latestVideoTitlePack]);
+
+  useEffect(() => {
+    setPublishPrimaryTitle(normalizeString(latestPublishCopyPayload?.primary_title) || marsOutputs.latestPublishCopy?.title || "");
+    setPublishLeadIn(normalizeString(latestPublishCopyPayload?.lead_in));
+    setPublishDescription(normalizeString(latestPublishCopyPayload?.video_description));
+    setPublishHighlightsText(normalizeStringList(latestPublishCopyPayload?.highlights).join("\n"));
+    setPublishCta(normalizeString(latestPublishCopyPayload?.publish_cta));
+  }, [latestPublishCopyPayload, marsOutputs.latestPublishCopy]);
 
   function syncWithScene(sceneId: string) {
     const scene = rows.find((row) => row.id === sceneId);
@@ -197,12 +260,253 @@ export function ScriptLabWorkbench({
     }
   }
 
+  async function copyVideoTitlePack() {
+    if (!marsOutputs.latestVideoTitlePack) {
+      return;
+    }
+
+    const recommendedTitle =
+      normalizeString(latestVideoTitlePayload?.recommended_title) ||
+      marsOutputs.latestVideoTitlePack.summary ||
+      marsOutputs.latestVideoTitlePack.title;
+    const angleSummary = normalizeString(latestVideoTitlePayload?.angle_summary);
+    const titleOptions = normalizeStringList(latestVideoTitlePayload?.title_options);
+    const text = [
+      `推荐标题：${recommendedTitle}`,
+      angleSummary ? `角度说明：${angleSummary}` : "",
+      titleOptions.length ? `备选标题：\n${titleOptions.map((item) => `- ${item}`).join("\n")}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    try {
+      await copyToClipboard(text);
+      setMessage("标题包已复制。");
+      setError(null);
+    } catch (requestError) {
+      setError(requestError);
+    }
+  }
+
+  async function copyPublishCopy() {
+    if (!marsOutputs.latestPublishCopy) {
+      return;
+    }
+
+    const primaryTitle = normalizeString(latestPublishCopyPayload?.primary_title) || marsOutputs.latestPublishCopy.title;
+    const leadIn = normalizeString(latestPublishCopyPayload?.lead_in);
+    const description = normalizeString(latestPublishCopyPayload?.video_description);
+    const highlights = normalizeStringList(latestPublishCopyPayload?.highlights);
+    const publishCta = normalizeString(latestPublishCopyPayload?.publish_cta);
+    const text = [
+      primaryTitle,
+      leadIn,
+      description,
+      highlights.length ? `亮点：\n${highlights.map((item) => `- ${item}`).join("\n")}` : "",
+      publishCta ? `CTA：${publishCta}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    try {
+      await copyToClipboard(text);
+      setMessage("发布文案已复制。");
+      setError(null);
+    } catch (requestError) {
+      setError(requestError);
+    }
+  }
+
+  async function saveVideoTitlePack() {
+    const titleOptions = titleOptionsText
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (!recommendedTitle.trim()) {
+      setError(new Error("请先填写推荐标题。"));
+      return;
+    }
+
+    setArtifactPending("title");
+    setMessage(null);
+    setError(null);
+
+    try {
+      await apiRequest(`/api/projects/${projectId}/strategy-tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task_type: "SCRIPT",
+          task_status: "DONE",
+          task_title: `视频标题包 · ${recommendedTitle.trim()}`,
+          task_summary: recommendedTitle.trim(),
+          priority_score: 84,
+          task_json: {
+            kind: "VIDEO_TITLE_PACK",
+            output_type: "VIDEO_TITLE",
+            generated_at: new Date().toISOString(),
+            recommended_title: recommendedTitle.trim(),
+            angle_summary: titleAngleSummary.trim(),
+            title_options: titleOptions.length ? titleOptions : [recommendedTitle.trim()],
+            edited_in_place: true,
+          },
+        }),
+      });
+      setMessage("标题包已另存为新版本。");
+      router.refresh();
+    } catch (requestError) {
+      setError(requestError);
+    } finally {
+      setArtifactPending(null);
+    }
+  }
+
+  async function savePublishCopyPack() {
+    const highlights = publishHighlightsText
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (!publishPrimaryTitle.trim() || !publishDescription.trim()) {
+      setError(new Error("请先填写发布标题和正文。"));
+      return;
+    }
+
+    setArtifactPending("publish");
+    setMessage(null);
+    setError(null);
+
+    try {
+      await apiRequest(`/api/projects/${projectId}/strategy-tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task_type: "SCRIPT",
+          task_status: "DONE",
+          task_title: `发布文案 · ${publishPrimaryTitle.trim()}`,
+          task_summary: publishLeadIn.trim() || publishPrimaryTitle.trim(),
+          priority_score: 82,
+          task_json: {
+            kind: "PUBLISH_COPY",
+            output_type: "PUBLISH_COPY",
+            generated_at: new Date().toISOString(),
+            primary_title: publishPrimaryTitle.trim(),
+            lead_in: publishLeadIn.trim(),
+            video_description: publishDescription.trim(),
+            highlights,
+            publish_cta: publishCta.trim(),
+            edited_in_place: true,
+          },
+        }),
+      });
+      setMessage("发布文案已另存为新版本。");
+      router.refresh();
+    } catch (requestError) {
+      setError(requestError);
+    } finally {
+      setArtifactPending(null);
+    }
+  }
+
   if (!selectedScene) {
     return null;
   }
 
   return (
     <div className="space-y-6">
+      {(marsOutputs.videoTitlePacks.length > 0 || marsOutputs.publishCopyPacks.length > 0) ? (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <PanelCard title="发布包装" description="脚本之外，直接查看这条内容已经生成好的标题和发布文案。">
+            <div className="space-y-4">
+              {marsOutputs.latestVideoTitlePack ? (
+                <div className="theme-panel-muted rounded-[24px] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">推荐标题</div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyVideoTitlePack()}>
+                        复制标题包
+                      </Button>
+                      <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void saveVideoTitlePack()} disabled={artifactPending !== null}>
+                        {artifactPending === "title" ? "保存中..." : "另存新版本"}
+                      </Button>
+                      <Tag>{new Date(marsOutputs.latestVideoTitlePack.createdAt).toLocaleString("zh-CN")}</Tag>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">推荐标题</div>
+                      <input value={recommendedTitle} onChange={(event) => setRecommendedTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" />
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">角度说明</div>
+                      <textarea value={titleAngleSummary} onChange={(event) => setTitleAngleSummary(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">备选标题</div>
+                      <textarea value={titleOptionsText} onChange={(event) => setTitleOptionsText(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+                  还没有生成标题包。回到总览页点一下“视频标题”就能补上。
+                </div>
+              )}
+            </div>
+          </PanelCard>
+
+          <PanelCard title="发布文案" description="保留一版可直接复制到抖音、小红书或视频简介区的发布文案。">
+            {marsOutputs.latestPublishCopy ? (
+              <div className="space-y-4">
+                <div className="theme-panel-muted rounded-[24px] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前版本</div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyPublishCopy()}>
+                        复制发布文案
+                      </Button>
+                      <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void savePublishCopyPack()} disabled={artifactPending !== null}>
+                        {artifactPending === "publish" ? "保存中..." : "另存新版本"}
+                      </Button>
+                      <Tag>{new Date(marsOutputs.latestPublishCopy.createdAt).toLocaleString("zh-CN")}</Tag>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布标题</div>
+                      <input value={publishPrimaryTitle} onChange={(event) => setPublishPrimaryTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" />
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">导语</div>
+                      <textarea value={publishLeadIn} onChange={(event) => setPublishLeadIn(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布正文</div>
+                      <textarea value={publishDescription} onChange={(event) => setPublishDescription(event.target.value)} rows={7} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">亮点</div>
+                        <textarea value={publishHighlightsText} onChange={(event) => setPublishHighlightsText(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                      </div>
+                      <div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">CTA</div>
+                        <textarea value={publishCta} onChange={(event) => setPublishCta(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+                还没有生成发布文案。回到总览页点一下“发布文案”就能补上。
+              </div>
+            )}
+          </PanelCard>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard label="镜头数" value={String(rows.length)} caption="当前脚本镜头单元数" />
         <StatCard

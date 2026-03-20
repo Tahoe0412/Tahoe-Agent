@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { ContentLine, OutputType } from "@/lib/content-line";
 
 interface GenerateScriptResult {
   projectId: string;
@@ -18,13 +19,18 @@ interface SelectedNewsItem {
   published_at: string;
 }
 
+interface GenerateOptions {
+  contentLine?: ContentLine;
+  outputType?: OutputType;
+}
+
 export function useGenerateScript() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateScriptResult | null>(null);
 
   const generate = useCallback(
-    async (searchQuery: string, newsItems: SelectedNewsItem[]) => {
+    async (searchQuery: string, newsItems: SelectedNewsItem[], options?: GenerateOptions) => {
       setLoading(true);
       setError(null);
       setResult(null);
@@ -33,7 +39,12 @@ export function useGenerateScript() {
         const response = await fetch("/api/scripts/generate-from-news", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ searchQuery, newsItems }),
+          body: JSON.stringify({
+            searchQuery,
+            newsItems,
+            contentLine: options?.contentLine,
+            outputType: options?.outputType,
+          }),
         });
 
         const payload = await response.json();
@@ -67,3 +78,4 @@ export function useGenerateScript() {
 
   return { generate, loading, error, result };
 }
+

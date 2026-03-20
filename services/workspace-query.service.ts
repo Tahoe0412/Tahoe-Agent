@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/db";
 import { getCopyLengthMeta, getUsageScenarioMeta } from "@/lib/copy-goal";
+import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
 import { analyzeStyleReferenceSample, normalizeStyleReferenceInsight } from "@/lib/style-reference";
 import { getStyleTemplateMeta } from "@/lib/style-template";
 import { getWritingModeMeta } from "@/lib/writing-mode";
-import { getWorkspaceMode } from "@/lib/workspace-mode";
 
 function average(values: number[]) {
   return values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
@@ -11,6 +11,10 @@ function average(values: number[]) {
 
 function toClientSafe<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function taskHasKind(taskJson: unknown, kind: string) {
+  return ((taskJson as Record<string, unknown> | null)?.kind as string | undefined) === kind;
 }
 
 function scoreFromTopic(topic: { momentum_score: number; summary_json: unknown }) {
@@ -124,23 +128,31 @@ export class WorkspaceQueryService {
       },
     });
 
-    return projects.map((project) => ({
-      id: project.id,
-      title: project.title,
-      topic_query: project.topic_query,
-      status: project.status,
-      created_at: project.created_at,
-      workspace_mode: getWorkspaceMode((project.metadata as Record<string, unknown> | null)?.workspace_mode),
-      project_tags: (((project.metadata as Record<string, unknown> | null)?.project_tags as string[] | undefined) ?? []).slice(0, 12),
-      is_pinned: ((project.metadata as Record<string, unknown> | null)?.is_pinned as boolean | undefined) ?? false,
-      last_opened_at: ((project.metadata as Record<string, unknown> | null)?.last_opened_at as string | undefined) ?? null,
-      brand_profile_id: project.brand_profile_id,
-      industry_template_id: project.industry_template_id,
-      trend_count: project.trend_topics.length,
-      brief_count: project.creative_briefs.length,
-      storyboard_count: project.storyboards.length,
-      scene_count: project.scripts.flatMap((script) => script.script_scenes).length,
-    }));
+    return projects.map((project) => {
+      const intent = resolveProjectIntentFromMetadata(
+        (project.metadata as Record<string, unknown> | null) ?? undefined,
+      );
+
+      return {
+        id: project.id,
+        title: project.title,
+        topic_query: project.topic_query,
+        status: project.status,
+        created_at: project.created_at,
+        workspace_mode: intent.workspaceMode,
+        content_line: intent.contentLine,
+        output_type: intent.outputType,
+        project_tags: (((project.metadata as Record<string, unknown> | null)?.project_tags as string[] | undefined) ?? []).slice(0, 12),
+        is_pinned: ((project.metadata as Record<string, unknown> | null)?.is_pinned as boolean | undefined) ?? false,
+        last_opened_at: ((project.metadata as Record<string, unknown> | null)?.last_opened_at as string | undefined) ?? null,
+        brand_profile_id: project.brand_profile_id,
+        industry_template_id: project.industry_template_id,
+        trend_count: project.trend_topics.length,
+        brief_count: project.creative_briefs.length,
+        storyboard_count: project.storyboards.length,
+        scene_count: project.scripts.flatMap((script) => script.script_scenes).length,
+      };
+    });
   }
 
   async getProjectWorkspace(projectId: string) {
@@ -245,7 +257,10 @@ export class WorkspaceQueryService {
     const scenes = latestScript?.script_scenes ?? [];
     const readyScenes = scenes.filter((scene) => scene.required_assets[0]?.is_asset_ready);
     const difficultyScores = scenes.map((scene) => scene.scene_classifications[0]?.difficulty_score ?? 0).filter(Boolean);
-    const workspaceMode = getWorkspaceMode((project.metadata as Record<string, unknown> | null)?.workspace_mode);
+    const intent = resolveProjectIntentFromMetadata(
+      (project.metadata as Record<string, unknown> | null) ?? undefined,
+    );
+    const workspaceMode = intent.workspaceMode;
 
     const dashboardMetrics = [
       { label: "Active Trends", value: String(project.trend_topics.length), caption: "已评分趋势主题" },
@@ -333,6 +348,10 @@ export class WorkspaceQueryService {
 
     const latestStoryboard = project.storyboards[0] ?? null;
     const storyboardFrames = latestStoryboard?.frames ?? [];
+    const promotionalCopyTasks = project.strategy_tasks.filter((task) => task.task_type === "SCRIPT" && taskHasKind(task.task_json, "PROMOTIONAL_COPY"));
+    const videoTitleTasks = project.strategy_tasks.filter((task) => task.task_type === "SCRIPT" && taskHasKind(task.task_json, "VIDEO_TITLE_PACK"));
+    const publishCopyTasks = project.strategy_tasks.filter((task) => task.task_type === "SCRIPT" && taskHasKind(task.task_json, "PUBLISH_COPY"));
+    const adCreativeTasks = project.strategy_tasks.filter((task) => taskHasKind(task.task_json, "AD_CREATIVE"));
 
     const scenePlannerRows = scenes.map((scene) => {
       const classification = scene.scene_classifications[0];
@@ -419,6 +438,8 @@ export class WorkspaceQueryService {
     return toClientSafe({
       project,
       workspaceMode,
+      contentLine: intent.contentLine,
+      outputType: intent.outputType,
       projectSummary: {
         introduction: (((project.metadata as Record<string, unknown> | null)?.project_introduction as string | undefined) ?? "").trim(),
         coreIdea: ((((project.metadata as Record<string, unknown> | null)?.core_idea as string | undefined) ?? "").trim()) || project.topic_query,
@@ -474,11 +495,7 @@ export class WorkspaceQueryService {
           taskJson: task.task_json,
           createdAt: task.created_at,
         })),
-        latestPromotionalCopy: project.strategy_tasks
-          .filter((task) => {
-            const json = (task.task_json ?? {}) as { kind?: string };
-            return task.task_type === "SCRIPT" && json.kind === "PROMOTIONAL_COPY";
-          })
+        latestPromotionalCopy: promotionalCopyTasks
           .slice(0, 1)
           .map((task) => ({
             id: task.id,
@@ -487,11 +504,7 @@ export class WorkspaceQueryService {
             taskJson: task.task_json,
             createdAt: task.created_at,
           }))[0] ?? null,
-        promotionalCopyVersions: project.strategy_tasks
-          .filter((task) => {
-            const json = (task.task_json ?? {}) as { kind?: string };
-            return task.task_type === "SCRIPT" && json.kind === "PROMOTIONAL_COPY";
-          })
+        promotionalCopyVersions: promotionalCopyTasks
           .slice(0, 12)
           .map((task) => ({
             id: task.id,
@@ -500,6 +513,31 @@ export class WorkspaceQueryService {
             createdAt: task.created_at,
             taskJson: task.task_json,
           })),
+        latestAdCreative: adCreativeTasks
+          .slice(0, 1)
+          .map((task) => ({
+            id: task.id,
+            title: task.task_title,
+            summary: task.task_summary,
+            createdAt: task.created_at,
+            taskJson: task.task_json,
+          }))[0] ?? null,
+        adCreativeVersions: adCreativeTasks
+          .slice(0, 8)
+          .map((task) => ({
+            id: task.id,
+            title: task.task_title,
+            summary: task.task_summary,
+            createdAt: task.created_at,
+            taskJson: task.task_json,
+          })),
+        storyboardSummary: {
+          latestStoryboardId: latestStoryboard?.id ?? null,
+          versionNumber: latestStoryboard?.version_number ?? null,
+          frameCount: storyboardFrames.length,
+          readyFrameCount: storyboardFrames.filter((frame) => frame.frame_status === "READY" || frame.frame_status === "LOCKED").length,
+          sceneCount: scenes.length,
+        },
         platformAdaptations: project.platform_adaptations.slice(0, 8).map((item) => ({
           id: item.id,
           surface: item.platform_surface,
@@ -529,6 +567,40 @@ export class WorkspaceQueryService {
           platform: item.platform_surface,
           summary: item.optimization_summary,
           nextCount: ((item.next_recommendations as string[] | null) ?? []).length,
+        })),
+      },
+      marsOutputs: {
+        latestVideoTitlePack: videoTitleTasks
+          .slice(0, 1)
+          .map((task) => ({
+            id: task.id,
+            title: task.task_title,
+            summary: task.task_summary,
+            createdAt: task.created_at,
+            taskJson: task.task_json,
+          }))[0] ?? null,
+        videoTitlePacks: videoTitleTasks.slice(0, 8).map((task) => ({
+          id: task.id,
+          title: task.task_title,
+          summary: task.task_summary,
+          createdAt: task.created_at,
+          taskJson: task.task_json,
+        })),
+        latestPublishCopy: publishCopyTasks
+          .slice(0, 1)
+          .map((task) => ({
+            id: task.id,
+            title: task.task_title,
+            summary: task.task_summary,
+            createdAt: task.created_at,
+            taskJson: task.task_json,
+          }))[0] ?? null,
+        publishCopyPacks: publishCopyTasks.slice(0, 8).map((task) => ({
+          id: task.id,
+          title: task.task_title,
+          summary: task.task_summary,
+          createdAt: task.created_at,
+          taskJson: task.task_json,
         })),
       },
       latestBrief: project.creative_briefs[0] ?? null,
