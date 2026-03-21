@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-03-21 11:23 — Agent: Antigravity
+
+### T-012 UI Polish Round 2
+
+**Changes**:
+- **`components/ui/page-header.tsx`**: Removed stale `workflowCaption` footer ("从目标定义开始…"). Replaced hardcoded gradient blobs with `var(--accent-soft)` / `var(--sage-soft)` for dark mode compatibility. Divider line also now uses `var(--accent-soft)`.
+- **`app/page.tsx`**: `StartCard` now accepts `locale` prop → CTA shows "Start →" in English, "开始 →" in Chinese. Added decorative accent glow circle in top-right corner of each card for visual depth. Cards use `overflow-hidden` + `relative` positioning for proper layering.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-21 11:16 — Agent: Antigravity
 
 ### T-009 Chinese Search Enhancement: Locale-Aware News Search
