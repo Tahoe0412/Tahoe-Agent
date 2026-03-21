@@ -154,6 +154,14 @@ jobs:
               echo "[proxy] Added HTTPS_PROXY to .env.local"
             fi
 
+            # Inject X_BEARER_TOKEN from GitHub Secrets
+            X_TOKEN='${{ secrets.X_BEARER_TOKEN }}'
+            if [ -n "$X_TOKEN" ]; then
+              sed -i "/^X_BEARER_TOKEN=/d" "$APP_DIR/.env.local"
+              echo "X_BEARER_TOKEN=\"$X_TOKEN\"" >> "$APP_DIR/.env.local"
+              echo "[env] X_BEARER_TOKEN injected into .env.local"
+            fi
+
             # Quick connectivity test
             if curl --max-time 10 -s --proxy http://127.0.0.1:7890 https://www.google.com > /dev/null 2>&1; then
               echo "[proxy] ✓ Proxy works — Google reachable"
