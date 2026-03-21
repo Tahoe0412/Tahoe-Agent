@@ -59,8 +59,8 @@ function StartCard({
       <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</div>
       <div className="mt-3 text-lg font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
       <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{description}</div>
-      <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] transition-transform group-hover:translate-x-1">
-        {title} &rarr;
+      <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100">
+        开始 &rarr;
       </div>
     </Link>
   );
