@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-03-21 10:51 — Agent: Antigravity
+
+### T-010 Wrap-up: workspaceMode Surface Cleanup + Intent-First Copy
+
+**Changes**:
+- **`components/dashboard/project-mode-picker.tsx`** [DELETED]: Dead component replaced by `project-intent-picker.tsx`.
+- **`components/workspace/layout.tsx`**: Removed `workspaceMode` prop — no longer forwarded.
+- **`components/dashboard/sidebar.tsx`**: Removed unused `workspaceMode` parameter and `WorkspaceMode` import.
+- **10 page files** (`page.tsx`, `script-lab`, `brand-profiles`, `brief-studio`, `industry-templates`, `help-center`, `marketing-ops`, `render-lab`, `scene-planner`, `trend-explorer`): Removed `workspaceMode={workspace?.workspaceMode}` from `<WorkspaceLayout>` calls.
+- **`app/help-center/page.tsx`**: Rewrote "Getting Started" from "按顺序跑通完整流程" → "从一个选题开始，系统会帮你推进到第一版产物".
+- **`services/workspace-query.service.ts`**: Softened brand/industry copy from "建议先完成配置" → "可选：绑定后产出更统一".
+- **`components/workspace/project-context.tsx`**: Updated empty-state from "先从总览页新建" → "输入选题 + 选择产物类型就能新建".
+
+**Reason**:
+- `workspaceMode` in UI surfaces leaked the old mental model. UX copy was still teaching "run the full workflow" when the system now supports "give a topic and go".
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-21 10:05 — Agent: Antigravity
 
 ### T-012 UI Polish: Clean Typography & Modern Icons
