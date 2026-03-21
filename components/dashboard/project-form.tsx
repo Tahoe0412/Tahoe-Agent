@@ -241,8 +241,9 @@ export function ProjectForm({
         )}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <span className={cn("rounded-full border px-3 py-1.5 text-xs font-medium", intent.contentLine === "MARS_CITIZEN" ? "theme-chip-ok" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]")}>
-            {contentLineMeta.icon} {contentLineMeta.label}
+          <span className={cn("inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium", intent.contentLine === "MARS_CITIZEN" ? "theme-chip-ok" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]")}>
+            <contentLineMeta.icon className="mr-1.5 h-3.5 w-3.5" />
+            {contentLineMeta.label}
           </span>
           <span className="rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
             {outputTypeMeta.label}

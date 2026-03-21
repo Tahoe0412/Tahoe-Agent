@@ -36,27 +36,33 @@ export function ProjectIntentPicker({
     <div className="space-y-5">
       <div className="space-y-3">
         <div className="text-sm font-medium text-[var(--text-2)]">{ui.contentLine}</div>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {(["MARS_CITIZEN", "MARKETING"] as const).map((line) => {
             const meta = getContentLineMeta(line, locale);
             const active = contentLine === line;
+            const Icon = meta.icon;
             return (
               <button
                 key={line}
                 type="button"
                 onClick={() => onContentLineChange(line)}
                 className={cn(
-                  "rounded-[24px] border p-4 text-left transition",
+                  "group rounded-2xl border p-5 text-left transition duration-300",
                   active
-                    ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
-                    : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
+                    : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:-translate-y-0.5 hover:border-[var(--border)] hover:shadow-md",
                 )}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl leading-none">{meta.icon}</span>
-                  <div className="text-base font-semibold text-[var(--text-1)]">{meta.label}</div>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-full transition-colors",
+                    active ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-muted)] text-[var(--text-2)] group-hover:bg-[var(--accent-soft)] group-hover:text-[var(--accent)]"
+                  )}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="text-base font-semibold tracking-tight text-[var(--text-1)]">{meta.label}</div>
                 </div>
-                <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">{meta.description}</div>
+                <div className="mt-4 text-sm leading-relaxed text-[var(--text-2)]">{meta.description}</div>
               </button>
             );
           })}
@@ -75,14 +81,14 @@ export function ProjectIntentPicker({
                 type="button"
                 onClick={() => onOutputTypeChange(type)}
                 className={cn(
-                  "rounded-[20px] border p-4 text-left transition",
+                  "rounded-xl border p-4 text-left transition duration-200",
                   active
-                    ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
-                    : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
+                    : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]",
                 )}
               >
-                <div className="text-sm font-semibold text-[var(--text-1)]">{meta.label}</div>
-                <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{meta.description}</div>
+                <div className="text-sm font-semibold tracking-tight text-[var(--text-1)]">{meta.label}</div>
+                <div className="mt-1.5 text-sm leading-relaxed text-[var(--text-2)]">{meta.description}</div>
               </button>
             );
           })}

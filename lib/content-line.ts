@@ -76,10 +76,12 @@ export function getOutputTypesForLine(line: ContentLine): OutputType[] {
 // Metadata
 // ---------------------------------------------------------------------------
 
+import { Rocket, Briefcase, LucideIcon } from "lucide-react";
+
 interface ContentLineMeta {
   label: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 interface OutputTypeMeta {
@@ -96,12 +98,12 @@ export function getContentLineMeta(
     MARS_CITIZEN: {
       label: "火星公民",
       description: "面向公众的科技内容品牌 — 科技快讯、深度科普、机器人与火星移民主题视频",
-      icon: "🚀",
+      icon: Rocket,
     },
     MARKETING: {
       label: "商业线",
       description: "面向企业客户的营销内容 — 小红书/抖音文案、商业广告创意与广告视频",
-      icon: "💼",
+      icon: Briefcase,
     },
   };
 
@@ -109,12 +111,12 @@ export function getContentLineMeta(
     MARS_CITIZEN: {
       label: "Mars Citizen",
       description: "Public-facing science content brand — tech news, deep science explainers, robotics & Mars colonization videos",
-      icon: "🚀",
+      icon: Rocket,
     },
     MARKETING: {
       label: "Marketing",
       description: "Enterprise marketing content — Xiaohongshu/Douyin copy, commercial ad creatives & video ads",
-      icon: "💼",
+      icon: Briefcase,
     },
   };
 

@@ -75,6 +75,10 @@
 
 ## Done
 
+### T-012 UI Polish: Clean Typography & Modern Icons ✅
+- **Completed**: 2026-03-21
+- **Result**: Updated font stack to `Inter`, replaced emojis with Lucide React icons (`Rocket`, `Briefcase`), and softened dashboard border radii and shadows for a more intuitive, cleaner aesthetic.
+
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16
 - **Result**: Tahoe brand tokens, dark mode fix, tag-based search, sidebar improvements

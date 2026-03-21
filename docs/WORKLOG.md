@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-03-21 10:05 — Agent: Antigravity
+
+### T-012 UI Polish: Clean Typography & Modern Icons
+
+**Changes**:
+- **`app/globals.css`**: Updated base font stack to `Inter` (importing from Google Fonts) to make the typography sleeker and more modern.
+- **`lib/content-line.ts`**: Replaced generic standard emojis (🚀, 💼) with professional `LucideReact` icons (`Rocket`, `Briefcase`).
+- **`components/dashboard/project-intent-picker.tsx`**: Removed heavy borders and excessive border radii (`rounded-[24px]` -> `rounded-2xl`). Implemented cohesive styling for the selected intent state and correctly rendered Lucide icons.
+- **`app/page.tsx`**: Softened card styles throughout the dashboard. Lowered heavy gradient glows, replaced `rounded-[26px]` with cleaner `rounded-2xl`, and added subtle layout transitions on hover.
+
+**Reason**:
+- The user requested a more intuitive and concise UI, specifically asking to update the fonts and icons. Emojis and thick bubbly shapes made the UI feel less professional. Softening borders and applying a unified, modern geometric sans-serif font instantly elevated the visual quality.
+
+**Verification**:
+- `npm run build` ✅
+
 ## 2026-03-21 02:14 — Agent: Codex
 
 ### T-010 Output Quality: Add Lightweight Artifact Quality Alerts Inside Workbenches

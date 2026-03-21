@@ -32,10 +32,10 @@ function StatCard({
   caption: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{label}</div>
-      <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{value}</div>
-      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{caption}</div>
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-5 shadow-sm">
+      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{label}</div>
+      <div className="mt-3 text-3xl font-semibold tracking-tight text-[var(--text-1)]">{value}</div>
+      <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{caption}</div>
     </div>
   );
 }
@@ -54,13 +54,13 @@ function StartCard({
   return (
     <Link
       href={href}
-      className="group rounded-[26px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(255,255,255,0.58))] p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-[0_18px_40px_rgba(12,24,34,0.08)]"
+      className="group rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_12px_30px_rgba(34,184,207,0.08)]"
     >
-      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{eyebrow}</div>
-      <div className="mt-3 text-xl font-semibold text-[var(--text-1)]">{title}</div>
-      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{description}</div>
-      <div className="mt-5 text-sm font-medium text-[var(--accent-strong)]">
-        {title}
+      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</div>
+      <div className="mt-3 text-lg font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
+      <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{description}</div>
+      <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] transition-transform group-hover:translate-x-1">
+        {title} &rarr;
       </div>
     </Link>
   );
@@ -274,18 +274,18 @@ export default async function Home({
               <PanelCard title={ui.focusTitle} description={ui.focusDesc}>
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
-                    {lineMeta ? <SummaryPill>{lineMeta.icon} {lineMeta.label}</SummaryPill> : null}
+                    {lineMeta ? <SummaryPill><lineMeta.icon className="mr-1.5 inline-block h-3.5 w-3.5" />{lineMeta.label}</SummaryPill> : null}
                     {outputMeta ? <SummaryPill>{outputMeta.label}</SummaryPill> : null}
                   </div>
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.nextTitle}</div>
-                    <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">{nextStep.label}</div>
+                  <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 shadow-sm">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.nextTitle}</div>
+                    <div className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-1)]">{nextStep.label}</div>
                     <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{focusReason}</div>
                     <div className="mt-5">
                       <NextStepLink href={nextStep.href} label={nextStep.label} />
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-7 text-[var(--text-2)]">
+                  <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-5 text-sm leading-relaxed text-[var(--text-1)]">
                     {workspace.projectSummary.coreIdea?.trim() ||
                       workspace.projectSummary.introduction?.trim() ||
                       workspace.project.topic_query}
