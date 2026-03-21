@@ -97,7 +97,7 @@ export function getContentLineMeta(
   const zh: Record<ContentLine, ContentLineMeta> = {
     MARS_CITIZEN: {
       label: "火星公民",
-      description: "面向公众的科技内容品牌 — 科技快讯、深度科普、机器人与火星移民主题视频",
+      description: "每期视频一个项目 — 自动产出脚本、分镜、标题、简介、发布文案",
       icon: Rocket,
     },
     MARKETING: {

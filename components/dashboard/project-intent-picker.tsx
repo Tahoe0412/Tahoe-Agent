@@ -8,6 +8,7 @@ import {
   type OutputType,
 } from "@/lib/content-line";
 import { cn } from "@/lib/utils";
+import { FileText, Clapperboard, Type, AlignLeft, Send } from "lucide-react";
 
 export function ProjectIntentPicker({
   contentLine,
@@ -69,31 +70,62 @@ export function ProjectIntentPicker({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputType}</div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {getOutputTypesForLine(contentLine).map((type) => {
-            const meta = getOutputTypeMeta(type, locale);
-            const active = outputType === type;
-            return (
-              <button
-                key={type}
-                type="button"
-                onClick={() => onOutputTypeChange(type)}
-                className={cn(
-                  "rounded-xl border p-4 text-left transition duration-200",
-                  active
-                    ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
-                    : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]",
-                )}
-              >
-                <div className="text-sm font-semibold tracking-tight text-[var(--text-1)]">{meta.label}</div>
-                <div className="mt-1.5 text-sm leading-relaxed text-[var(--text-2)]">{meta.description}</div>
-              </button>
-            );
-          })}
+      {contentLine === "MARS_CITIZEN" ? (
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-[var(--text-2)]">
+            {locale === "en" ? "One project = one video" : "一个项目 = 一期视频"}
+          </div>
+          <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-5">
+            <div className="text-sm leading-relaxed text-[var(--text-2)]">
+              {locale === "en"
+                ? "Each project produces a complete video package:"
+                : "每个项目自动产出一整套视频方案："}
+            </div>
+            <div className="mt-4 grid grid-cols-5 gap-3">
+              {[
+                { icon: FileText, label: locale === "en" ? "Script" : "脚本" },
+                { icon: Clapperboard, label: locale === "en" ? "Storyboard" : "分镜" },
+                { icon: Type, label: locale === "en" ? "Title" : "标题" },
+                { icon: AlignLeft, label: locale === "en" ? "Description" : "简介" },
+                { icon: Send, label: locale === "en" ? "Publish Copy" : "发布文案" },
+              ].map((item) => (
+                <div key={item.label} className="flex flex-col items-center gap-1.5 text-center">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-xs font-medium text-[var(--text-1)]">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputType}</div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {getOutputTypesForLine(contentLine).map((type) => {
+              const meta = getOutputTypeMeta(type, locale);
+              const active = outputType === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => onOutputTypeChange(type)}
+                  className={cn(
+                    "rounded-xl border p-4 text-left transition duration-200",
+                    active
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
+                      : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]",
+                  )}
+                >
+                  <div className="text-sm font-semibold tracking-tight text-[var(--text-1)]">{meta.label}</div>
+                  <div className="mt-1.5 text-sm leading-relaxed text-[var(--text-2)]">{meta.description}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
