@@ -103,21 +103,37 @@ export default async function ScenePlannerPage({
         ) : state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view storyboard planning and asset readiness." : "请先选择项目，再查看镜头规划与素材齐备度。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
-        ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Storyboard Data Unavailable" : "无法读取场景规划数据"} description={locale === "en" ? "The project does not exist, or there are no usable scenes yet." : "该项目不存在，或项目还没有可用 scene 数据。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
-        ) : workspace.scenePlannerRows.length === 0 ? (
           <EmptyPanel
-            title={locale === "en" ? "No Storyboard Data Yet" : "暂无分镜规划数据"}
+            title={locale === "en" ? "Select a Project" : "等待选择项目"}
             description={
               locale === "en"
-                ? "You can now generate a storyboard directly from the project topic and intent, or jump to Script Lab if you want to shape scenes manually first."
-                : "现在可以直接从项目主题和意图生成分镜；如果你想先手动整理 scene，也可以先去 Script Lab。"
+                ? "Open a project first, then continue locking shots, prompts, and asset readiness here."
+                : "请先选择项目，再继续确定镜头、提示词和素材齐备度。"
+            }
+            action={<NextStepLink href="/" label={locale === "en" ? "Back to Home" : "先回首页选项目"} />}
+          />
+        ) : !workspace ? (
+          <ErrorPanel
+            title={locale === "en" ? "Storyboard Data Unavailable" : "无法读取分镜数据"}
+            description={
+              locale === "en"
+                ? "The current project could not be found, or this output has not been prepared for storyboard work yet."
+                : "当前项目没有找到，或这条内容还没有准备到分镜这一步。"
+            }
+            action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Project" : "返回当前项目"} />}
+          />
+        ) : workspace.scenePlannerRows.length === 0 ? (
+          <EmptyPanel
+            title={locale === "en" ? "No Storyboard Draft Yet" : "还没有分镜初稿"}
+            description={
+              locale === "en"
+                ? "Generate the first storyboard draft directly from the current project, or go shape the scenes in Script Lab first."
+                : "你可以直接基于当前项目生成第一版分镜；如果想先细修镜头文本，也可以先去 Script Lab。"
             }
             action={
               <div className="flex flex-wrap justify-center gap-3">
                 <GenerateStoryboardButton projectId={projectId} locale={locale} />
-                <NextStepLink href={`/script-lab?projectId=${projectId}`} label={locale === "en" ? "Go to Script Lab" : "先去 Script Lab"} />
+                <NextStepLink href={`/script-lab?projectId=${projectId}`} label={locale === "en" ? "Refine in Script Lab" : "先去 Script Lab 细修"} />
               </div>
             }
           />

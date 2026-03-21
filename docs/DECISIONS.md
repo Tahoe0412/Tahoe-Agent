@@ -80,3 +80,15 @@
 - **Impact**: Settings now reuses the shared `ProjectForm` in compact mode, so project creation behavior is defined in one component/submit path. News-script generation now uses an explicit registry for currently supported output types, establishing the pattern for future `OutputType -> Generator` growth.
 - **Rule**: Do not create new independent project-creation forms unless a route truly needs a different input contract. When adding new artifact generators, prefer registering a new handler over extending one long chain of `if/else` checks inside an existing service.
 - **Files**: `components/dashboard/project-form.tsx`, `components/settings/project-manager.tsx`, `services/news-script.service.ts`, `services/news-script-generator-registry.ts`
+
+## D-014 Future Roadmap: Prioritize Review Loops and Brand Memory, But Keep Current Focus Narrow
+- **Date**: 2026-03-21
+- **Reason**: Tahoe needs a clear long-term evolution path toward stronger creative intelligence and enterprise-grade brand alignment. However, those goals should not hijack the current sprint or trigger premature large-scale rewrites.
+- **Impact**: The long-term blueprint now explicitly points toward two major future directions:
+  - stronger agentic behavior via structured review / critique loops before large-scale multi-agent expansion
+  - multimodal brand memory / retrieval before enterprise-grade style alignment claims
+- **Rule**:
+  - treat multi-agent coordination and multimodal RAG as **future-direction architecture**, not the current build scope
+  - current execution should remain focused on output quality, prompt quality, artifact-first UX, and cleaner flow
+  - near-term changes are encouraged when they create clean seams for later evaluation, retrieval, or agentic orchestration, but not when they derail the active product cleanup
+- **Files**: `docs/FUTURE_BLUEPRINT.md`, `docs/TASKS.md`, `docs/PROJECT_STATE.md`

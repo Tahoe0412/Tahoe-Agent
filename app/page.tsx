@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
@@ -10,7 +12,7 @@ import { ProjectContext } from "@/components/workspace/project-context";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { getContentLineMeta, getOutputTypeMeta } from "@/lib/content-line";
 import { copy, getLocale } from "@/lib/locale";
-import { coerceOutputType, resolveContentLine } from "@/lib/project-intent";
+import { buildDashboardCreateHref, coerceOutputType, resolveContentLine } from "@/lib/project-intent";
 import { getDashboardNextStep } from "@/lib/workflow-navigator";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 
@@ -35,6 +37,32 @@ function StatCard({
       <div className="mt-3 text-3xl font-semibold text-[var(--text-1)]">{value}</div>
       <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{caption}</div>
     </div>
+  );
+}
+
+function StartCard({
+  href,
+  eyebrow,
+  title,
+  description,
+}: {
+  href: Route;
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-[26px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(255,255,255,0.58))] p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-[0_18px_40px_rgba(12,24,34,0.08)]"
+    >
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{eyebrow}</div>
+      <div className="mt-3 text-xl font-semibold text-[var(--text-1)]">{title}</div>
+      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{description}</div>
+      <div className="mt-5 text-sm font-medium text-[var(--accent-strong)]">
+        {title}
+      </div>
+    </Link>
   );
 }
 
@@ -116,6 +144,16 @@ export default async function Home({
           prioritiesDesc: "Keep this as a short checklist, not a second dashboard.",
           noProjectTitle: "Project not found",
           noProjectDesc: "The selected project could not be loaded. Create a new one or switch projects.",
+          startTitle: "Start here",
+          startDesc: "Choose the path that matches what you want to produce right now.",
+          startTodayTitle: "Find today's topics",
+          startTodayDesc: "Open Today Workbench to search trends, gather facts, and pick a topic first.",
+          startMarsTitle: "Make a Mars Citizen video",
+          startMarsDesc: "Start a new science/tech video project and go straight into script or publish output.",
+          startMarketingTitle: "Make marketing content",
+          startMarketingDesc: "Start a new marketing project for platform copy, ad creative, or ad storyboard.",
+          startRecentTitle: "Continue a recent project",
+          startRecentDesc: "Jump back into the latest project instead of creating a new one.",
         }
       : {
           focusTitle: "当前重点",
@@ -142,6 +180,16 @@ export default async function Home({
           prioritiesDesc: "把它当成简短待办，不要把首页重新堆成第二个大总览。",
           noProjectTitle: "项目不存在",
           noProjectDesc: "当前选中的项目没有加载成功。你可以重新创建，或者切换到其他项目。",
+          startTitle: "先从这里开始",
+          startDesc: "按你现在想产出的内容来选路径，不用先理解整个系统。",
+          startTodayTitle: "先找今天的选题",
+          startTodayDesc: "打开今日工作台，先搜热点、挑事实素材、定题目。",
+          startMarsTitle: "做火星公民内容",
+          startMarsDesc: "新建火星公民项目，直接进入科技脚本或发布包装产出。",
+          startMarketingTitle: "做 Marketing 内容",
+          startMarketingDesc: "新建 Marketing 项目，直接进入平台文案、广告创意或广告分镜。",
+          startRecentTitle: "继续最近项目",
+          startRecentDesc: "如果你已经开过项目，就直接回到最近的那个继续做。",
         };
 
   const focusReason = !workspace
@@ -359,15 +407,47 @@ export default async function Home({
             action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "返回总览首页"} />}
           />
         ) : (
-          <div id="new-project">
-            <ProjectForm
-              key={projectFormKey}
-              locale={locale}
-              initialContentLine={initialContentLine}
-              initialOutputType={initialOutputType}
-              initialTopic={topic ?? ""}
-              initialTitle={title ?? ""}
-            />
+          <div className="space-y-6">
+            <PanelCard title={ui.startTitle} description={ui.startDesc}>
+              <div className="grid gap-4 xl:grid-cols-4">
+                <StartCard href="/today" eyebrow="Today" title={ui.startTodayTitle} description={ui.startTodayDesc} />
+                <StartCard
+                  href={buildDashboardCreateHref({
+                    contentLine: "MARS_CITIZEN",
+                    outputType: "NARRATIVE_SCRIPT",
+                  }) as Route}
+                  eyebrow="Mars Citizen"
+                  title={ui.startMarsTitle}
+                  description={ui.startMarsDesc}
+                />
+                <StartCard
+                  href={buildDashboardCreateHref({
+                    contentLine: "MARKETING",
+                    outputType: "PLATFORM_COPY",
+                  }) as Route}
+                  eyebrow="Marketing"
+                  title={ui.startMarketingTitle}
+                  description={ui.startMarketingDesc}
+                />
+                <StartCard
+                  href={(recentProjects[0] ? `/?projectId=${recentProjects[0].id}` : "/project-hub") as Route}
+                  eyebrow="Recent"
+                  title={ui.startRecentTitle}
+                  description={ui.startRecentDesc}
+                />
+              </div>
+            </PanelCard>
+
+            <div id="new-project">
+              <ProjectForm
+                key={projectFormKey}
+                locale={locale}
+                initialContentLine={initialContentLine}
+                initialOutputType={initialOutputType}
+                initialTopic={topic ?? ""}
+                initialTitle={title ?? ""}
+              />
+            </div>
           </div>
         )}
 

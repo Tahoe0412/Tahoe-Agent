@@ -5,6 +5,231 @@
 
 ---
 
+## 2026-03-21 02:14 — Agent: Codex
+
+### T-010 Output Quality: Add Lightweight Artifact Quality Alerts Inside Workbenches
+
+**Changes**:
+- **`lib/artifact-quality.ts`** (new): Added a small shared heuristic layer for artifact quality checks. It flags weak hooks, generic title phrasing, thin publish-copy proof density, abstract scene prompts, weak marketing CTA/proof structure, and ad-creative directions that are too vague for downstream visual generation.
+- **`components/workspace/script-lab-workbench.tsx`**: Added a compact “质量提醒” panel for Mars content. It now gives concrete warnings for:
+  - video-title hook strength / option depth
+  - publish-copy evidence density / CTA clarity
+  - whether the currently selected scene is specific enough for Nano Banana / Seedance / Veo style generation
+- **`components/workspace/marketing-ops-workbench.tsx`**: Added a parallel “质量提醒” panel for Marketing. It now tells the user when the master copy is still too thin, too slogan-like, or too weak on proof/CTA, and when the ad creative pack is still too abstract to cleanly support storyboard work.
+
+**Reason**:
+- The user wants output quality to keep improving, not just navigation. This adds a lightweight, explainable review layer directly where users are editing, without introducing a heavier scoring system or more workflow ceremony.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 01:56 — Agent: Codex
+
+### T-010 Output Quality: Promote Today Materials to First-Class Marketing Prompt Inputs
+
+**Changes**:
+- **`services/marketing-context.service.ts`**: Renamed Today-originated context fields to stronger labels (`优先创作输入`, `优先表达焦点`) so downstream prompt builders treat them as first-class guidance instead of generic project notes.
+- **`services/promotional-copy.service.ts`**: Updated the creative brief and quality rules so promotional-copy generation explicitly prioritizes factual inputs, trend signals, and keyword focus when those exist in project context.
+- **`lib/output-artifact-prompt.ts`**: Updated the ad-creative prompt so it explicitly tells the model to ground the brief in supplied factual inputs / trend framing / keyword focus rather than writing a generic angle from the topic title alone.
+
+**Reason**:
+- User-flow improvements only matter if they preserve and improve output quality. This change makes Today-selected materials meaningfully affect the generated Marketing outputs instead of merely being stored in project metadata.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 01:45 — Agent: Codex
+
+### T-010 Today Marketing Context: Carry Selected Materials and Keyword Focus Into Generation
+
+**Changes**:
+- **`components/today/today-workbench.tsx`**: The direct Today -> Marketing starts now carry more than just a topic string.
+- When the user launches `营销文案` or `广告分镜` from Today, Tahoe now compresses the current selected fact items, trend references, keyword focus, and active keyword-pool name into lightweight project context fields (`projectIntroduction`, `coreIdea`) before triggering generation.
+
+**Reason**:
+- Artifact-first UX should not only shorten navigation. It should also preserve the user's current thinking. Without this change, Today-originated Marketing flows were direct in navigation but still shallow in context, which weakened output quality.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 01:33 — Agent: Codex
+
+### T-010 Today Flow: Marketing Actions Now Start Output Generation More Directly
+
+**Changes**:
+- **`components/today/today-workbench.tsx`**: The Today marketing actions no longer feel like a plain “go create a project first” detour.
+- `营销文案` and `广告分镜` now perform a lightweight chained flow:
+  - create a minimal Marketing project shell
+  - immediately trigger the requested output generation
+  - route the user directly into the relevant workspace
+- Mars actions remain split appropriately:
+  - fact-driven script generation still goes direct to Script Lab
+  - publish-package creation still uses the lighter intent-create handoff
+
+**Reason**:
+- This improves artifact-first UX inside Today. Users selecting materials should feel like they are starting work on an output, not stepping sideways into project-creation ceremony.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 01:19 — Agent: Codex
+
+### T-010 Flow Clarity: Align Scene Planner and Render Lab With Artifact-First Navigation
+
+**Changes**:
+- **`app/scene-planner/page.tsx`**: Rewrote page-level empty/error states so the page now explains storyboard work in terms of current artifact readiness rather than generic missing data. The empty state now clearly distinguishes “generate first storyboard draft” from “refine in Script Lab first.”
+- **`app/render-lab/page.tsx`**: Fixed the most confusing cross-page routing issue: Render Lab no longer points every project toward Marketing by default. The top action now routes by business line, and empty/error states now explain render preparation as “turn storyboard shots into image/video jobs” instead of generic workflow plumbing.
+
+**Reason**:
+- User-flow clarity depends heavily on cross-page handoff copy. Scene Planner and Render Lab were still carrying some vague or misleading language, especially around what the next action should be for different business lines.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 01:06 — Agent: Codex
+
+### Future Planning Sync: Record Long-Term Direction Without Expanding Current Sprint
+
+**Changes**:
+- **`docs/FUTURE_BLUEPRINT.md`** (new): Added a dedicated long-term architecture blueprint that records:
+  - current structural bottlenecks
+  - why stronger agentic review loops matter
+  - why multimodal brand memory / retrieval matters
+  - why those two directions are important but should remain future roadmap items for now
+- **`docs/DECISIONS.md`**: Added a decision clarifying that Tahoe's long-term direction points toward review loops and brand memory, while current execution should stay focused on output quality, prompt quality, artifact-first UX, and flow clarity.
+- **`docs/PROJECT_STATE.md`** and **`docs/TASKS.md`**: Synced the same distinction so future architecture guidance is visible without being confused with the current implementation queue.
+
+**Reason**:
+- The user wanted the guidance captured in durable planning docs, but explicitly did not want Tahoe to become over-ambitious or lose focus on current work.
+
+**Verification**:
+- Documentation-only slice; no build needed
+
+---
+
+## 2026-03-21 00:49 — Agent: Codex
+
+### T-010 Model-Readiness Feedback: Judge Whether Outputs Are Usable for Visual Generation
+
+**Changes**:
+- **`components/workspace/script-lab-workbench.tsx`**: Extended the Script Lab feedback layer so it no longer judges only whether artifacts exist. It now also checks whether scenes are sufficiently prompt-ready for downstream Nano Banana / Seedance / Veo use by looking for continuity anchors, visual-priority hints, avoid tags, and minimum scene prompt substance.
+- **`components/workspace/marketing-ops-workbench.tsx`**: Extended the Marketing feedback layer so it can warn when an ad creative pack is still too thin for downstream visual generation, especially when visual direction, shot tone, or concrete selling-point imagery are missing.
+
+**Reason**:
+- The user wants better content quality, not just better routing. A useful workbench should help answer: “Is this artifact actually ready for AI image/video production?” rather than only “Has something been generated?”
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 00:39 — Agent: Codex
+
+### T-010 Feedback Layer: Tell the User What Exists, What Is Weak, and What Comes Next
+
+**Changes**:
+- **`components/workspace/script-lab-workbench.tsx`**: Added a lightweight “当前判断” panel that summarizes:
+  - what Mars artifacts already exist
+  - the current weakest point in the content package
+  - the recommended next move
+- **`components/workspace/marketing-ops-workbench.tsx`**: Added the same kind of top-level readout for Marketing, using the current master draft, ad creative, platform drafts, storyboard status, and compliance state to generate a compact “done / weak / next” summary.
+
+**Reason**:
+- After generation, the interface should not force the user to infer the state of the project from scattered panels.
+- This is an interaction-quality improvement, not a new workflow: it makes the current system easier to read without adding more navigation.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 00:27 — Agent: Codex
+
+### T-010 Marketing Language Cleanup: Shift From Ops Console to Content Desk
+
+**Changes**:
+- **`app/marketing-ops/page.tsx`**: Rewrote page-level navigation and empty/error states so the page no longer frames itself as a generic operations console or a “back to dashboard” detour.
+- **`components/workspace/marketing-ops-workbench.tsx`**: Updated the top panel language from “operations” framing to “current copy / creative / channel drafts in one place”, so the page reads more like a content polishing desk.
+
+**Reason**:
+- The user flow should stay artifact-first. Marketing pages still carried some older “ops / dashboard / content operations” language that made the experience feel more like an admin surface than a focused production surface.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 00:18 — Agent: Codex
+
+### T-010 Script Lab Language Cleanup: Remove Old Workflow-First Guidance
+
+**Changes**:
+- **`app/script-lab/page.tsx`**: Removed the remaining `workspaceMode === "SHORT_VIDEO"` fallback from next-step routing so the page now follows output intent more strictly.
+- **`app/script-lab/page.tsx`**: Rewrote the missing-data and empty-state messaging so Script Lab no longer tells the user to “run the full workflow first”.
+- The empty state now frames the page in artifact-first language: generate the first draft, then return here to refine scenes and publish packaging.
+
+**Reason**:
+- The product direction is now minimal-first and artifact-first. Script Lab still had a few messages that were teaching the older “complete the workflow first” mental model, which created unnecessary friction and conceptual drift.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 00:10 — Agent: Codex
+
+### T-010 Flow Map: User-Journey Baseline for Quality + UX Work
+
+**Changes**:
+- **`docs/USER_FLOW.md`** (new): Added a product-facing flow map for Tahoe that defines:
+  - the core product principle
+  - the two main business-line flows
+  - page responsibilities for Homepage / Today / Script Lab / Marketing Ops / Scene Planner / Render Lab
+  - current routing rules
+  - the highest-priority friction points
+- **`docs/TASKS.md`**: Synced T-010 with this new baseline and clarified the next UX/content-quality pushes: fix lingering old-workflow helper copy, strengthen post-generation guidance, and continue reducing artifact-to-artifact friction.
+
+**Reason**:
+- Before further changing prompts, pages, or navigation, the product needed one shared map from the user's perspective.
+- This prevents us from improving isolated screens while the overall journey drifts or becomes inconsistent again.
+
+**Verification**:
+- Documentation-only slice; no build needed
+
+---
+
+## 2026-03-20 05:10 — Agent: Codex
+
+### T-010 Homepage Task Entry: Clear Start Paths on the Current Dashboard
+
+**Changes**:
+- **`app/page.tsx`**: Reworked the no-project state so the current homepage acts like a clear task-entry board instead of dropping users straight into a form-first workspace.
+- Added four explicit start cards:
+  - go to **Today** to find topics
+  - start a **火星公民** project
+  - start a **Marketing** project
+  - continue the **most recent project**
+- Kept the minimal project form available beneath the task-entry cards so users can still start directly, but only after the page has clarified the main choices.
+
+**Reason**:
+- The user wanted the homepage to make the next action obvious immediately after entry.
+- This is an intentional intermediate step before deciding whether Tahoe should later grow a separate outer product homepage.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-20 04:38 — Agent: Codex
 
 ### T-010 Output Studio UI: Direct Artifact Generation from Dashboard
@@ -513,6 +738,23 @@
 
 **Remaining**:
 - Decide whether Marketing Ops should eventually show a lightweight storyboard preview/edit slice, or keep the current bridge-card + dedicated Scene Planner boundary
+- Continue reducing secondary `workspaceMode` compatibility assumptions
+
+---
+
+## 2026-03-21 00:08 — Agent: Codex
+
+### Task: T-010 Today entry alignment
+
+**Changes**:
+- Modified `components/today/today-quick-actions.tsx` — replaced the older generic quick-action buckets with four concrete artifact-oriented entry points: 火星公民脚本、发布包装、Marketing 文案、广告分镜.
+- Modified `components/today/today-workbench.tsx` — material basket actions now route selected topics/materials into the same dual-line intent system used elsewhere. The basket no longer only leads to “generate script”; it now branches into Mars packaging and Marketing output paths too.
+- Updated `docs/TASKS.md` to mark the Today entry alignment slice complete.
+
+**Reason**: Today should be the discovery/start surface for the same production system we just built, not a parallel mini-product with older action names and mismatched next steps.
+
+**Remaining**:
+- Decide whether Marketing outputs in Today should eventually support direct generation from selected materials, instead of always going through dashboard intent creation first
 - Continue reducing secondary `workspaceMode` compatibility assumptions
 
 ---

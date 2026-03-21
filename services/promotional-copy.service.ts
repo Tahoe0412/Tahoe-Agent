@@ -242,6 +242,7 @@ function buildCreativeBrief(params: {
   return [
     `项目名称：${params.projectTitle}`,
     `传播主题：${params.topic}`,
+    "优先级规则：如果补充上下文里已经给出事实素材、趋势信号或关键词焦点，成稿时优先围绕这些输入展开，不要只写主题口号。",
     `项目初始输入：${params.sourceMessage}`,
     params.latestBrief
       ? `当前任务单：目标=${params.latestBrief.objective}；语气=${params.latestBrief.primary_tone}；核心表达=${params.latestBrief.key_message}；CTA=${params.latestBrief.call_to_action ?? "未填写"}`
@@ -261,6 +262,7 @@ function buildCreativeBrief(params: {
 function buildQualityRules() {
   return [
     "你输出的是面向真实发布场景的宣传文案，不是策划摘要，不是品牌自述材料。",
+    "如果项目上下文里出现“优先创作输入”或“优先表达焦点”，必须优先围绕这些事实素材、信号和关键词组织表达，不要只围绕主题标题空写。",
     "优先写用户能立刻理解、复述和转发的表达，不写空泛口号。",
     "先讲用户问题和具体价值，再讲品牌主张；不要一开头就自夸。",
     "标题必须像真正准备发布的标题，避免占位句和模板句。",

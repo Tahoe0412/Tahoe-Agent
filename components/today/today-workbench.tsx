@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, FileText, Flame, Loader2, X, Zap, AlertTriangle, Radar } from "lucide-react";
 import { useHotTopics } from "@/hooks/use-hot-topics";
 import { useGenerateScript } from "@/hooks/use-generate-script";
+import { apiRequest } from "@/lib/client-api";
 import { buildDashboardCreateHref } from "@/lib/project-intent";
 import { TodayQuickActions } from "./today-quick-actions";
 import { TodayRecentProjects, type RecentProject } from "./today-recent-projects";
@@ -34,6 +35,31 @@ interface BrandKeywordProfile {
   id: string;
   name: string;
   keywords: string[];
+}
+
+type ProjectCreateResponse = {
+  project: {
+    id: string;
+    title: string;
+  };
+};
+
+type GenerateOutputResponse = {
+  outputType: string;
+  artifactKind: "strategy_task" | "storyboard";
+  artifactId: string;
+  title: string;
+  summary?: string | null;
+};
+
+function compactMaterialText(items: SelectableNewsItem[], limit = 5) {
+  return items
+    .slice(0, limit)
+    .map((item, index) => {
+      const snippet = item.snippet?.trim();
+      return `${index + 1}. ${item.title}${snippet ? `：${snippet}` : ""}`;
+    })
+    .join("\n");
 }
 
 /* ────────────────────────────────────────────
@@ -83,6 +109,9 @@ export function TodayWorkbench({
   /* ── News selection state ── */
   const [selectedNews, setSelectedNews] = useState<Map<string, SelectableNewsItem>>(new Map());
   const { generate: generateScript, loading: generatingScript, error: generateError } = useGenerateScript();
+  const [pendingQuickAction, setPendingQuickAction] = useState<"marketing_copy" | "marketing_storyboard" | null>(null);
+  const [quickActionError, setQuickActionError] = useState<string | null>(null);
+  const t = locale === "zh";
 
   const toggleNewsItem = useCallback((item: SelectableNewsItem) => {
     setSelectedNews((prev) => {
@@ -105,9 +134,31 @@ export function TodayWorkbench({
   const factItems = allSelected.filter((i) => i.source_type !== "trend_signal");
   const trendItems = allSelected.filter((i) => i.source_type === "trend_signal");
   const hasFactItems = factItems.length > 0;
+  const intentTopic =
+    selectedTopic?.label?.trim() ||
+    factItems[0]?.title?.trim() ||
+    selectedKeywords.map((k) => k.text).join(" OR ").trim() ||
+    (t ? "今日热点" : "Today hot topics");
+  const marketingProjectIntroduction = [
+    t ? "本次从 Today 选择的事实素材：" : "Selected factual inputs from Today:",
+    factItems.length > 0
+      ? compactMaterialText(factItems)
+      : (t ? "暂无事实素材，先基于当前主题和关键词生成第一版。" : "No fact items selected yet. Start from the current topic and keyword cluster."),
+    trendItems.length > 0
+      ? `\n${t ? "选题参考信号：" : "Trend framing signals:"}\n${compactMaterialText(trendItems, 3)}`
+      : "",
+  ].filter(Boolean).join("\n");
+  const marketingCoreIdea = [
+    selectedKeywords.length > 0
+      ? `${t ? "关键词焦点：" : "Keyword focus:"} ${selectedKeywords.map((item) => item.text).join(" / ")}`
+      : null,
+    activeBrand?.name ? `${t ? "当前词池：" : "Current pool:"} ${activeBrand.name}` : null,
+    selectedTopic?.label ? `${t ? "优先围绕这个主题建立表达：" : "Center the output around this topic:"} ${selectedTopic.label}` : null,
+  ].filter(Boolean).join("\n");
 
   const handleGenerateScript = useCallback(async () => {
     if (!hasFactItems) return;
+    setQuickActionError(null);
     const items = Array.from(selectedNews.values());
     const query = selectedKeywords.map((k) => k.text).join(" OR ") || "热点新闻";
     const result = await generateScript(query, items, {
@@ -119,8 +170,45 @@ export function TodayWorkbench({
     }
   }, [selectedNews, selectedKeywords, hasFactItems, generateScript, router]);
 
+  const createProjectAndGenerateOutput = useCallback(async (
+    outputType: "PLATFORM_COPY" | "AD_STORYBOARD",
+    nextPath: "marketing-ops" | "scene-planner",
+    pendingKey: "marketing_copy" | "marketing_storyboard",
+  ) => {
+    setPendingQuickAction(pendingKey);
+    setQuickActionError(null);
+
+    try {
+      const created = await apiRequest<ProjectCreateResponse>("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: intentTopic,
+          topic: intentTopic,
+          sourceScript: "",
+          projectIntroduction: marketingProjectIntroduction,
+          coreIdea: marketingCoreIdea || undefined,
+          platforms: ["XHS"],
+          contentLine: "MARKETING",
+          outputType,
+          mockMode: false,
+        }),
+      });
+
+      await apiRequest<GenerateOutputResponse>(`/api/projects/${created.project.id}/generate-output`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outputType }),
+      });
+
+      router.push(`/${nextPath}?projectId=${created.project.id}`);
+    } catch (error) {
+      setQuickActionError(error instanceof Error ? error.message : t ? "生成失败，请稍后重试。" : "Generation failed. Please retry.");
+    } finally {
+      setPendingQuickAction(null);
+    }
+  }, [intentTopic, marketingProjectIntroduction, marketingCoreIdea, router, t]);
   // No auto-search — user clicks "搜索" to start
-  const t = locale === "zh";
   const mockPlatforms = platformResults
     .filter((item) => item.mode === "mock")
     .map((item) => item.platform);
@@ -635,15 +723,13 @@ export function TodayWorkbench({
           selectedTopic={selectedTopic}
           locale={locale}
           onAction={(topicLabel, type) => {
-            if (type === "copy") {
-              router.push(
-                buildDashboardCreateHref({
-                  topic: topicLabel,
-                  title: topicLabel,
-                  contentLine: "MARKETING",
-                  outputType: "PLATFORM_COPY",
-                }) as Route,
-              );
+            if (type === "marketing_copy") {
+              void createProjectAndGenerateOutput("PLATFORM_COPY", "marketing-ops", "marketing_copy");
+              return;
+            }
+
+            if (type === "marketing_storyboard") {
+              void createProjectAndGenerateOutput("AD_STORYBOARD", "scene-planner", "marketing_storyboard");
               return;
             }
 
@@ -652,7 +738,7 @@ export function TodayWorkbench({
                 topic: topicLabel,
                 title: topicLabel,
                 contentLine: "MARS_CITIZEN",
-                outputType: type === "image" ? "STORYBOARD_SCRIPT" : "NARRATIVE_SCRIPT",
+                outputType: type === "mars_script" ? "NARRATIVE_SCRIPT" : "PUBLISH_COPY",
               }) as Route,
             );
           }}
@@ -751,45 +837,80 @@ export function TodayWorkbench({
           )}
 
           {/* Generate CTA */}
-          <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-4">
+          <div className="mt-4 border-t border-[var(--border)] pt-4">
             {!hasFactItems && trendItems.length > 0 ? (
-              <span className="text-xs text-[var(--warn-text)]">
-                {t ? "至少添加 1 条事实素材后才能生成脚本" : "Add at least 1 fact item to generate"}
-              </span>
+              <div className="text-xs text-[var(--warn-text)]">
+                {t ? "至少添加 1 条事实素材后，火星公民脚本主线才可直接生成。" : "Add at least 1 fact item before directly generating the Mars Citizen script."}
+              </div>
             ) : (
-              <span className="text-xs text-[var(--text-3)]">
-                {t ? "将基于事实素材撰写脚本，参考选题方向调整角度" : "Script based on facts, informed by trend signals"}
-              </span>
+              <div className="text-xs text-[var(--text-3)]">
+                {t ? "事实素材会驱动脚本主线，选题参考会影响角度；其余产物会沿同一主题进入对应工作台。" : "Fact items drive the script path, trend signals shape the angle, and other outputs will enter their matching workspace from the same topic."}
+              </div>
             )}
-            <button
-              onClick={handleGenerateScript}
-              disabled={generatingScript || !hasFactItems}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all",
-                generatingScript
-                  ? "bg-[var(--accent)]/60 cursor-wait"
-                  : !hasFactItems
-                    ? "bg-[var(--text-3)]/30 cursor-not-allowed"
-                    : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
-              )}
-            >
-              {generatingScript ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <FileText className="size-4" />
-              )}
-              {generatingScript
-                ? (t ? "正在生成…" : "Generating…")
-                : (t ? "生成脚本" : "Generate Script")}
-            </button>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <button
+                onClick={handleGenerateScript}
+                disabled={generatingScript || !hasFactItems}
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all",
+                  generatingScript
+                    ? "bg-[var(--accent)]/60 cursor-wait"
+                    : !hasFactItems
+                      ? "bg-[var(--text-3)]/30 cursor-not-allowed"
+                      : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
+                )}
+              >
+                {generatingScript ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+                {generatingScript ? (t ? "正在生成…" : "Generating…") : (t ? "科技脚本" : "Science Script")}
+              </button>
+
+              <button
+                onClick={() =>
+                  router.push(
+                    buildDashboardCreateHref({
+                      topic: intentTopic,
+                      title: intentTopic,
+                      contentLine: "MARS_CITIZEN",
+                      outputType: "PUBLISH_COPY",
+                    }) as Route,
+                  )
+                }
+                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              >
+                <Zap className="size-4" />
+                {t ? "发布包装" : "Publish Package"}
+              </button>
+
+              <button
+                onClick={() => void createProjectAndGenerateOutput("PLATFORM_COPY", "marketing-ops", "marketing_copy")}
+                disabled={pendingQuickAction !== null}
+                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              >
+                {pendingQuickAction === "marketing_copy" ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+                {pendingQuickAction === "marketing_copy"
+                  ? (t ? "正在生成…" : "Generating…")
+                  : (t ? "营销文案" : "Marketing Copy")}
+              </button>
+
+              <button
+                onClick={() => void createProjectAndGenerateOutput("AD_STORYBOARD", "scene-planner", "marketing_storyboard")}
+                disabled={pendingQuickAction !== null}
+                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              >
+                {pendingQuickAction === "marketing_storyboard" ? <Loader2 className="size-4 animate-spin" /> : <Radar className="size-4" />}
+                {pendingQuickAction === "marketing_storyboard"
+                  ? (t ? "正在生成…" : "Generating…")
+                  : (t ? "广告分镜" : "Ad Storyboard")}
+              </button>
+            </div>
           </div>
 
           {/* Error toast */}
-          {generateError && (
+          {generateError || quickActionError ? (
             <div className="mt-3 rounded-xl border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)]">
-              {generateError}
+              {generateError || quickActionError}
             </div>
-          )}
+          ) : null}
         </section>
       )}
     </div>

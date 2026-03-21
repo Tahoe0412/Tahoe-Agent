@@ -41,7 +41,7 @@ export default async function MarketingOpsPage({
             projectId ? (
               <NextStepLink
                 href={`/?projectId=${projectId}`}
-                label={locale === "en" ? "Back to Dashboard" : "返回总览看结果"}
+                label={locale === "en" ? "Back to Project" : "返回当前项目"}
               />
             ) : null
           }
@@ -77,13 +77,13 @@ export default async function MarketingOpsPage({
         {recentProjectsUnavailable && !projectId ? (
           <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
             {locale === "en"
-              ? "The project list is temporarily unavailable, but Marketing Ops will be ready once workspace data recovers."
-              : "当前项目列表暂时不可用，但宣传文案页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}
+              ? "The project list is temporarily unavailable, but this marketing workspace will be ready once workspace data recovers."
+              : "当前项目列表暂时不可用，但这个 Marketing 内容页本身已可访问，等工作区数据恢复后即可继续选择项目。"}
           </div>
         ) : null}
         {loadFailed ? (
           <ErrorPanel
-            title={locale === "en" ? "Marketing Ops Is Temporarily Unavailable" : "宣传文案与运营暂时不可用"}
+            title={locale === "en" ? "Marketing Workspace Is Temporarily Unavailable" : "Marketing 内容页暂时不可用"}
             description={
               locale === "en"
                 ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers."
@@ -92,9 +92,25 @@ export default async function MarketingOpsPage({
             action={<NextStepLink href={projectId ? `/marketing-ops?projectId=${projectId}` : "/marketing-ops"} label={locale === "en" ? "Retry Loading" : "重新加载"} />}
           />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Open a project first before using Marketing Ops." : "请先选择项目，再进入内容运营台。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
+          <EmptyPanel
+            title={locale === "en" ? "Select a Project" : "等待选择项目"}
+            description={
+              locale === "en"
+                ? "Open a project first, then continue polishing copy, creative direction, or storyboard here."
+                : "请先选择项目，再继续打磨文案、创意方向或广告分镜。"
+            }
+            action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />}
+          />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Project Not Found" : "项目不存在"} description={locale === "en" ? "The current projectId could not be found." : "当前 projectId 没有找到项目数据。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
+          <ErrorPanel
+            title={locale === "en" ? "Project Not Found" : "项目不存在"}
+            description={
+              locale === "en"
+                ? "The current project could not be found, or this marketing output has not been prepared yet."
+                : "当前项目没有找到，或这条 Marketing 产物还没有准备到这里。"
+            }
+            action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Project" : "返回当前项目"} />}
+          />
         ) : (
           <MarketingOpsWorkbench
             projectId={projectId}

@@ -154,8 +154,8 @@ export class MarketingContextService {
 
     lines.push(`\u9879\u76ee\u540d\u79f0\uff1a${context.projectTitle}`);
     lines.push(`\u4f20\u64ad\u4e3b\u9898\uff1a${context.topicQuery}`);
-    if (context.projectIntroduction) lines.push(`\u9879\u76ee\u4ecb\u7ecd\uff1a${context.projectIntroduction}`);
-    if (context.coreIdea) lines.push(`\u6838\u5fc3\u8868\u8fbe\uff1a${context.coreIdea}`);
+    if (context.projectIntroduction) lines.push(`\u4f18\u5148\u521b\u4f5c\u8f93\u5165\uff1a${context.projectIntroduction}`);
+    if (context.coreIdea) lines.push(`\u4f18\u5148\u8868\u8fbe\u7126\u70b9\uff1a${context.coreIdea}`);
     if (context.sourceScript) lines.push(`\u539f\u59cb\u8f93\u5165\uff1a${context.sourceScript}`);
     if (context.styleReferenceSample) lines.push(`\u98ce\u683c\u53c2\u7167\u6837\u7a3f\uff1a${context.styleReferenceSample}`);
     if (context.styleReferenceInsight) {

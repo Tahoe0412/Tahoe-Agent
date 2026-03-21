@@ -30,6 +30,22 @@ export default async function RenderLabPage({
   const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
   const workspaceLoadFailed = workspaceResult.status === "rejected";
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
+  const nextHref = !projectId
+    ? "/"
+    : workspace?.contentLine === "MARKETING"
+      ? `/marketing-ops?projectId=${projectId}`
+      : `/script-lab?projectId=${projectId}`;
+  const nextLabel = !projectId
+    ? locale === "en"
+      ? "Back to Home"
+      : "返回首页"
+    : workspace?.contentLine === "MARKETING"
+      ? locale === "en"
+        ? "Back to Creative & Copy"
+        : "返回创意与文案"
+      : locale === "en"
+        ? "Back to Script & Packaging"
+        : "返回脚本与发布包装";
 
   return (
     <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
@@ -41,10 +57,7 @@ export default async function RenderLabPage({
           locale={locale}
           action={
             projectId ? (
-              <NextStepLink
-                href={`/marketing-ops?projectId=${projectId}`}
-                label={locale === "en" ? "Next: Marketing Output" : "下一步：整理宣传文案"}
-              />
+              <NextStepLink href={nextHref} label={nextLabel} />
             ) : null
           }
         />
@@ -96,20 +109,32 @@ export default async function RenderLabPage({
         ) : !projectId ? (
           <EmptyPanel
             title={locale === "en" ? "Select a Project" : "等待选择项目"}
-            description={locale === "en" ? "Select a short video project first to prepare render jobs from storyboard scenes." : "请先选择一个短视频项目，再基于已有场景准备渲染任务。"}
-            action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />}
+            description={
+              locale === "en"
+                ? "Open a project first, then use Render Lab to turn storyboard shots into image or video jobs."
+                : "请先选择项目，再把分镜镜头推进成图片或视频生成任务。"
+            }
+            action={<NextStepLink href="/" label={locale === "en" ? "Back to Home" : "先回首页选项目"} />}
           />
         ) : !workspace ? (
           <ErrorPanel
             title={locale === "en" ? "Render Data Unavailable" : "无法读取生成制作数据"}
-            description={locale === "en" ? "The current project could not be found, or the workspace data is unavailable." : "当前项目不存在，或工作台数据暂时不可用。"}
-            action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />}
+            description={
+              locale === "en"
+                ? "The current project could not be found, or this output has not been prepared for render work yet."
+                : "当前项目不存在，或这条内容还没有准备到生成制作这一步。"
+            }
+            action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Project" : "返回当前项目"} />}
           />
         ) : workspace.scenePlannerRows.length === 0 ? (
           <EmptyPanel
-            title={locale === "en" ? "No Scene Data Yet" : "还没有可用场景数据"}
-            description={locale === "en" ? "Prepare storyboard scenes first, then return here to prefill prompts and create image or video jobs." : "请先去 Scene Planner 准备好分镜场景，再回来预填提示词并创建图片或视频任务。"}
-            action={<NextStepLink href={`/scene-planner?projectId=${projectId}`} label={locale === "en" ? "Go to Scene Planner" : "先去 Scene Planner"} />}
+            title={locale === "en" ? "No Render-Ready Shots Yet" : "还没有可进入生成的镜头"}
+            description={
+              locale === "en"
+                ? "Finish the first storyboard draft first, then return here to refine prompts and create image or video jobs."
+                : "先完成第一版分镜，再回来细修提示词并创建图片或视频任务。"
+            }
+            action={<NextStepLink href={`/scene-planner?projectId=${projectId}`} label={locale === "en" ? "Finish Storyboard First" : "先完成分镜"} />}
           />
         ) : (
           <RenderLabWorkbench projectId={projectId} rows={workspace.scenePlannerRows} jobs={workspace.latestRenderJobs} locale={locale} />

@@ -1,6 +1,6 @@
 # Project State
 
-> Last updated: 2026-03-20 by Codex
+> Last updated: 2026-03-21 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
@@ -69,6 +69,10 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - Storyboard-first scenes are automatically pushed through scene classification and asset-dependency analysis, so Scene Planner and Render Lab get production metadata without requiring a separate manual prep pass.
 - Dashboard routing is now intentionally sparse: Tahoe shows one primary next step by default and treats briefs, trend review, and deeper workflow detail as optional supporting context rather than universal gates.
 - News-script generation now has an explicit output-type registry for currently supported news entry outputs (`NARRATIVE_SCRIPT`, `AD_SCRIPT`) so future output expansion can add handlers without growing one large conditional block.
+- Long-term architecture direction is now documented separately in `docs/FUTURE_BLUEPRINT.md`. The two most important future vectors are:
+  - stronger review-loop / agentic orchestration over time
+  - stronger multimodal brand memory / retrieval over time
+- These are **future roadmap items**, not the current sprint scope. Current work should stay focused on content quality, prompt quality, artifact-first UX, and clearer user flow.
 
 ## Known Issues
 

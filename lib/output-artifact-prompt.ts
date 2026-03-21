@@ -76,6 +76,10 @@ export function buildAdCreativePrompt(params: {
       params.contextPrompt,
       "",
       zh
+        ? "优先级规则：如果项目上下文里已经给出事实素材、趋势信号或关键词焦点，先围绕这些内容建立广告创意，不要只围绕主题标题写空泛角度。"
+        : "Priority rule: if the project context already includes factual inputs, trend framing, or keyword focus, build the ad creative around those inputs instead of writing generic angles from the topic title alone.",
+      "",
+      zh
         ? "请输出：核心受众、主打角度、核心钩子、3 条卖点、推荐视觉方向、推荐镜头语气、CTA 方向。"
         : "Output: target audience, lead angle, core hook, 3 selling points, recommended visual direction, recommended shot tone, and CTA direction.",
     ].join("\n"),

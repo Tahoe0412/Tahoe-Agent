@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
+import { assessPublishCopy, assessScenePrompt, assessVideoTitlePack } from "@/lib/artifact-quality";
 import { apiRequest } from "@/lib/client-api";
 
 type ScriptLabRow = {
@@ -128,6 +129,97 @@ export function ScriptLabWorkbench({
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
   const latestVideoTitlePayload = (marsOutputs.latestVideoTitlePack?.taskJson as Record<string, unknown> | null) ?? null;
   const latestPublishCopyPayload = (marsOutputs.latestPublishCopy?.taskJson as Record<string, unknown> | null) ?? null;
+  const readySceneCount = rows.filter((row) => row.assetReady).length;
+  const totalRiskFlags = rows.reduce((count, row) => count + (row.classification?.riskFlags.length ?? 0), 0);
+  const hasTitlePack = Boolean(marsOutputs.latestVideoTitlePack);
+  const hasPublishCopy = Boolean(marsOutputs.latestPublishCopy);
+  const promptReadySceneCount = rows.filter((row) => {
+    const hasVisualPriority = row.visualPriority.length > 0;
+    const hasAvoid = row.avoid.length > 0;
+    const hasContinuity = row.continuityGroup.trim().length > 0;
+    const rewrittenLongEnough = row.rewritten.trim().length >= 40;
+    return hasVisualPriority && hasAvoid && hasContinuity && rewrittenLongEnough;
+  }).length;
+  const scriptFeedback = useMemo(() => {
+    const completed: string[] = [];
+    if (rows.length > 0) completed.push(`已拆出 ${rows.length} 个镜头单元`);
+    if (hasTitlePack) completed.push("标题包已生成");
+    if (hasPublishCopy) completed.push("发布文案已生成");
+
+    let weakest = "先继续把镜头文本改到更清楚、更可执行。";
+    let next = "从左侧挑一条最关键镜头开始细修，然后补跑分类或素材分析。";
+
+    if (!hasTitlePack) {
+      weakest = "还缺少视频标题包，发布包装没有闭环。";
+      next = "回总览页点“视频标题”，拿到第一版标题包后再回这里微调。";
+    } else if (!hasPublishCopy) {
+      weakest = "还缺少发布文案，发布层还不完整。";
+      next = "回总览页点“发布文案”，补出可直接发布的一版说明文案。";
+    } else if (readySceneCount < rows.length) {
+      weakest = `还有 ${rows.length - readySceneCount} 个镜头没到可执行状态。`;
+      next = "优先处理待补素材的镜头，把这条内容推进到可做分镜 / 生成准备。";
+    } else if (promptReadySceneCount < rows.length) {
+      weakest = `还有 ${rows.length - promptReadySceneCount} 个镜头不够适合 Nano Banana / Seedance / Veo 的后续生成。`;
+      next = "补齐连续性锚点、视觉重点和 avoid 标签，确保每镜头都是单主体、单动作、清晰环境。";
+    } else if (totalRiskFlags > 0) {
+      weakest = `当前还有 ${totalRiskFlags} 个风险标记需要复核。`;
+      next = "先检查高风险镜头的动作、口型和素材依赖，再决定是否进入下游生成。";
+    } else {
+      weakest = "主脚本、发布包装和镜头提示词都比较完整，可以进入分镜 / 生成准备。";
+      next = "继续去分镜页或生成准备页，把这条内容推进到 Nano Banana / Seedance / Veo 的生产阶段。";
+    }
+
+    return {
+      completed: completed.join(" · ") || "脚本工作区已准备好。",
+      weakest,
+      next,
+    };
+  }, [hasPublishCopy, hasTitlePack, promptReadySceneCount, readySceneCount, rows.length, totalRiskFlags]);
+  const titleQualityAlerts = useMemo(
+    () =>
+      hasTitlePack
+        ? assessVideoTitlePack({
+            recommendedTitle,
+            titleOptions: titleOptionsText
+              .split("\n")
+              .map((item) => item.trim())
+              .filter(Boolean),
+          })
+        : [],
+    [hasTitlePack, recommendedTitle, titleOptionsText],
+  );
+  const publishQualityAlerts = useMemo(
+    () =>
+      hasPublishCopy
+        ? assessPublishCopy({
+            leadIn: publishLeadIn,
+            description: publishDescription,
+            highlights: publishHighlightsText
+              .split("\n")
+              .map((item) => item.trim())
+              .filter(Boolean),
+            cta: publishCta,
+          })
+        : [],
+    [hasPublishCopy, publishCta, publishDescription, publishHighlightsText, publishLeadIn],
+  );
+  const selectedSceneQualityAlerts = useMemo(
+    () =>
+      assessScenePrompt({
+        rewritten,
+        shotGoal,
+        visualPriority: visualPriority
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        avoid: avoid
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        continuityGroup,
+      }),
+    [avoid, continuityGroup, rewritten, shotGoal, visualPriority],
+  );
 
   useEffect(() => {
     setRecommendedTitle(
@@ -415,6 +507,61 @@ export function ScriptLabWorkbench({
 
   return (
     <div className="space-y-6">
+      <PanelCard title="当前判断" description="先告诉你这条内容已经到哪一步、最该补哪里、下一步怎么继续。">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">已完成</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.completed}</div>
+          </div>
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前最弱处</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.weakest}</div>
+          </div>
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">建议下一步</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.next}</div>
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard title="质量提醒" description="只抓最影响成片质量的几个点：标题钩子、发布证据感、镜头是否真的能拿去生成。">
+        <div className="grid gap-4 xl:grid-cols-3">
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">标题包</div>
+            <div className="mt-3 space-y-2">
+              {hasTitlePack ? titleQualityAlerts.map((alert) => (
+                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                  <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
+                  <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
+                </div>
+              )) : <div className="text-sm leading-7 text-[var(--text-2)]">先生成一版视频标题，系统才能判断钩子和角度是否够强。</div>}
+            </div>
+          </div>
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">发布文案</div>
+            <div className="mt-3 space-y-2">
+              {hasPublishCopy ? publishQualityAlerts.map((alert) => (
+                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                  <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
+                  <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
+                </div>
+              )) : <div className="text-sm leading-7 text-[var(--text-2)]">先补一版发布文案，系统才能判断信息密度和证据感是否够用。</div>}
+            </div>
+          </div>
+          <div className="theme-panel-muted rounded-[22px] p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前镜头</div>
+            <div className="mt-3 space-y-2">
+              {selectedSceneQualityAlerts.map((alert) => (
+                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                  <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
+                  <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </PanelCard>
+
       {(marsOutputs.videoTitlePacks.length > 0 || marsOutputs.publishCopyPacks.length > 0) ? (
         <div className="grid gap-6 xl:grid-cols-2">
           <PanelCard title="发布包装" description="脚本之外，直接查看这条内容已经生成好的标题和发布文案。">
@@ -511,12 +658,12 @@ export function ScriptLabWorkbench({
         <StatCard label="镜头数" value={String(rows.length)} caption="当前脚本镜头单元数" />
         <StatCard
           label="可执行镜头"
-          value={String(rows.filter((row) => row.assetReady).length)}
+          value={String(readySceneCount)}
           caption="素材齐备、可直接下游生产"
         />
         <StatCard
           label="风险标记"
-          value={String(rows.reduce((count, row) => count + (row.classification?.riskFlags.length ?? 0), 0))}
+          value={String(totalRiskFlags)}
           caption="需要额外审阅的风险标记"
         />
       </div>

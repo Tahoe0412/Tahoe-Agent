@@ -11,7 +11,10 @@ import type { TopicRankingItem } from "@/types/trend-discovery";
 interface TodayQuickActionsProps {
   selectedTopic: TopicRankingItem;
   locale: "zh" | "en";
-  onAction: (topicLabel: string, actionType: "script" | "copy" | "image") => void;
+  onAction: (
+    topicLabel: string,
+    actionType: "mars_script" | "mars_package" | "marketing_copy" | "marketing_storyboard",
+  ) => void;
 }
 
 export function TodayQuickActions({
@@ -31,40 +34,50 @@ export function TodayQuickActions({
           </h3>
           <p className="text-sm text-[var(--text-3)]">
             {t
-              ? `选题：${selectedTopic.label} — 选择产出方式`
-              : `Topic: ${selectedTopic.label} — choose output type`}
+              ? `选题：${selectedTopic.label} — 直接选择要做的产物`
+              : `Topic: ${selectedTopic.label} — choose the artifact you want next`}
           </p>
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {
-            type: "script" as const,
+            type: "mars_script" as const,
             icon: Clapperboard,
-            label: t ? "生成脚本" : "Generate Script",
+            label: t ? "科技脚本" : "Science Script",
             desc: t
-              ? "AI 拆解选题，输出可拍摄的分镜脚本"
-              : "AI breaks down the topic into a shootable script",
+              ? "进入火星公民脚本主线，先拿到第一版叙事脚本"
+              : "Start the Mars Citizen line with a first narrative script",
             color: "from-[var(--sage)]/12 to-[var(--sage)]/4",
             textColor: "text-[var(--sage)]",
           },
           {
-            type: "copy" as const,
-            icon: FileText,
-            label: t ? "生成文案" : "Generate Copy",
+            type: "mars_package" as const,
+            icon: Zap,
+            label: t ? "发布包装" : "Publish Package",
             desc: t
-              ? "围绕选题生成多平台推广文案"
-              : "Generate multi-platform marketing copy",
+              ? "直接去做视频标题和发布文案"
+              : "Jump straight to titles and publish copy",
+            color: "from-[var(--accent)]/12 to-[var(--accent)]/4",
+            textColor: "text-[var(--accent)]",
+          },
+          {
+            type: "marketing_copy" as const,
+            icon: FileText,
+            label: t ? "营销文案" : "Marketing Copy",
+            desc: t
+              ? "进入 Marketing 主线，先生成平台文案"
+              : "Start the Marketing line with platform copy",
             color: "from-[var(--terracotta)]/12 to-[var(--terracotta)]/4",
             textColor: "text-[var(--terracotta)]",
           },
           {
-            type: "image" as const,
+            type: "marketing_storyboard" as const,
             icon: ImageIcon,
-            label: t ? "AI 配图" : "AI Images",
+            label: t ? "广告分镜" : "Ad Storyboard",
             desc: t
-              ? "根据选题自动生成封面和配图"
-              : "Auto-generate cover and illustrations for the topic",
+              ? "直接走广告分镜与视觉制作方向"
+              : "Go directly into ad storyboard and visual planning",
             color: "from-[var(--accent)]/12 to-[var(--accent)]/4",
             textColor: "text-[var(--accent)]",
           },

@@ -7,6 +7,7 @@ import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { GenerateStoryboardButton } from "@/components/workspace/generate-storyboard-button";
 import { NextStepLink } from "@/components/workspace/next-step-link";
+import { assessAdCreative, assessMarketingMasterCopy } from "@/lib/artifact-quality";
 import { apiRequest } from "@/lib/client-api";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
@@ -320,8 +321,13 @@ export function MarketingOpsWorkbench({
         generatedAdaptation: "The channel version has been generated.",
         chooseAdaptation: "Select a channel draft first.",
         complianceDone: "Compliance review completed.",
-        headerTitle: "Marketing Operations",
-        headerDesc: "Master copy -> channel adaptation -> compliance review",
+        headerTitle: "Marketing Content Desk",
+        headerDesc: "Polish the current copy, creative direction, and channel drafts in one place.",
+        feedbackTitle: "Current read",
+        feedbackDesc: "After generation, Tahoe should tell you what exists, what is weak, and what to do next.",
+        feedbackDone: "Already generated",
+        feedbackWeak: "Weakest point",
+        feedbackNext: "Suggested next step",
         unboundBrand: "No brand profile linked",
         unboundTemplate: "No industry template linked",
         summary: (versions: number, adaptations: number, checks: number) => `${versions} master versions · ${adaptations} channel drafts · ${checks} compliance checks`,
@@ -446,8 +452,13 @@ export function MarketingOpsWorkbench({
         generatedAdaptation: "平台版本已生成。",
         chooseAdaptation: "请先选择一条平台稿件。",
         complianceDone: "合规检查已完成。",
-        headerTitle: "内容运营台",
-        headerDesc: "主稿生产 -> 平台分发 -> 合规风控",
+        headerTitle: "Marketing 内容台",
+        headerDesc: "把当前文案、创意方向和平台稿放在同一个地方持续打磨。",
+        feedbackTitle: "当前判断",
+        feedbackDesc: "生成完以后，Tahoe 应该直接告诉你现在有什么、最弱在哪、下一步怎么做。",
+        feedbackDone: "已生成",
+        feedbackWeak: "当前最弱处",
+        feedbackNext: "建议下一步",
         unboundBrand: "未绑定品牌",
         unboundTemplate: "未绑定模板",
         summary: (versions: number, adaptations: number, checks: number) => `${versions} 版主稿 · ${adaptations} 篇平台稿 · ${checks} 条合规`,
@@ -612,6 +623,90 @@ export function MarketingOpsWorkbench({
   const latestCheckForSelected = useMemo(
     () => marketingOverview.complianceChecks.find((item) => item.targetId === selectedAdaptationId),
     [marketingOverview.complianceChecks, selectedAdaptationId],
+  );
+  const selectedVersionPayload = selectedVersion ? parsePayload(selectedVersion.taskJson) : null;
+  const creativeVisualReady = Boolean(
+    latestAdCreative?.visual_direction?.trim() &&
+    latestAdCreative?.shot_tone?.trim() &&
+    normalizeStringList(latestAdCreative?.selling_points).length > 0,
+  );
+  const feedbackSummary = useMemo(() => {
+    const completed: string[] = [];
+    if (selectedVersion) completed.push(locale === "en" ? "master draft available" : "主稿已生成");
+    if (marketingOverview.latestAdCreative) completed.push(locale === "en" ? "ad creative available" : "广告创意已生成");
+    if (marketingOverview.platformAdaptations.length > 0) completed.push(locale === "en" ? `${marketingOverview.platformAdaptations.length} channel drafts` : `${marketingOverview.platformAdaptations.length} 条平台稿`);
+    if (marketingOverview.storyboardSummary.frameCount > 0) completed.push(locale === "en" ? "ad storyboard available" : "广告分镜已生成");
+
+    const diagnosis = selectedVersionPayload?.quality_diagnosis;
+    let weakest =
+      locale === "en"
+        ? "Start with a usable master draft first."
+        : "先拿到一版可用主稿。";
+    let next =
+      locale === "en"
+        ? "Generate the first master draft, then refine message and platform direction."
+        : "先生成第一版主稿，再去收紧主传播角度和平台方向。";
+
+    if (!selectedVersion) {
+      return {
+        done: completed.join(" · ") || (locale === "en" ? "No key artifact yet." : "还没有关键产物。"),
+        weakest,
+        next,
+      };
+    }
+
+    if (diagnosis?.issues?.length) {
+      weakest = diagnosis.issues.slice(0, 2).map((item) => toDisplayString(item)).join("；");
+      next = diagnosis.rewrite_focus?.length
+        ? diagnosis.rewrite_focus.slice(0, 2).map((item) => toDisplayString(item)).join("；")
+        : (locale === "en" ? "Use the diagnosis and improve this master draft before branching further." : "先根据诊断继续增强这一版主稿，再继续往下派生。");
+    } else if (!marketingOverview.latestAdCreative) {
+      weakest = locale === "en" ? "The copy exists, but creative direction is still missing." : "文案已有基础，但创意方向还没立起来。";
+      next = locale === "en" ? "Generate an ad creative pack so the script and storyboard share one clear brief." : "补一版广告创意包，让脚本和分镜围绕同一个 brief。";
+    } else if (!creativeVisualReady) {
+      weakest = locale === "en" ? "The creative brief still lacks enough visual direction for Nano Banana / Seedance / Veo." : "当前创意包对 Nano Banana / Seedance / Veo 来说还不够可执行。";
+      next = locale === "en" ? "Sharpen visual direction, shot tone, and concrete selling-point imagery so later storyboard prompts stay production-ready." : "补强视觉方向、镜头气质和可视化卖点，让后续广告分镜提示词更适合直接生成。";
+    } else if (marketingOverview.platformAdaptations.length === 0) {
+      weakest = locale === "en" ? "No platform-ready draft yet." : "还没有平台可用稿。";
+      next = locale === "en" ? "Pick a platform and generate the first channel draft from the current master copy." : "选择一个平台，基于当前主稿生成第一条平台稿。";
+    } else if (marketingOverview.storyboardSummary.frameCount === 0) {
+      weakest = locale === "en" ? "The ad storyboard is not ready yet." : "广告分镜还没准备出来。";
+      next = locale === "en" ? "Generate the storyboard after the copy and creative direction feel stable, then verify it is strong enough for Nano Banana / Seedance / Veo shots." : "等文案和创意方向稳定后，继续生成广告分镜，再检查是否足够适合 Nano Banana / Seedance / Veo 的镜头生成。";
+    } else if (latestCheckForSelected?.needsReview) {
+      weakest = latestCheckForSelected.summary || (locale === "en" ? "The selected channel draft still needs manual compliance review." : "当前平台稿还需要人工复核。");
+      next = locale === "en" ? "Resolve the flagged compliance issues before final delivery." : "先处理当前命中的合规风险，再进入最终交付。";
+    } else {
+      weakest = locale === "en" ? "No major blocker right now." : "当前没有明显硬阻塞。";
+      next = locale === "en" ? "Continue refining the strongest platform draft or move into delivery preparation. The current brief is already usable for downstream visual generation." : "继续精修当前最强的平台稿，或直接进入交付准备。当前创意包已经足够支撑后续视觉生成。";
+    }
+
+    return {
+      done: completed.join(" · ") || (locale === "en" ? "Core marketing artifacts are in progress." : "核心 Marketing 产物已在推进中。"),
+      weakest,
+      next,
+    };
+  }, [creativeVisualReady, latestCheckForSelected, locale, marketingOverview.latestAdCreative, marketingOverview.platformAdaptations.length, marketingOverview.storyboardSummary.frameCount, selectedVersion, selectedVersionPayload]);
+  const masterCopyQualityAlerts = useMemo(
+    () =>
+      assessMarketingMasterCopy({
+        longFormCopy,
+        proofPoints: fromLines(proofPoints),
+        callToAction,
+        qualityIssues: selectedVersionPayload?.quality_diagnosis?.issues?.map((item) => toDisplayString(item)).filter(Boolean) ?? [],
+      }),
+    [callToAction, longFormCopy, proofPoints, selectedVersionPayload],
+  );
+  const creativeQualityAlerts = useMemo(
+    () =>
+      marketingOverview.latestAdCreative
+        ? assessAdCreative({
+            hook: creativeHook,
+            sellingPoints: fromLines(creativeSellingPoints),
+            visualDirection: creativeVisualDirection,
+            shotTone: creativeShotTone,
+          })
+        : [],
+    [creativeHook, creativeSellingPoints, creativeShotTone, creativeVisualDirection, marketingOverview.latestAdCreative],
   );
 
   async function request(path: string, options: RequestInit, key: string, successMessage: string) {
@@ -915,6 +1010,53 @@ export function MarketingOpsWorkbench({
 
   return (
     <div className="space-y-6">
+      <PanelCard title={ui.feedbackTitle} description={ui.feedbackDesc}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackDone}</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.done}</div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackWeak}</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.weakest}</div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackNext}</div>
+            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.next}</div>
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard
+        title={locale === "en" ? "Quality alerts" : "质量提醒"}
+        description={locale === "en" ? "Keep the feedback concrete: hook strength, proof density, and whether the creative is visual enough to shoot." : "只抓最影响交付质量的几个点：钩子、证据密度，以及创意是否已经足够可拍。"}
+      >
+        <div className="grid gap-4 xl:grid-cols-2">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Master copy" : "主稿"}</div>
+            <div className="mt-3 space-y-2">
+              {selectedVersion ? masterCopyQualityAlerts.map((alert) => (
+                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                  <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
+                  <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
+                </div>
+              )) : <div className="text-sm leading-7 text-[var(--text-2)]">{locale === "en" ? "Generate the first master draft before quality review can say anything useful." : "先拿到第一版主稿，系统才能判断它是不是还停留在空泛层。 "}</div>}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Ad creative" : "广告创意"}</div>
+            <div className="mt-3 space-y-2">
+              {marketingOverview.latestAdCreative ? creativeQualityAlerts.map((alert) => (
+                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                  <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
+                  <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
+                </div>
+              )) : <div className="text-sm leading-7 text-[var(--text-2)]">{locale === "en" ? "Generate an ad creative pack first, then Tahoe can tell you whether it is specific enough for storyboard work." : "先生成一版广告创意包，系统才能判断它是不是已经具体到能继续拆广告分镜。"} </div>}
+            </div>
+          </div>
+        </div>
+      </PanelCard>
+
       {/* ── Header: Project Context & Config ── */}
       <PanelCard title={ui.headerTitle} description={ui.headerDesc}>
         <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">

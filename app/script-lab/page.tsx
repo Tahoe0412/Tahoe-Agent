@@ -31,8 +31,7 @@ export default async function ScriptLabPage({
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
   const routesToStoryboard =
     workspace?.outputType === "STORYBOARD_SCRIPT" ||
-    workspace?.outputType === "AD_STORYBOARD" ||
-    workspace?.workspaceMode === "SHORT_VIDEO";
+    workspace?.outputType === "AD_STORYBOARD";
   const nextHref =
     routesToStoryboard
       ? projectId
@@ -112,11 +111,32 @@ export default async function ScriptLabPage({
         ) : !projectId ? (
           <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
-          <ErrorPanel title={locale === "en" ? "Script Data Unavailable" : "无法读取脚本实验数据"} description={locale === "en" ? "The project does not exist, or script rewrite has not been generated yet." : "该项目不存在，或还没生成脚本重构结果。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />} />
+          <ErrorPanel
+            title={locale === "en" ? "Script Data Unavailable" : "无法读取脚本实验数据"}
+            description={
+              locale === "en"
+                ? "The project could not be found, or this output has not been prepared yet."
+                : "当前项目没有成功加载，或这条产物还没有准备到脚本打磨这一步。"
+            }
+            action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />}
+          />
         ) : workspace.scriptLabRows.length === 0 && workspace.latestScriptPreview ? (
           <ScriptPreviewPanel script={workspace.latestScriptPreview} locale={locale} />
         ) : workspace.scriptLabRows.length === 0 ? (
-          <EmptyPanel title={locale === "en" ? "No Scenes Yet" : "暂无 scene 数据"} description={locale === "en" ? "Run the full dashboard workflow or trigger script rewrite first, then return to edit scenes." : "先在 Dashboard 执行全流程，或先触发 script rewrite，再回来编辑 scene。"} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Run Workflow First" : "先去总览跑流程"} />} />
+          <EmptyPanel
+            title={locale === "en" ? "No Script Draft Yet" : "还没有可打磨的脚本"}
+            description={
+              locale === "en"
+                ? "Start by generating the first script draft for this project, then come back here to refine scenes and packaging."
+                : "先为这个项目生成第一版脚本，再回到这里继续打磨 scene 和发布包装。"
+            }
+            action={
+              <NextStepLink
+                href={`/?projectId=${projectId}`}
+                label={locale === "en" ? "Generate First Draft" : "先生成第一版"}
+              />
+            }
+          />
         ) : (
           <ScriptLabWorkbench projectId={projectId} rows={workspace.scriptLabRows} marsOutputs={workspace.marsOutputs} />
         )}

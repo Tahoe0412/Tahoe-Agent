@@ -23,15 +23,34 @@
 - **Mars packaging edit slice (Done)**: `VIDEO_TITLE` and `PUBLISH_COPY` are now lightly editable inside Script Lab and can be saved as new `strategy_task` versions in place. This keeps Mars Citizen packaging work inside the same polishing surface instead of introducing a separate packaging editor.
 - **Marketing creative edit slice (Done)**: `AD_CREATIVE` is now lightly editable inside Marketing Ops and can be saved as a new `strategy_task` version in place. The current ad creative pack is no longer just a read-only brief; it can be revised, copied, and used to seed downstream copy/script work from the same surface.
 - **Marketing storyboard bridge slice (Done)**: Marketing Ops now includes a compact ad-storyboard bridge card with current storyboard version/frame readiness, plus direct actions to generate a storyboard or open Scene Planner. This keeps ad creative, ad copy, and ad storyboard visibly connected without duplicating the full planner UI.
+- **Today entry alignment slice (Done)**: Today Workbench now maps selected topics and material-basket actions directly into the current artifact system. Quick actions and basket CTAs now point to 火星公民脚本、发布包装、Marketing 文案、广告分镜 instead of older generic script/copy/image buckets.
+- **Homepage task-entry slice (Done)**: The current homepage now behaves more like a clear start screen when no project is selected. Instead of dropping users straight into form fields, it first presents four obvious task paths: go to Today, start a 火星公民 project, start a Marketing project, or continue the most recent project.
+- **Flow-map slice (Done)**: Added a user-facing flow map in `docs/USER_FLOW.md` that defines the product principle, two main business-line flows, page responsibilities, current routing rules, and the highest-value friction points. This is now the baseline reference before we change prompts, page entry states, or next-step behavior again.
 - **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, and the first small generator registry seam.
 - **Remaining push (next)**:
   - Sweep the remaining lower-priority `workspaceMode` compatibility branches in secondary helpers and edge routes, but the main user-facing surfaces are now aligned.
   - Continue moving read models and navigation toward “latest artifact / next output” instead of “which workflow stage are we on”.
   - Decide whether a lightweight storyboard preview/edit surface should also appear directly inside Marketing Ops, or whether the current bridge card + Scene Planner split is the right long-term boundary.
+  - Continue refining Today's artifact-first starts. Marketing copy and ad-storyboard actions now chain shell-project creation and output generation automatically, carry selected materials + keyword focus into project context, and already promote that context in prompt priority. A first lightweight output-quality layer is now in place inside Script Lab and Marketing Ops to detect weak hooks, thin proof, and visually abstract concepts; the next refinement should make those alerts even closer to actual downstream model failure modes.
+  - Decide when to split out a separate outer landing page. The current internal homepage is now a clearer task-entry board, but Tahoe may still benefit from a lighter top-level product homepage before users enter the production workspace.
+  - Rewrite remaining empty-state / helper copy that still teaches the old “run full workflow first” mental model across artifact pages. Script Lab, Scene Planner, and Render Lab have been updated; other pages should follow the same artifact-first language.
+  - Add stronger post-generation feedback so each output area can tell the user what was generated, what is weak, and the best next move. Script Lab and Marketing Ops now have a first feedback layer plus a first quality-alert layer for title hooks, publish-proof density, ad-creative specificity, and scene prompt executability; the next refinement should make those suggestions even more prompt-quality-aware and scene-quality-aware.
 - **Files (new)**: `lib/content-line.ts`, `lib/mars-citizen-prompt.ts`, `lib/ad-script-prompt.ts`, `lib/project-intent.ts`, `lib/storyboard-seed-prompt.ts`, `components/dashboard/project-intent-picker.tsx`, `components/workspace/generate-storyboard-button.tsx`
 - **Files (modified)**: `services/news-script.service.ts`, `hooks/use-generate-script.ts`, `app/api/scripts/generate-from-news/route.ts`, `schemas/project.ts`, `services/research-orchestrator.service.ts`, `app/api/projects/route.ts`, `services/workflow.service.ts`, `services/promotional-copy.service.ts`, `services/workspace-query.service.ts`, `components/dashboard/project-form.tsx`, `components/settings/project-manager.tsx`, `services/storyboard-generator.service.ts`, `app/scene-planner/page.tsx`, `app/script-lab/page.tsx`, `app/render-lab/page.tsx`, `app/page.tsx`, `lib/workflow-navigator.ts`, `services/news-script-generator-registry.ts`
 
 ## Pending
+
+### T-011 Future Architecture Blueprint (Planning Only)
+- **Problem**: Tahoe now needs a clear long-term direction, but the team does not want future-looking architecture ideas to disrupt current execution.
+- **Goal**: Record the long-term evolution path in a durable blueprint without turning it into the current implementation queue.
+- **Scope**:
+  - Future direction 1: move toward stronger review loops / agentic orchestration over time
+  - Future direction 2: move toward multimodal brand memory / retrieval over time
+  - Keep current sprint scope narrow: content quality, prompt quality, artifact-first UX, and cleaner flow
+- **Important constraint**:
+  - This is a planning task, not an active implementation task
+  - Do **not** treat it as authorization to pause current product cleanup and start a large multi-agent or vector-platform build
+- **Reference**: `docs/FUTURE_BLUEPRINT.md`
 
 ### T-005 Configure X/Twitter API
 - **Problem**: X connector fails with connection error — no API credentials
