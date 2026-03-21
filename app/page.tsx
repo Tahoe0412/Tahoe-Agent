@@ -182,14 +182,14 @@ export default async function Home({
           noProjectDesc: "当前选中的项目没有加载成功。你可以重新创建，或者切换到其他项目。",
           startTitle: "先从这里开始",
           startDesc: "按你现在想产出的内容来选路径，不用先理解整个系统。",
-          startTodayTitle: "先找今天的选题",
-          startTodayDesc: "打开今日工作台，先搜热点、挑事实素材、定题目。",
-          startMarsTitle: "做火星公民内容",
-          startMarsDesc: "新建火星公民项目，直接进入科技脚本或发布包装产出。",
-          startMarketingTitle: "做 Marketing 内容",
-          startMarketingDesc: "新建 Marketing 项目，直接进入平台文案、广告创意或广告分镜。",
-          startRecentTitle: "继续最近项目",
-          startRecentDesc: "如果你已经开过项目，就直接回到最近的那个继续做。",
+          startTodayTitle: "今日选题",
+          startTodayDesc: "搜热点、选素材、定题目",
+          startMarsTitle: "火星公民",
+          startMarsDesc: "科技脚本 · 视频分镜 · 发布包装",
+          startMarketingTitle: "Marketing",
+          startMarketingDesc: "平台文案 · 广告创意 · 广告分镜",
+          startRecentTitle: "继续项目",
+          startRecentDesc: "回到上次进行中的项目",
         };
 
   const focusReason = !workspace
