@@ -7,6 +7,13 @@ import type { NewsSearchItem, NewsSearchResult } from "@/types/news-search";
 
 const appSettingsService = new AppSettingsService();
 
+/** Detect locale from query text — Chinese characters → CN, otherwise US/EN */
+function detectLocale(query: string): { gl: string; hl: string } {
+  return /[\u4e00-\u9fff]/.test(query)
+    ? { gl: "cn", hl: "zh-cn" }
+    : { gl: "us", hl: "en" };
+}
+
 export async function searchLatestNews(input: { topic: string; limit?: number }) {
   const settings = await appSettingsService.getEffectiveSettings();
 
@@ -29,7 +36,7 @@ export async function searchLatestNews(input: { topic: string; limit?: number })
     try {
       return await new SerperNewsSearchProvider(
         settings.serperApiKey,
-      ).searchLatest(input);
+      ).searchLatest({ ...input, locale: detectLocale(input.topic) });
     } catch (error) {
       return {
         provider: "GOOGLE" as const,
