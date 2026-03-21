@@ -21,6 +21,54 @@
 **Verification**:
 - `npm run build` ✅
 
+---
+
+## 2026-03-21 10:28 — Agent: Antigravity
+
+### T-012 Mars Citizen: Unified Video Project Instead of 5 Separate Outputs
+
+**Changes**:
+- **`components/dashboard/project-intent-picker.tsx`**: When the user selects 火星公民, the output type grid is now replaced with a single "一个项目 = 一期视频" panel showing all five deliverables (脚本、分镜、标题、简介、发布文案) as icons in a pipeline. Marketing retains its individual output type selection.
+- **`lib/content-line.ts`**: Updated Mars Citizen description to "每期视频一个项目 — 自动产出脚本、分镜、标题、简介、发布文案".
+
+**Reason**:
+- User pointed out that Mars Citizen outputs are not independent choices — they are all part of one video episode project. The old UI was misleading.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 10:23 — Agent: Antigravity
+
+### T-012 Dashboard Cards: Remove Redundant Copy
+
+**Changes**:
+- **`app/page.tsx`**: Condensed StartCard titles and descriptions. Titles shortened to category names ("今日选题", "火星公民", "Marketing", "继续项目"); descriptions now list concrete outputs with `·` separators instead of restating the title as a sentence. CTA link changed from repeating the title to a hover-only "开始 →".
+
+**Reason**:
+- Every card was saying the same thing twice — the title, the description, and the CTA link all conveyed the same action in slightly different words.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-21 10:17 — Agent: Antigravity
+
+### T-012 Sidebar: Narrow Collapsed Width
+
+**Changes**:
+- **`app/globals.css`**: Reduced `.theme-sidebar-mini` width from 88px to 60px with tighter padding.
+- **`components/layout/app-shell.tsx`**: Updated content wrapper margin from `xl:ml-[88px]` to `xl:ml-[60px]`.
+- **`components/dashboard/sidebar.tsx`**: Shrunk collapsed icon containers (`p-2.5 → p-2`, `rounded-2xl → rounded-xl`) and brand header (`size-12 → size-10`).
+
+**Reason**:
+- Collapsed sidebar was too wide and visually blocked the main content area.
+
+**Verification**:
+- `npm run build` ✅
+
 ## 2026-03-21 02:14 — Agent: Codex
 
 ### T-010 Output Quality: Add Lightweight Artifact Quality Alerts Inside Workbenches
