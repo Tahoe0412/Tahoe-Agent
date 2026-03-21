@@ -20,11 +20,11 @@ export function PageHeader({
   return (
     <header className="relative overflow-hidden rounded-[30px] border border-[var(--border-soft)] bg-[linear-gradient(140deg,rgba(255,255,255,0.78),rgba(255,255,255,0.34))] px-4 py-5 shadow-[0_18px_40px_rgba(27,53,78,0.08)] sm:px-5 lg:px-6 xl:px-7">
       <div
-        className="pointer-events-none absolute right-[-6rem] top-[-5rem] h-52 w-52 rounded-full bg-[radial-gradient(circle,rgba(34,184,207,0.16),transparent_68%)]"
+        className="pointer-events-none absolute right-[-6rem] top-[-5rem] h-52 w-52 rounded-full bg-[radial-gradient(circle,var(--accent-soft),transparent_68%)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute left-[-3rem] bottom-[-4rem] h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(15,61,94,0.12),transparent_72%)]"
+        className="pointer-events-none absolute left-[-3rem] bottom-[-4rem] h-40 w-40 rounded-full bg-[radial-gradient(circle,var(--sage-soft),transparent_72%)]"
         aria-hidden
       />
       <div className="relative z-[1] flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -41,10 +41,7 @@ export function PageHeader({
         </div>
         {action ? <div className="w-full shrink-0 xl:w-auto">{action}</div> : null}
       </div>
-      <div className="relative z-[1] mt-4 h-px bg-[linear-gradient(90deg,rgba(34,184,207,0.28),transparent_72%)]" />
-      <div className="relative z-[1] mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-3)]">
-        {text.shell.workflowCaption}
-      </div>
+      <div className="relative z-[1] mt-4 h-px bg-[linear-gradient(90deg,var(--accent-soft),transparent_72%)]" />
     </header>
   );
 }

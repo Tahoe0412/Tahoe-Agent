@@ -45,22 +45,30 @@ function StartCard({
   eyebrow,
   title,
   description,
+  locale,
 }: {
   href: Route;
   eyebrow: string;
   title: string;
   description: string;
+  locale: string;
 }) {
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_12px_30px_rgba(34,184,207,0.08)]"
+      className="group relative overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_12px_30px_rgba(34,184,207,0.08)]"
     >
-      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</div>
-      <div className="mt-3 text-lg font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
-      <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{description}</div>
-      <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100">
-        开始 &rarr;
+      <div
+        className="pointer-events-none absolute right-[-1.5rem] top-[-1.5rem] h-20 w-20 rounded-full bg-[radial-gradient(circle,var(--accent-soft),transparent_70%)] opacity-60 transition-opacity group-hover:opacity-100"
+        aria-hidden
+      />
+      <div className="relative z-[1]">
+        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</div>
+        <div className="mt-3 text-lg font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
+        <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{description}</div>
+        <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100">
+          {locale === "en" ? "Start" : "开始"} &rarr;
+        </div>
       </div>
     </Link>
   );
@@ -410,7 +418,7 @@ export default async function Home({
           <div className="space-y-6">
             <PanelCard title={ui.startTitle} description={ui.startDesc}>
               <div className="grid gap-4 xl:grid-cols-4">
-                <StartCard href="/today" eyebrow="Today" title={ui.startTodayTitle} description={ui.startTodayDesc} />
+                <StartCard href="/today" eyebrow="Today" title={ui.startTodayTitle} description={ui.startTodayDesc} locale={locale} />
                 <StartCard
                   href={buildDashboardCreateHref({
                     contentLine: "MARS_CITIZEN",
@@ -419,6 +427,7 @@ export default async function Home({
                   eyebrow="Mars Citizen"
                   title={ui.startMarsTitle}
                   description={ui.startMarsDesc}
+                  locale={locale}
                 />
                 <StartCard
                   href={buildDashboardCreateHref({
@@ -428,12 +437,14 @@ export default async function Home({
                   eyebrow="Marketing"
                   title={ui.startMarketingTitle}
                   description={ui.startMarketingDesc}
+                  locale={locale}
                 />
                 <StartCard
                   href={(recentProjects[0] ? `/?projectId=${recentProjects[0].id}` : "/project-hub") as Route}
                   eyebrow="Recent"
                   title={ui.startRecentTitle}
                   description={ui.startRecentDesc}
+                  locale={locale}
                 />
               </div>
             </PanelCard>
