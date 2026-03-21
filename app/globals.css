@@ -245,8 +245,8 @@ textarea::placeholder {
 }
 
 .theme-sidebar-mini {
-  width: 88px !important;
-  padding: 12px 10px !important;
+  width: 60px !important;
+  padding: 10px 6px !important;
   overflow: visible;
 }
 

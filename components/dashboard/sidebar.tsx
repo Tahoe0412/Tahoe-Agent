@@ -62,7 +62,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       href={href}
       className={cn(
         "group relative flex items-center gap-3 overflow-hidden rounded-xl border transition-all duration-200",
-        collapsed ? "justify-center px-0 py-3" : "px-3 py-3.5",
+        collapsed ? "justify-center px-0 py-2" : "px-3 py-3.5",
         active
           ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
           : "border-transparent text-[var(--sidebar-text)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
@@ -72,7 +72,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       {active ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
       <div
         className={cn(
-          "shrink-0 rounded-2xl p-2.5 transition-all duration-200",
+          "shrink-0 rounded-xl p-2 transition-all duration-200",
           active ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "bg-white/6 group-hover:bg-white/12"
         )}
         style={accentColor ? { color: accentColor } : undefined}
@@ -137,7 +137,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
           className={cn(
             "transition-all",
             collapsed
-              ? "flex size-12 items-center justify-center rounded-[16px] border border-white/8 bg-white/6"
+              ? "flex size-10 items-center justify-center rounded-xl border border-white/8 bg-white/6"
               : "rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] px-3 py-3"
           )}
         >
@@ -154,7 +154,7 @@ export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHOR
               </div>
             </div>
           ) : (
-            <GalleryVerticalEnd className="size-5 text-[var(--sidebar-text-hover)]" />
+            <GalleryVerticalEnd className="size-4 text-[var(--sidebar-text-hover)]" />
           )}
         </div>
       </div>

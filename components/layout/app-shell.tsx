@@ -87,7 +87,7 @@ export function AppShell({
         <div
           className={cn(
             "flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out",
-            collapsed ? "xl:ml-[88px]" : "xl:ml-[248px]"
+            collapsed ? "xl:ml-[60px]" : "xl:ml-[248px]"
           )}
         >
           {/* ── Global Top Header ── */}
