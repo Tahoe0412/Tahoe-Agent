@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-03-21 11:16 — Agent: Antigravity
+
+### T-009 Chinese Search Enhancement: Locale-Aware News Search
+
+**Changes**:
+- **`services/news-search/index.ts`**: Added `detectLocale()` — detects CJK characters in the query and switches `searchLatestNews()` from `gl:us/hl:en` to `gl:cn/hl:zh-cn`. The CN indexed evidence pipeline (Baidu, Google CN, XHS, Douyin) was already fully implemented; this fix ensures the **primary** news column also returns Chinese results for Chinese queries.
+
+**Reason**:
+- Chinese queries like "火星探测器" were returning English-language results in the main news column because Serper defaulted to US locale.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-21 10:51 — Agent: Antigravity
 
 ### T-010 Wrap-up: workspaceMode Surface Cleanup + Intent-First Copy
