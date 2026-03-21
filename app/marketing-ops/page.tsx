@@ -30,7 +30,7 @@ export default async function MarketingOpsPage({
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.marketingOps.eyebrow}

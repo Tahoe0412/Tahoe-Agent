@@ -50,7 +50,7 @@ export default async function ScriptLabPage({
         : "下一步：去写宣传文案";
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.script.eyebrow}

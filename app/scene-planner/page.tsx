@@ -34,7 +34,7 @@ export default async function ScenePlannerPage({
   const showLocalStorageNotice = usesLocalUploadStorage();
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.storyboard.eyebrow}

@@ -99,7 +99,7 @@ export function ProjectContext({
         scenarioLabel: "场景",
         readyEyebrow: "Ready for a fresh brief",
         noProjectTitle: "还没有选中项目",
-        noProjectDescription: "先从总览页新建一个项目，或者去项目中心挑一个继续做。选中之后，这里会立刻变成你的任务摘要、边界条件和下一步入口。",
+        noProjectDescription: "输入一个选题 + 选择产物类型就能新建项目。也可以去项目中心挑一个继续做。",
         createProject: "去总览新建项目",
         switchProject: "去项目中心切换",
         showBackground: "查看项目背景",
@@ -118,7 +118,7 @@ export function ProjectContext({
         saving: "保存中...",
         saveProject: "保存项目信息",
         cancel: "取消",
-        noProjectSelected: "未指定 `projectId`。可先创建项目，或从最近项目切换。",
+        noProjectSelected: "未指定项目。输入选题 + 选择产物类型即可新建，或从最近项目切换。",
       };
   const modeLabel = project?.workspaceMode ? getWorkspaceModeMeta(project.workspaceMode, locale).label : null;
   const [isEditing, setIsEditing] = useState(false);

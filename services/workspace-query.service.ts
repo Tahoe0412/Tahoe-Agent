@@ -414,10 +414,10 @@ export class WorkspaceQueryService {
     const priorities = [
       project.brand_profile
         ? `当前项目已绑定品牌“${project.brand_profile.brand_name}”，可直接继承品牌语气与禁用表达。`
-        : "当前项目还未绑定品牌档案，建议先完成品牌配置。",
+        : "可选：绑定品牌档案后产出的语气和表达更统一。",
       project.industry_template
         ? `当前项目已绑定行业模板“${project.industry_template.industry_name}”，可直接复用竞品与风险词库。`
-        : "当前项目还未绑定行业模板，建议先完成行业边界配置。",
+        : "可选：绑定行业模板后可复用竞品词库和风险词。",
       project.trend_topics[0]
         ? `当前最高分趋势是“${project.trend_topics[0].topic_label}”，建议用于开场或封面主钩子。`
         : "尚未生成趋势主题，建议先运行 trend research。",

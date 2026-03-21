@@ -32,7 +32,7 @@ export default async function BrandProfilesPage({
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader eyebrow={text.pages.brands.eyebrow} title={text.pages.brands.title} description={text.pages.brands.description} locale={locale} />
         <ProjectContext

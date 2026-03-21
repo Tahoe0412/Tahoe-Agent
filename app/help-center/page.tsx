@@ -38,8 +38,8 @@ export default async function HelpCenterPage({
     // ── Getting Started ──
     gettingStartedTitle: zh ? "快速上手" : "Getting Started",
     gettingStartedDesc: zh
-      ? "第一次使用？按这个顺序跑通一个完整流程。"
-      : "First time? Follow this flow to run through a complete cycle.",
+      ? "从一个选题开始，系统会帮你推进到第一版产物。"
+      : "Start from a topic — the system helps you reach your first draft.",
     step1: zh ? "1. 打开「今日工作台」" : "1. Open Today's Workbench",
     step2: zh ? "2. 选择关键词池 → 勾选关键词 → 搜索" : "2. Pick a keyword pool → select keywords → search",
     step3: zh ? "3. 从搜索结果里勾选事实素材（新闻 / 国内热点证据）" : "3. Select fact materials from search results (news / CN evidence)",
@@ -50,8 +50,8 @@ export default async function HelpCenterPage({
     currentIntent: (line: string, output: string) => zh ? `当前项目属于「${line}」，目标产物是「${output}」。` : `Current project belongs to "${line}" and targets "${output}".`,
     noProjectYet: zh ? "还没有选定项目。" : "No project selected yet.",
     shortestPath: zh
-      ? "最短路径：先确定业务主线和目标产物，再直接去拿第一版产物。"
-      : "Shortest path: decide the business line and target output, then go straight for the first draft.",
+      ? "最短路径：选一个业务主线 + 目标产物，给个选题就能拿到第一版。"
+      : "Shortest path: pick a business line + target output, provide a topic, and get the first draft.",
     goToToday: zh ? "去今日工作台" : "Go to Today",
     backToOverview: zh ? "返回总览" : "Back to Overview",
 
@@ -195,7 +195,7 @@ export default async function HelpCenterPage({
       ];
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.help.eyebrow}

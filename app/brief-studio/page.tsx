@@ -47,7 +47,7 @@ export default async function BriefStudioPage({
         : text.pages.brief;
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={pageCopy.eyebrow}

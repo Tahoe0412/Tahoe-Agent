@@ -208,7 +208,7 @@ export default async function Home({
       : workspace?.marketingOverview.promotionalCopyVersions.length ?? 0;
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={headerCopy.eyebrow}

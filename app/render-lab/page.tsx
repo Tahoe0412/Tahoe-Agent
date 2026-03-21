@@ -48,7 +48,7 @@ export default async function RenderLabPage({
         : "返回脚本与发布包装";
 
   return (
-    <WorkspaceLayout locale={locale} workspaceMode={workspace?.workspaceMode}>
+    <WorkspaceLayout locale={locale}>
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.renderLab.eyebrow}

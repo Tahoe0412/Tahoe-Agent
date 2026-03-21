@@ -1,0 +1,231 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - button "关闭侧边栏" [ref=e4]:
+      - img [ref=e5]
+    - generic [ref=e9]:
+      - generic [ref=e12]:
+        - img [ref=e14]
+        - generic [ref=e16]:
+          - generic [ref=e17]: 工作台
+          - generic [ref=e18]: Tahoe
+      - generic [ref=e19]:
+        - navigation [ref=e20]:
+          - generic [ref=e21]: 探索
+          - generic [ref=e22]:
+            - link "总览 项目总览与下一步" [ref=e23] [cursor=pointer]:
+              - /url: /
+              - img [ref=e26]
+              - generic [ref=e31]:
+                - generic [ref=e32]: 总览
+                - generic [ref=e33]: 项目总览与下一步
+            - link "今日工作台 看热点、选题、快速产出" [ref=e34] [cursor=pointer]:
+              - /url: /today
+              - img [ref=e36]
+              - generic [ref=e38]:
+                - generic [ref=e39]: 今日工作台
+                - generic [ref=e40]: 看热点、选题、快速产出
+            - link "创意任务单 目标与边界" [ref=e41] [cursor=pointer]:
+              - /url: /brief-studio
+              - img [ref=e43]
+              - generic [ref=e48]:
+                - generic [ref=e49]: 创意任务单
+                - generic [ref=e50]: 目标与边界
+            - link "趋势研究 趋势研究与证据" [ref=e51] [cursor=pointer]:
+              - /url: /trend-explorer
+              - img [ref=e53]
+              - generic [ref=e56]:
+                - generic [ref=e57]: 趋势研究
+                - generic [ref=e58]: 趋势研究与证据
+        - navigation [ref=e59]:
+          - generic [ref=e60]: 生产
+          - generic [ref=e61]:
+            - link "脚本实验台 原文 / 重构 / 分类 / 素材" [ref=e62] [cursor=pointer]:
+              - /url: /script-lab
+              - img [ref=e64]
+              - generic [ref=e69]:
+                - generic [ref=e70]: 脚本实验台
+                - generic [ref=e71]: 原文 / 重构 / 分类 / 素材
+            - link "分镜编排 素材与分镜规划" [ref=e72] [cursor=pointer]:
+              - /url: /scene-planner
+              - img [ref=e74]
+              - generic [ref=e76]:
+                - generic [ref=e77]: 分镜编排
+                - generic [ref=e78]: 素材与分镜规划
+            - link "图片与视频生成 把提示词、镜头、素材和生成任务串成工作流" [ref=e79] [cursor=pointer]:
+              - /url: /render-lab
+              - img [ref=e81]
+              - generic [ref=e83]:
+                - generic [ref=e84]: 图片与视频生成
+                - generic [ref=e85]: 把提示词、镜头、素材和生成任务串成工作流
+            - link "宣传文案与运营 宣传主稿、平台改写、合规与复盘" [ref=e86] [cursor=pointer]:
+              - /url: /marketing-ops
+              - img [ref=e88]
+              - generic [ref=e95]:
+                - generic [ref=e96]: 宣传文案与运营
+                - generic [ref=e97]: 宣传主稿、平台改写、合规与复盘
+        - navigation [ref=e98]:
+          - generic [ref=e99]: 管理
+          - generic [ref=e100]:
+            - link "项目中心 多个项目的搜索、排序与批量管理" [ref=e101] [cursor=pointer]:
+              - /url: /project-hub
+              - img [ref=e103]
+              - generic [ref=e105]:
+                - generic [ref=e106]: 项目中心
+                - generic [ref=e107]: 多个项目的搜索、排序与批量管理
+            - link "品牌档案 品牌配置与内容支柱" [ref=e108] [cursor=pointer]:
+              - /url: /brand-profiles
+              - img [ref=e110]
+              - generic [ref=e114]:
+                - generic [ref=e115]: 品牌档案
+                - generic [ref=e116]: 品牌配置与内容支柱
+            - link "行业模板 行业研究与竞品模板" [ref=e117] [cursor=pointer]:
+              - /url: /industry-templates
+              - img [ref=e119]
+              - generic [ref=e123]:
+                - generic [ref=e124]: 行业模板
+                - generic [ref=e125]: 行业研究与竞品模板
+            - link "帮助中心 用户手册、流程建议与常见问题" [ref=e126] [cursor=pointer]:
+              - /url: /help-center
+              - img [ref=e128]
+              - generic [ref=e130]:
+                - generic [ref=e131]: 帮助中心
+                - generic [ref=e132]: 用户手册、流程建议与常见问题
+            - link "设置 模型、主题与联网配置" [ref=e133] [cursor=pointer]:
+              - /url: /settings
+              - img [ref=e135]
+              - generic [ref=e138]:
+                - generic [ref=e139]: 设置
+                - generic [ref=e140]: 模型、主题与联网配置
+        - generic [ref=e141]:
+          - generic [ref=e142]: 工作台
+          - generic [ref=e143]: 工作方式
+          - paragraph [ref=e144]: 左侧切换项目阶段，中间做密集判断，右侧保留决策上下文和执行动作。
+  - generic [ref=e145]:
+    - banner [ref=e146]:
+      - generic [ref=e147]:
+        - button "切换侧边栏" [ref=e148]:
+          - img [ref=e149]
+          - generic [ref=e150]: 菜单
+        - link "Tahoe" [ref=e151] [cursor=pointer]:
+          - /url: /
+          - img [ref=e153]
+          - generic [ref=e155]: Tahoe
+      - link "打开设置" [ref=e156] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e157]
+    - main [ref=e160]:
+      - generic [ref=e162]:
+        - generic [ref=e163]:
+          - generic [ref=e164]:
+            - generic [ref=e165]:
+              - generic [ref=e166]: WORKSPACE
+              - generic [ref=e167]:
+                - heading "控制台" [level=2] [ref=e168]
+                - paragraph [ref=e169]: 汇聚洞察与草稿。在此确认方向，随后深入执行。
+            - link "开始新项目" [ref=e171] [cursor=pointer]:
+              - /url: "#new-project"
+          - generic [ref=e173]: 从目标定义开始，一路推进到研究、脚本、分镜和生成执行。
+        - generic [ref=e174]: 最近项目列表暂时不可用，但你仍然可以直接从下面开始一个新项目。
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - generic [ref=e178]:
+              - heading "先从这里开始" [level=3] [ref=e179]
+              - paragraph [ref=e180]: 按你现在想产出的内容来选路径，不用先理解整个系统。
+            - generic [ref=e182]:
+              - link "Today 先找今天的选题 打开今日工作台，先搜热点、挑事实素材、定题目。 先找今天的选题" [ref=e183] [cursor=pointer]:
+                - /url: /today
+                - generic [ref=e184]: Today
+                - generic [ref=e185]: 先找今天的选题
+                - generic [ref=e186]: 打开今日工作台，先搜热点、挑事实素材、定题目。
+                - generic [ref=e187]: 先找今天的选题
+              - link "Mars Citizen 做火星公民内容 新建火星公民项目，直接进入科技脚本或发布包装产出。 做火星公民内容" [ref=e188] [cursor=pointer]:
+                - /url: /?contentLine=MARS_CITIZEN&outputType=NARRATIVE_SCRIPT#new-project
+                - generic [ref=e189]: Mars Citizen
+                - generic [ref=e190]: 做火星公民内容
+                - generic [ref=e191]: 新建火星公民项目，直接进入科技脚本或发布包装产出。
+                - generic [ref=e192]: 做火星公民内容
+              - link "Marketing 做 Marketing 内容 新建 Marketing 项目，直接进入平台文案、广告创意或广告分镜。 做 Marketing 内容" [ref=e193] [cursor=pointer]:
+                - /url: /?contentLine=MARKETING&outputType=PLATFORM_COPY#new-project
+                - generic [ref=e194]: Marketing
+                - generic [ref=e195]: 做 Marketing 内容
+                - generic [ref=e196]: 新建 Marketing 项目，直接进入平台文案、广告创意或广告分镜。
+                - generic [ref=e197]: 做 Marketing 内容
+              - link "Recent 继续最近项目 如果你已经开过项目，就直接回到最近的那个继续做。 继续最近项目" [ref=e198] [cursor=pointer]:
+                - /url: /project-hub
+                - generic [ref=e199]: Recent
+                - generic [ref=e200]: 继续最近项目
+                - generic [ref=e201]: 如果你已经开过项目，就直接回到最近的那个继续做。
+                - generic [ref=e202]: 继续最近项目
+          - generic [ref=e204]:
+            - generic [ref=e205]:
+              - generic [ref=e206]: 开始新项目
+              - generic [ref=e207]: 先确定业务主线和目标产物
+              - generic [ref=e208]: 先说明你是做火星公民科普，还是做商业 marketing，再说明这一轮想产出什么。系统会据此自动推导工作台、默认平台和推荐流程。
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - generic [ref=e211]: 业务主线
+                - generic [ref=e212]:
+                  - button "🚀 火星公民 面向公众的科技内容品牌 — 科技快讯、深度科普、机器人与火星移民主题视频" [ref=e213]:
+                    - generic [ref=e214]:
+                      - generic [ref=e215]: 🚀
+                      - generic [ref=e216]: 火星公民
+                    - generic [ref=e217]: 面向公众的科技内容品牌 — 科技快讯、深度科普、机器人与火星移民主题视频
+                  - button "💼 商业线 面向企业客户的营销内容 — 小红书/抖音文案、商业广告创意与广告视频" [ref=e218]:
+                    - generic [ref=e219]:
+                      - generic [ref=e220]: 💼
+                      - generic [ref=e221]: 商业线
+                    - generic [ref=e222]: 面向企业客户的营销内容 — 小红书/抖音文案、商业广告创意与广告视频
+              - generic [ref=e223]:
+                - generic [ref=e224]: 目标产物
+                - generic [ref=e225]:
+                  - button "叙事脚本 可直接播报的完整口播稿" [ref=e226]:
+                    - generic [ref=e227]: 叙事脚本
+                    - generic [ref=e228]: 可直接播报的完整口播稿
+                  - button "AI 视频分镜 AI 视频生成的画面指令分镜稿" [ref=e229]:
+                    - generic [ref=e230]: AI 视频分镜
+                    - generic [ref=e231]: AI 视频生成的画面指令分镜稿
+                  - button "视频标题 适合发布的吸引人标题" [ref=e232]:
+                    - generic [ref=e233]: 视频标题
+                    - generic [ref=e234]: 适合发布的吸引人标题
+                  - button "视频简介 视频简介 / 描述文字" [ref=e235]:
+                    - generic [ref=e236]: 视频简介
+                    - generic [ref=e237]: 视频简介 / 描述文字
+                  - button "发布文案 多平台发布文案" [ref=e238]:
+                    - generic [ref=e239]: 发布文案
+                    - generic [ref=e240]: 多平台发布文案
+            - generic [ref=e241]:
+              - generic [ref=e242]:
+                - generic [ref=e243]: 🚀 火星公民
+                - generic [ref=e244]: 叙事脚本
+                - generic [ref=e245]: 短视频
+              - generic [ref=e246]: 趋势研究 -> 脚本重构 -> 分镜与素材
+              - generic [ref=e247]:
+                - generic [ref=e248]: YouTube
+                - generic [ref=e249]: TikTok
+                - generic [ref=e250]: 小红书
+                - generic [ref=e251]: 抖音
+            - generic [ref=e252]:
+              - generic [ref=e253]:
+                - text: 项目名称（可选）
+                - textbox "项目名称（可选）" [ref=e254]:
+                  - /placeholder: 可以留空，系统会默认用主题来命名项目
+              - generic [ref=e255]:
+                - text: 选题主题
+                - textbox "选题主题" [ref=e256]:
+                  - /placeholder: 品牌短视频内容方向
+            - generic [ref=e257]:
+              - text: 可选背景脚本 / 口播想法
+              - textbox "可选背景脚本 / 口播想法 这是可选输入。留空时系统会先创建项目壳，后续再继续生成。" [ref=e258]:
+                - /placeholder: 如果你现在只有主题，没有完整脚本，也可以先留空。先创建项目壳，后续再生成脚本或分镜。
+              - generic [ref=e259]: 这是可选输入。留空时系统会先创建项目壳，后续再继续生成。
+            - button "高级选项" [ref=e261]:
+              - generic [ref=e262]: 高级选项
+              - img [ref=e263]
+            - button "创建项目" [ref=e266]
+        - generic [ref=e268]:
+          - img [ref=e270]
+          - generic [ref=e275]: 等待开始
+          - generic [ref=e276]: 先从一个项目开始
+          - generic [ref=e277]: 选一条业务线、一个主题、一个目标产物，就足够开始。
+          - link "创建项目" [ref=e279] [cursor=pointer]:
+            - /url: "#new-project"

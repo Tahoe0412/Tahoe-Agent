@@ -90,13 +90,12 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
   );
 }
 
-export function DashboardSidebar({ locale, workspaceMode: _workspaceMode = "SHORT_VIDEO" }: { locale: Locale; workspaceMode?: WorkspaceMode }) {
+export function DashboardSidebar({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const text = copy[locale];
   const { collapsed } = useSidebar();
-  void _workspaceMode;
 
   /* ── Group 1: 前置探索 (Explore) ── */
   const exploreItems: NavItem[] = [

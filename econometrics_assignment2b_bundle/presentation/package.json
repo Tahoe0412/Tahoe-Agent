@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build": "node src/build_assignment2b_ppt.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}
