@@ -3,11 +3,14 @@
 import { useState, useCallback } from "react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { Check, FileText, Flame, Loader2, X, Zap, AlertTriangle, Radar } from "lucide-react";
+import { Check, FileText, Flame, Loader2, X, Zap, AlertTriangle, Radar, Rocket, Briefcase } from "lucide-react";
+import type { ContentLine } from "@/lib/content-line";
+import type { SupportedPlatform } from "@/types/platform-data";
 import { useHotTopics } from "@/hooks/use-hot-topics";
 import { useGenerateScript } from "@/hooks/use-generate-script";
 import { apiRequest } from "@/lib/client-api";
 import { buildDashboardCreateHref } from "@/lib/project-intent";
+import { PlatformContentPanel } from "./platform-content-panel";
 import { TodayQuickActions } from "./today-quick-actions";
 import { TodayRecentProjects, type RecentProject } from "./today-recent-projects";
 import type { TopicRankingItem } from "@/types/trend-discovery";
@@ -97,6 +100,42 @@ export function TodayWorkbench({
   } = useHotTopics();
 
   const [selectedTopic, setSelectedTopic] = useState<TopicRankingItem | null>(null);
+
+  /* ── Content line & platform state ── */
+  const PLATFORM_PRESETS: Record<ContentLine, SupportedPlatform[]> = {
+    MARS_CITIZEN: ["YOUTUBE", "X"],
+    MARKETING: ["XHS", "DOUYIN", "X"],
+  };
+  const PLATFORM_LABELS: Record<SupportedPlatform, string> = {
+    YOUTUBE: "YouTube",
+    X: "X / Twitter",
+    TIKTOK: "TikTok",
+    XHS: "小红书",
+    DOUYIN: "抖音",
+  };
+  const ALL_PLATFORMS: SupportedPlatform[] = ["YOUTUBE", "X", "XHS", "DOUYIN", "TIKTOK"];
+
+  const [activeContentLine, setActiveContentLine] = useState<ContentLine>("MARS_CITIZEN");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<SupportedPlatform>>(
+    () => new Set(PLATFORM_PRESETS.MARS_CITIZEN),
+  );
+
+  const togglePlatform = useCallback((p: SupportedPlatform) => {
+    setSelectedPlatforms((prev) => {
+      const next = new Set(prev);
+      if (next.has(p)) {
+        if (next.size > 1) next.delete(p); // keep at least one
+      } else {
+        next.add(p);
+      }
+      return next;
+    });
+  }, []);
+
+  const switchContentLine = useCallback((line: ContentLine) => {
+    setActiveContentLine(line);
+    setSelectedPlatforms(new Set(PLATFORM_PRESETS[line]));
+  }, []);
 
   /* ── Keyword pool state ── */
   interface KeywordItem { text: string; selected: boolean }
@@ -255,6 +294,55 @@ export function TodayWorkbench({
           </div>
         </div>
 
+        {/* ── Content line toggle + Platform selector ── */}
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          {/* Content line toggle */}
+          <div className="flex items-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-0.5">
+            {([
+              { line: "MARS_CITIZEN" as ContentLine, icon: Rocket, label: t ? "火星公民" : "Mars Citizen" },
+              { line: "MARKETING" as ContentLine, icon: Briefcase, label: t ? "商业线" : "Marketing" },
+            ]).map((item) => (
+              <button
+                key={item.line}
+                onClick={() => switchContentLine(item.line)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                  activeContentLine === item.line
+                    ? "bg-[var(--surface-solid)] text-[var(--text-1)] shadow-sm"
+                    : "text-[var(--text-3)] hover:text-[var(--text-2)]",
+                )}
+              >
+                <item.icon className="size-3.5" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="h-5 w-px bg-[var(--border)]" />
+
+          {/* Platform chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-0.5 text-[10px] text-[var(--text-3)] uppercase tracking-wider">
+              {t ? "平台" : "Platforms"}
+            </span>
+            {ALL_PLATFORMS.map((p) => (
+              <button
+                key={p}
+                onClick={() => togglePlatform(p)}
+                className={cn(
+                  "rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-all",
+                  selectedPlatforms.has(p)
+                    ? "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--text-1)] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    : "border-[var(--border)] bg-transparent text-[var(--text-3)] hover:border-[var(--text-3)]/40",
+                )}
+              >
+                {PLATFORM_LABELS[p]}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {workspaceDataUnavailable ? (
           <div className="mb-5 rounded-xl border border-[color:color-mix(in_srgb,var(--warn-text)_28%,transparent)] bg-[var(--warn-bg)] px-4 py-3 text-sm leading-6 text-[var(--warn-text)]">
             {t
@@ -365,7 +453,7 @@ export function TodayWorkbench({
                     input.value = "";
                   } else if (selectedKeywords.length > 0) {
                     // Enter on empty → trigger search
-                    void handleSearch(selectedKeywords.map((k) => k.text).join(" OR "));
+                    void handleSearch(selectedKeywords.map((k) => k.text).join(" OR "), [...selectedPlatforms]);
                   }
                 }
               }}
@@ -397,7 +485,7 @@ export function TodayWorkbench({
             <button
               onClick={() => {
                 const q = selectedKeywords.map((k) => k.text).join(" OR ");
-                void handleSearch(q);
+                void handleSearch(q, [...selectedPlatforms]);
               }}
               disabled={loading || selectedKeywords.length === 0}
               className="flex items-center justify-center rounded-lg bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
@@ -595,6 +683,22 @@ export function TodayWorkbench({
               </div>
             </div>
           </div>
+
+            {/* Platform content panels */}
+            {platformResults.length > 0 && (
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                {platformResults.map((pr) => (
+                    <PlatformContentPanel
+                      key={pr.platform}
+                      platform={pr.platform}
+                      result={pr}
+                      selectedIds={new Set(selectedNews.keys())}
+                      onToggle={toggleNewsItem}
+                      locale={locale}
+                    />
+                  ))}
+              </div>
+            )}
           </>
         ) : null}
 
@@ -702,8 +806,8 @@ export function TodayWorkbench({
                 </div>
                 <div className="mt-4 rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,255,255,0.3)] px-4 py-3 text-xs leading-6 text-[var(--text-3)]">
                   {t
-                    ? "建议先去设置页补齐 X 凭据，确认服务器外网可访问 Google News，并适当放宽 YouTube 连接超时。"
-                    : "Recommended next step: add X credentials in Settings, confirm the server can reach Google News, and relax the YouTube connector timeout if needed."}
+                    ? "建议确认服务器外网可访问 Google News 和 X API，并适当放宽 YouTube 连接超时。"
+                    : "Recommended next step: confirm the server can reach Google News and X API, and relax the YouTube connector timeout if needed."}
                 </div>
               </div>
             </div>

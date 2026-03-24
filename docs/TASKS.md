@@ -63,12 +63,9 @@
   - Do **not** treat it as authorization to pause current product cleanup and start a large multi-agent or vector-platform build
 - **Reference**: `docs/FUTURE_BLUEPRINT.md`
 
-### T-005 Configure X/Twitter API
-- **Problem**: X connector fails with connection error — no API credentials
-- **Goal**: Set up Twitter API v2 credentials for tweet search
-- **Acceptance**:
-  - Trend search returns X/Twitter post results
-  - Error messages no longer appear for X platform
+### T-005 Configure X/Twitter API ✅
+- **Completed**: 2026-03-21
+- **Result**: `X_BEARER_TOKEN` configured in `.env.local` and auto-injected during deploy via GitHub Actions. X connector returns real tweet data via X API v2 `tweets/search/recent`.
 
 ### T-009 Expand Hot Topics with China-Focused Indexed Search
 - **Problem**: Current hot-topics search is biased toward US/English results because Serper requests use `gl: "us"` and `hl: "en"`. Tahoe lacks reliable domestic evidence sources for Chinese trend discovery.
@@ -86,9 +83,17 @@
 
 ## Done
 
+### T-005 Configure X/Twitter API ✅
+- **Completed**: 2026-03-21
+- **Result**: `X_BEARER_TOKEN` configured in `.env.local` and auto-injected during deploy via GitHub Actions. X connector returns real tweet data via X API v2 `tweets/search/recent`.
+
 ### T-012 UI Polish: Clean Typography & Modern Icons ✅
 - **Completed**: 2026-03-21
 - **Result**: Updated global typography to a mixed editorial system: English body text stays on `Inter`, English display/title text uses `Cinzel`, and Chinese body/display text now consistently falls back to serif Chinese faces led by `Noto Serif SC` / `Songti SC`. Also replaced emojis with Lucide React icons (`Rocket`, `Briefcase`) and softened dashboard border radii and shadows for a more intuitive, cleaner aesthetic.
+
+### T-013 Finance Ops: Cost & Budget Workbook Template ✅
+- **Completed**: 2026-03-24
+- **Result**: Added a reusable Excel workbook for Tahoe financial planning at `docs/Tahoe_cost_budget_template.xlsx`, plus a generator script `scripts/generate_tahoe_cost_budget_workbook.py`. The workbook includes a README sheet, parameters, unit-cost assumptions, single-project estimator, monthly budget planner, and project ledger so costs can be tracked by production depth and include retry / revision overhead.
 
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16

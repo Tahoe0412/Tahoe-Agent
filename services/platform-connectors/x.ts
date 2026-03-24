@@ -51,7 +51,8 @@ export class XConnector extends BasePlatformConnector {
   protected async fetchLive(input: PlatformCollectInput, apiKey: string) {
     const params = new URLSearchParams({
       query: `${input.topic} -is:retweet`,
-      max_results: String(Math.min(input.limit ?? 10, 25)),
+      // X API v2 requires max_results between 10 and 100
+      max_results: String(Math.max(10, Math.min(input.limit ?? 10, 25))),
       expansions: "author_id",
       "tweet.fields": "created_at,public_metrics,author_id",
       "user.fields": "name,username,public_metrics",

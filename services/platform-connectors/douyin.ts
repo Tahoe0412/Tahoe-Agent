@@ -1,22 +1,30 @@
-import { BasePlatformConnector } from "@/services/platform-connectors/base";
-import type { ContentItem, Creator, PlatformCollectInput } from "@/types/platform-data";
+import { SerperPlatformConnector } from "@/services/platform-connectors/serper-base";
 
-export class DouyinConnector extends BasePlatformConnector {
+/**
+ * Douyin (抖音) connector — uses Serper site-scoped Google search.
+ * Searches `site:douyin.com` for the given topic.
+ */
+export class DouyinConnector extends SerperPlatformConnector {
   readonly platform = "DOUYIN" as const;
 
-  protected async fetchLive(input: PlatformCollectInput, apiKey: string): Promise<Record<string, never>> {
-    void input;
-    void apiKey;
-    return {};
-  }
+  protected readonly config = {
+    siteDomain: "douyin.com",
+    locale: { gl: "cn", hl: "zh-cn" },
+    contentType: "SHORT_VIDEO" as const,
+    productionClass: "UGC" as const,
+  };
 
-  protected transformCreators(payload: unknown): Creator[] {
-    void payload;
-    return [];
-  }
-
-  protected transformContentItems(payload: unknown): ContentItem[] {
-    void payload;
-    return [];
+  protected extractCreatorFromUrl(url: string, title: string) {
+    // douyin.com/user/xxx or douyin.com/video/xxx
+    const userMatch = url.match(/douyin\.com\/user\/([a-zA-Z0-9_-]+)/);
+    if (userMatch) {
+      return {
+        id: userMatch[1],
+        handle: `@dy_${userMatch[1].slice(0, 8)}`,
+        displayName: title.split(/[|\-–—]/)[0]?.trim() || `抖音用户`,
+        profileUrl: `https://www.douyin.com/user/${userMatch[1]}`,
+      };
+    }
+    return null;
   }
 }

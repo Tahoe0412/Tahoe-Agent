@@ -1,22 +1,30 @@
-import { BasePlatformConnector } from "@/services/platform-connectors/base";
-import type { ContentItem, Creator, PlatformCollectInput } from "@/types/platform-data";
+import { SerperPlatformConnector } from "@/services/platform-connectors/serper-base";
 
-export class TikTokConnector extends BasePlatformConnector {
+/**
+ * TikTok connector — uses Serper site-scoped Google search.
+ * Searches `site:tiktok.com` for the given topic.
+ */
+export class TikTokConnector extends SerperPlatformConnector {
   readonly platform = "TIKTOK" as const;
 
-  protected async fetchLive(input: PlatformCollectInput, apiKey: string) {
-    void input;
-    void apiKey;
-    throw new Error("TikTok live connector is not wired yet. Use mock mode for frontend integration.");
-  }
+  protected readonly config = {
+    siteDomain: "tiktok.com",
+    locale: { gl: "us", hl: "en" },
+    contentType: "SHORT_VIDEO" as const,
+    productionClass: "UGC" as const,
+  };
 
-  protected transformCreators(payload: unknown): Creator[] {
-    void payload;
-    return [];
-  }
-
-  protected transformContentItems(payload: unknown): ContentItem[] {
-    void payload;
-    return [];
+  protected extractCreatorFromUrl(url: string, title: string) {
+    // tiktok.com/@username/video/xxx
+    const userMatch = url.match(/tiktok\.com\/@([a-zA-Z0-9._]+)/);
+    if (userMatch) {
+      return {
+        id: userMatch[1],
+        handle: `@${userMatch[1]}`,
+        displayName: title.split(/[|\-–—]/)[0]?.trim() || userMatch[1],
+        profileUrl: `https://www.tiktok.com/@${userMatch[1]}`,
+      };
+    }
+    return null;
   }
 }

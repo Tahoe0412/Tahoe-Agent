@@ -5,6 +5,77 @@
 
 ---
 
+## 2026-03-24 16:27 — Agent: Antigravity
+
+### Serper-Based Platform Connectors for XHS, Douyin, TikTok
+
+**Changes**:
+- **`services/platform-connectors/serper-base.ts`** (new): Shared base class for Serper site-scoped Google search connectors. Uses `site:domain.com` query pattern, transforms organic results into `ContentItem`/`Creator`.
+- **`services/platform-connectors/xhs.ts`**: Rewrote stub → uses Serper `site:xiaohongshu.com`, Chinese locale.
+- **`services/platform-connectors/douyin.ts`**: Rewrote stub → uses Serper `site:douyin.com`, Chinese locale.
+- **`services/platform-connectors/tiktok.ts`**: Rewrote stub → uses Serper `site:tiktok.com`, English locale.
+- **`lib/env.ts`**: Changed env key mapping for XHS, DOUYIN, TIKTOK from platform-specific keys → `SERPER_API_KEY` (already configured).
+- **`components/today/platform-content-panel.tsx`**: Added Serper snippet extraction fallback for descriptions.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+
+### Today Page: Content Line Toggle + Platform Selection
+
+**Changes**:
+- **`components/today/today-workbench.tsx`**:
+  - Added content line toggle (火星公民 / 商业线) below the section header
+  - Added platform checkboxes (YouTube, X, 小红书, 抖音, TikTok) next to the toggle
+  - Switching content line auto-presets platforms: Mars Citizen → YouTube+X, Marketing → XHS+DOUYIN+X
+  - Users can manually toggle individual platforms on/off (minimum 1 required)
+  - Selected platforms are passed to the search function
+- **`components/today/platform-content-panel.tsx`**: Expanded to support all 5 platforms (added XHS, DOUYIN, TIKTOK metadata and icons)
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+
+### Today Page: Independent YouTube & X Content Panels
+
+**Changes**:
+- **`components/today/platform-content-panel.tsx`** (new): Reusable panel component that displays platform content items with:
+  - Creator name, handle, and follower count (compact notation)
+  - Engagement metrics: views/impressions, likes, comments/replies, retweets (X), duration (YouTube)
+  - Brief description (YouTube video description / X tweet text)
+  - Relative time ("3h ago")
+  - Material selection checkboxes (adds to the existing material basket)
+- **`components/today/today-workbench.tsx`**: Integrated platform panels in a new grid row after the Google News + CN Indexed Evidence section. Also updated stale error help text that was still suggesting users add X credentials.
+
+**Reason**:
+- YouTube video and X tweet data was already being collected via platform connectors but was only used implicitly as trend scoring input. Users could not see individual videos or tweets or understand what data each platform was contributing.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+
+### T-005 X/Twitter Connector: Docs Sync — Mark as Working
+
+**Changes**:
+- **`docs/PROJECT_STATE.md`**: Updated X/Twitter connector status from ⚠️ Failed → ✅ Live. Removed "X connector doesn't return real data" from Known Issues.
+- **`docs/TASKS.md`**: Moved T-005 from Pending to Done.
+- **`.env`**: Replaced empty `X_BEARER_TOKEN=""` / `TIKTOK_ACCESS_TOKEN=""` with comments pointing to `.env.local` to prevent future confusion.
+
+**Reason**:
+- The X API Bearer Token was already configured in `.env.local` and the deploy workflow injects it via GitHub Secrets. The docs were stale from before the token was set up.
+
+**Verification**:
+- Confirmed `X_BEARER_TOKEN` is present and non-empty in `.env.local`
+- `.env.local` takes higher priority than `.env` in Next.js, so the old empty placeholder was not causing a runtime issue, but was misleading
+
+---
+
 ## 2026-03-24 14:45 — Agent: Codex
 
 ### T-013 Finance Ops: Generate Excel Cost & Budget Workbook

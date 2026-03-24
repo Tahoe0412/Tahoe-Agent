@@ -5,9 +5,9 @@ type PlatformEnvKey = Record<SupportedPlatform, string>;
 const platformEnvKeys: PlatformEnvKey = {
   YOUTUBE: "YOUTUBE_API_KEY",
   X: "X_BEARER_TOKEN",
-  TIKTOK: "TIKTOK_ACCESS_TOKEN",
-  XHS: "XHS_API_KEY",
-  DOUYIN: "DOUYIN_ACCESS_TOKEN",
+  TIKTOK: "SERPER_API_KEY",
+  XHS: "SERPER_API_KEY",
+  DOUYIN: "SERPER_API_KEY",
 };
 
 export function getPlatformApiKey(platform: SupportedPlatform) {

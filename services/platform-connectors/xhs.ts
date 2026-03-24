@@ -1,22 +1,30 @@
-import { BasePlatformConnector } from "@/services/platform-connectors/base";
-import type { ContentItem, Creator, PlatformCollectInput } from "@/types/platform-data";
+import { SerperPlatformConnector } from "@/services/platform-connectors/serper-base";
 
-export class XhsConnector extends BasePlatformConnector {
+/**
+ * XHS (Xiaohongshu / 小红书) connector — uses Serper site-scoped Google search.
+ * Searches `site:xiaohongshu.com` for the given topic.
+ */
+export class XhsConnector extends SerperPlatformConnector {
   readonly platform = "XHS" as const;
 
-  protected async fetchLive(input: PlatformCollectInput, apiKey: string): Promise<Record<string, never>> {
-    void input;
-    void apiKey;
-    return {};
-  }
+  protected readonly config = {
+    siteDomain: "xiaohongshu.com",
+    locale: { gl: "cn", hl: "zh-cn" },
+    contentType: "POST" as const,
+    productionClass: "UGC" as const,
+  };
 
-  protected transformCreators(payload: unknown): Creator[] {
-    void payload;
-    return [];
-  }
-
-  protected transformContentItems(payload: unknown): ContentItem[] {
-    void payload;
-    return [];
+  protected extractCreatorFromUrl(url: string, title: string) {
+    // xiaohongshu.com/user/profile/xxx or xiaohongshu.com/explore/xxx
+    const userMatch = url.match(/xiaohongshu\.com\/user\/profile\/([a-zA-Z0-9]+)/);
+    if (userMatch) {
+      return {
+        id: userMatch[1],
+        handle: `@xhs_${userMatch[1].slice(0, 8)}`,
+        displayName: title.split(/[|\-–—]/)[0]?.trim() || `XHS用户`,
+        profileUrl: `https://www.xiaohongshu.com/user/profile/${userMatch[1]}`,
+      };
+    }
+    return null;
   }
 }
