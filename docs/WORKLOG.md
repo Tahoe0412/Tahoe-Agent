@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-03-24 14:45 — Agent: Codex
+
+### T-013 Finance Ops: Generate Excel Cost & Budget Workbook
+
+**Changes**:
+- **`scripts/generate_tahoe_cost_budget_workbook.py`** (new): Added a reusable workbook generator based on `openpyxl`.
+- **`docs/Tahoe_cost_budget_template.xlsx`** (new): Generated a finance workbook with six sheets:
+  - `README`
+  - `Parameters`
+  - `Unit_Costs`
+  - `Project_Estimator`
+  - `Monthly_Budget`
+  - `Project_Ledger`
+- **Workbook follow-up**: Filled the workbook with current official pricing assumptions for Tahoe’s active stack and added a dedicated `Pricing_Sources` sheet. The sheet now records:
+  - OpenAI `GPT-5.4` pricing
+  - `GPT-5 mini` pricing used transparently as the temporary budget proxy for `gpt-5.4-mini`
+  - Gemini 3 Pro / Gemini 3 Pro Image / Veo 3.1 pricing
+  - Qwen `qwen3-max` / `qwen3.5-plus` pricing
+  - Serper / SerpApi search pricing
+
+**Reason**:
+- The user wants a real Excel file, not just conceptual tables. The workbook now reflects Tahoe’s production-depth cost model and explicitly includes retry / revision / trial-and-error overhead for text, image, and video workflows.
+
+**Verification**:
+- Workbook generated successfully via `python3 scripts/generate_tahoe_cost_budget_workbook.py`
+- Verified sheet structure with `openpyxl` load test
+
+---
+
 ## 2026-03-24 14:17 — Agent: Codex
 
 ### T-010 Model Naming Sync + Cloud Release Prep
@@ -135,6 +164,21 @@
 
 **Verification**:
 - `npm run build` ✅
+
+---
+
+## 2026-03-21 11:36 — Agent: Antigravity
+
+### T-005 Twitter API: X_BEARER_TOKEN Auto-Injection in Deploy
+
+**Changes**:
+- **`.github/workflows/deploy.yml`**: Added an idempotent step that reads `X_BEARER_TOKEN` from GitHub Secrets and injects it into the server's `.env.local` during deploy. Uses `sed -i` to remove any stale value, then appends the current one.
+
+**Reason**:
+- The X connector (`services/platform-connectors/x.ts`) was already fully implemented but the Bearer Token wasn't reaching the production server. This change closes the gap so `tweets/search/recent` works in production.
+
+**Verification**:
+- Deploy to Tencent Cloud ✅ `completed | success`
 
 ---
 
