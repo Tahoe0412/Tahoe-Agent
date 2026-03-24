@@ -1384,3 +1384,6 @@ ALTER TABLE "app_settings"
 ADD COLUMN IF NOT EXISTS "deepseek_api_key" TEXT,
 ADD COLUMN IF NOT EXISTS "qwen_api_key" TEXT,
 ADD COLUMN IF NOT EXISTS "llm_routing_json" JSONB;
+
+ALTER TABLE "app_settings"
+ALTER COLUMN "llm_model" SET DEFAULT 'gpt-5.4-mini';

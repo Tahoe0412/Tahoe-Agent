@@ -9,6 +9,13 @@ import { Disclosure } from "@/components/ui/disclosure";
 import type { StyleReferenceInsight } from "@/lib/style-reference";
 import type { Locale } from "@/lib/locale-copy";
 import { copy } from "@/lib/locale-copy";
+import {
+  buildGeneratedCoreIdea,
+  buildGeneratedProjectIntroduction,
+  buildGeneratedProjectTitle,
+  buildGeneratedStyleReferenceSample,
+  normalizeProjectTopic,
+} from "@/lib/project-brief";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import { getStyleTemplateMeta, styleTemplateList, type StyleTemplate } from "@/lib/style-template";
 import { getWritingModeMeta, writingModeList, type WritingMode } from "@/lib/writing-mode";
@@ -72,6 +79,8 @@ export function ProjectContext({
         projectName: "Project Name",
         projectTopic: "Project Topic",
         sampleHint: "Paste one or more reference drafts here. The system will learn tone, rhythm, and structure without copying the content directly.",
+        smartFill: "Auto-fill project brief",
+        smartFillHint: "Use the current topic, brand, and writing settings to generate a better title, topic, overview, and style sample.",
         brandProfile: "Brand Profile",
         clearBinding: "(Not linked / Clear link)",
         industryTemplate: "Industry Template",
@@ -108,6 +117,8 @@ export function ProjectContext({
         projectName: "项目名称",
         projectTopic: "项目主题",
         sampleHint: "可粘贴多段你喜欢的文案。系统会学习语气、节奏和结构，不会直接照抄内容。",
+        smartFill: "自动补全项目信息",
+        smartFillHint: "基于当前主题、品牌和写作设置，自动生成更像项目 brief 的标题、主题、介绍和参考样稿。",
         brandProfile: "品牌档案",
         clearBinding: "（未绑定 / 清除绑定）",
         industryTemplate: "行业模板",
@@ -187,12 +198,43 @@ export function ProjectContext({
     if (!project) {
       return;
     }
-    setTitle(project.title ?? "");
-    setTopicQuery(project.topic_query ?? "");
-    setIntroduction(project.introduction ?? "");
-    setCoreIdea(project.coreIdea ?? "");
+    const generatedTopic = normalizeProjectTopic(project.topic_query ?? "", project.workspaceMode);
+    setTitle(
+      project.title?.trim() ||
+      buildGeneratedProjectTitle({
+        title: "",
+        topicQuery: generatedTopic,
+        workspaceMode: project.workspaceMode,
+      }),
+    );
+    setTopicQuery(project.topic_query?.trim() || generatedTopic);
+    setIntroduction(
+      project.introduction?.trim() ||
+      buildGeneratedProjectIntroduction({
+        topicQuery: generatedTopic,
+        workspaceMode: project.workspaceMode,
+        writingMode: (project.writingMode as WritingMode | null) ?? "PRODUCT_PROMO",
+        styleTemplate: (project.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+        copyLength: (project.copyLength as CopyLength | null) ?? "STANDARD",
+        usageScenario: (project.usageScenario as UsageScenario | null) ?? "XIAOHONGSHU_POST",
+        originalScript: project.originalScript ?? "",
+      }),
+    );
+    setCoreIdea(
+      project.coreIdea?.trim() ||
+      buildGeneratedCoreIdea({
+        topicQuery: generatedTopic,
+        workspaceMode: project.workspaceMode,
+      }),
+    );
     setOriginalScript(project.originalScript ?? "");
-    setStyleReferenceSample(project.styleReferenceSample ?? "");
+    setStyleReferenceSample(
+      project.styleReferenceSample?.trim() ||
+      buildGeneratedStyleReferenceSample({
+        workspaceMode: project.workspaceMode,
+        styleTemplate: (project.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+      }),
+    );
     setWritingMode((project.writingMode as WritingMode | null) ?? "PRODUCT_PROMO");
     setStyleTemplate((project.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO");
     setCopyLength((project.copyLength as CopyLength | null) ?? "STANDARD");
@@ -201,6 +243,91 @@ export function ProjectContext({
     setMessage(null);
     setError(null);
   }, [project]);
+
+  const selectedBrandName =
+    availableBrandProfiles.find((item) => item.id === brandProfileId)?.brand_name ??
+    "";
+  const generatedTopic = normalizeProjectTopic(project?.topic_query ?? "", project?.workspaceMode);
+  const effectiveIntroduction =
+    project?.introduction?.trim() ||
+    (project
+      ? buildGeneratedProjectIntroduction({
+          topicQuery: generatedTopic,
+          workspaceMode: project.workspaceMode,
+          writingMode: (project.writingMode as WritingMode | null) ?? "PRODUCT_PROMO",
+          styleTemplate: (project.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+          copyLength: (project.copyLength as CopyLength | null) ?? "STANDARD",
+          usageScenario: (project.usageScenario as UsageScenario | null) ?? "XIAOHONGSHU_POST",
+          originalScript: project.originalScript ?? "",
+        })
+      : "");
+  const effectiveCoreIdea =
+    project?.coreIdea?.trim() ||
+    (project
+      ? buildGeneratedCoreIdea({
+          topicQuery: generatedTopic,
+          workspaceMode: project.workspaceMode,
+        })
+      : "");
+  const effectiveStyleReferenceSample =
+    project?.styleReferenceSample?.trim() ||
+    (project
+      ? buildGeneratedStyleReferenceSample({
+          workspaceMode: project.workspaceMode,
+          styleTemplate: (project.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+        })
+      : "");
+  const effectiveTitle =
+    project?.title?.trim() ||
+    (project
+      ? buildGeneratedProjectTitle({
+          title: "",
+          topicQuery: generatedTopic,
+          workspaceMode: project.workspaceMode,
+        })
+      : "");
+  const effectiveTopic = project?.topic_query?.trim() || generatedTopic;
+
+  function applySmartProjectBrief() {
+    const workspaceMode = project?.workspaceMode;
+    const nextTopic = normalizeProjectTopic(topicQuery || project?.topic_query || "", workspaceMode);
+    const nextTitle = buildGeneratedProjectTitle({
+      title: "",
+      topicQuery: nextTopic,
+      workspaceMode,
+      brandName: selectedBrandName,
+    });
+
+    setTitle(nextTitle);
+    setTopicQuery(nextTopic);
+    setIntroduction(
+      buildGeneratedProjectIntroduction({
+        topicQuery: nextTopic,
+        workspaceMode,
+        brandName: selectedBrandName,
+        writingMode,
+        styleTemplate,
+        copyLength,
+        usageScenario,
+        originalScript,
+      }),
+    );
+    setCoreIdea(
+      buildGeneratedCoreIdea({
+        topicQuery: nextTopic,
+        workspaceMode,
+      }),
+    );
+    setStyleReferenceSample(
+      buildGeneratedStyleReferenceSample({
+        workspaceMode,
+        styleTemplate,
+        brandName: selectedBrandName,
+      }),
+    );
+    setMessage(ui.saved);
+    setError(null);
+  }
 
   async function saveProjectContext() {
     if (!project?.id) return;
@@ -222,6 +349,7 @@ export function ProjectContext({
           style_reference_sample: styleReferenceSample.trim(),
           writing_mode: writingMode,
           style_template: styleTemplate,
+          copy_length: copyLength,
           usage_scenario: usageScenario,
           brand_profile_id: brandProfileId || null,
           industry_template_id: industryTemplateId || null,
@@ -246,8 +374,8 @@ export function ProjectContext({
 
   const summaryLine = project
     ? [
-        project.introduction,
-        project.coreIdea,
+        effectiveIntroduction,
+        effectiveCoreIdea,
         project.originalScript,
       ]
         .find((item) => item && item.trim().length > 0)
@@ -262,16 +390,16 @@ export function ProjectContext({
   const showExpandedDetails = density === "expanded";
   const detailContent = (
     <div className="grid gap-3 md:grid-cols-2">
-      {project?.introduction ? (
+      {effectiveIntroduction ? (
         <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
-          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.introduction}</div>
+          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{effectiveIntroduction}</div>
         </div>
       ) : null}
-      {project?.coreIdea ? (
+      {effectiveCoreIdea ? (
         <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
-          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.coreIdea}</div>
+          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{effectiveCoreIdea}</div>
         </div>
       ) : null}
       {project?.originalScript ? (
@@ -292,10 +420,10 @@ export function ProjectContext({
           </div>
         </div>
       ) : null}
-      {project?.styleReferenceSample ? (
+      {effectiveStyleReferenceSample ? (
         <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
-          <div className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.styleReferenceSample}</div>
+          <div className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{effectiveStyleReferenceSample}</div>
         </div>
       ) : null}
     </div>
@@ -314,9 +442,9 @@ export function ProjectContext({
             {project ? (
               <>
                 <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-2">
-                  <h3 className="theme-font-display break-words text-[1.6rem] font-semibold tracking-tight text-[var(--text-1)] sm:text-[1.8rem]">{project.title}</h3>
+                  <h3 className="theme-font-display break-words text-[1.6rem] font-semibold tracking-tight text-[var(--text-1)] sm:text-[1.8rem]">{effectiveTitle}</h3>
                 </div>
-                {project.topic_query ? <div className="mt-1 break-words text-sm text-[var(--text-2)]">{project.topic_query}</div> : null}
+                {effectiveTopic ? <div className="mt-1 break-words text-sm text-[var(--text-2)]">{effectiveTopic}</div> : null}
                 {summaryLine ? <div className="mt-2 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
                 {compactMeta.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -389,7 +517,7 @@ export function ProjectContext({
                   {isEditing ? ui.hideEdit : ui.editProject}
                 </Button>
               ) : null}
-              {project && !isEditing && (project.introduction || project.coreIdea || project.originalScript || project.styleReferenceSample || project.styleReferenceInsight) ? (
+              {project && !isEditing && (effectiveIntroduction || effectiveCoreIdea || project.originalScript || effectiveStyleReferenceSample || project.styleReferenceInsight) ? (
                 <Disclosure
                   title={<span className="text-sm font-medium text-[var(--text-2)]">{ui.showBackground}</span>}
                   defaultOpen={false}
@@ -405,6 +533,12 @@ export function ProjectContext({
         </div>
         {project && isEditing ? (
           <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3">
+              <div className="text-sm leading-6 text-[var(--text-2)]">{ui.smartFillHint}</div>
+              <Button type="button" variant="secondary" onClick={applySmartProjectBrief} disabled={saving}>
+                {ui.smartFill}
+              </Button>
+            </div>
             <div className="grid gap-4 xl:grid-cols-2">
               <label className="space-y-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectName}</div>
@@ -502,12 +636,43 @@ export function ProjectContext({
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setTitle(project?.title ?? "");
-                  setTopicQuery(project?.topic_query ?? "");
-                  setIntroduction(project?.introduction ?? "");
-                  setCoreIdea(project?.coreIdea ?? "");
+                  const generatedTopic = normalizeProjectTopic(project?.topic_query ?? "", project?.workspaceMode);
+                  setTitle(
+                    project?.title?.trim() ||
+                    buildGeneratedProjectTitle({
+                      title: "",
+                      topicQuery: generatedTopic,
+                      workspaceMode: project?.workspaceMode,
+                    }),
+                  );
+                  setTopicQuery(project?.topic_query?.trim() || generatedTopic);
+                  setIntroduction(
+                    project?.introduction?.trim() ||
+                    buildGeneratedProjectIntroduction({
+                      topicQuery: generatedTopic,
+                      workspaceMode: project?.workspaceMode,
+                      writingMode: (project?.writingMode as WritingMode | null) ?? "PRODUCT_PROMO",
+                      styleTemplate: (project?.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+                      copyLength: (project?.copyLength as CopyLength | null) ?? "STANDARD",
+                      usageScenario: (project?.usageScenario as UsageScenario | null) ?? "XIAOHONGSHU_POST",
+                      originalScript: project?.originalScript ?? "",
+                    }),
+                  );
+                  setCoreIdea(
+                    project?.coreIdea?.trim() ||
+                    buildGeneratedCoreIdea({
+                      topicQuery: generatedTopic,
+                      workspaceMode: project?.workspaceMode,
+                    }),
+                  );
                   setOriginalScript(project?.originalScript ?? "");
-                  setStyleReferenceSample(project?.styleReferenceSample ?? "");
+                  setStyleReferenceSample(
+                    project?.styleReferenceSample?.trim() ||
+                    buildGeneratedStyleReferenceSample({
+                      workspaceMode: project?.workspaceMode,
+                      styleTemplate: (project?.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO",
+                    }),
+                  );
                   setWritingMode((project?.writingMode as WritingMode | null) ?? "PRODUCT_PROMO");
                   setStyleTemplate((project?.styleTemplate as StyleTemplate | null) ?? "RATIONAL_PRO");
                   setCopyLength((project?.copyLength as CopyLength | null) ?? "STANDARD");

@@ -212,7 +212,7 @@ CREATE TABLE "Project" (
 CREATE TABLE "app_settings" (
     "id" TEXT NOT NULL DEFAULT 'default',
     "llm_provider" "LlmProvider" NOT NULL DEFAULT 'OPENAI',
-    "llm_model" TEXT NOT NULL DEFAULT 'gpt-4.1-mini',
+    "llm_model" TEXT NOT NULL DEFAULT 'gpt-5.4-mini',
     "llm_mock_mode" BOOLEAN NOT NULL DEFAULT true,
     "openai_api_key" TEXT,
     "gemini_api_key" TEXT,
@@ -1374,4 +1374,3 @@ ALTER TABLE "render_assets" ADD CONSTRAINT "render_assets_render_job_id_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "render_assets" ADD CONSTRAINT "render_assets_storyboard_frame_id_fkey" FOREIGN KEY ("storyboard_frame_id") REFERENCES "storyboard_frames"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-

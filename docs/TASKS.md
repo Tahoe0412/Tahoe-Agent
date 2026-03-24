@@ -27,9 +27,20 @@
 - **Homepage task-entry slice (Done)**: The current homepage now behaves more like a clear start screen when no project is selected. Instead of dropping users straight into form fields, it first presents four obvious task paths: go to Today, start a 火星公民 project, start a Marketing project, or continue the most recent project.
 - **Flow-map slice (Done)**: Added a user-facing flow map in `docs/USER_FLOW.md` that defines the product principle, two main business-line flows, page responsibilities, current routing rules, and the highest-value friction points. This is now the baseline reference before we change prompts, page entry states, or next-step behavior again.
 - **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, and the first small generator registry seam.
+- **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, the first small generator registry seam, and a first lightweight artifact harness for selected output generators.
+- **Artifact harness slice (Done)**: `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE` generation now attach output-specific knowledge notes and review checklists at generation time, then persist a structured `artifact_review` with the saved artifact. Script Lab and Marketing Ops now surface that stored guidance/review context directly beside the editable artifact, creating a clean seam for future stronger review loops without introducing a heavier multi-agent system yet.
+- **Smart project-brief slice (Done)**: Tahoe now has a first automatic project-background layer for `ProjectContext`. New projects get generated defaults for title / introduction / core idea / style reference sample, and the edit UI now exposes a one-click “自动补全项目信息” action that rewrites those fields from the current topic, workspace mode, writing settings, and selected brand. This reduces the need to manually rewrite the brief every time raw collected query strings or materials change.
+- **Quality-first model routing slice (Done)**: Default model routing has now been updated to the current preferred split:
+  - `gemini-3.1-pro-preview` for core Mars creation / script rewrite
+  - `gpt-5.4-mini` for scene classification + asset analysis
+  - `gpt-5.4` for report generation + marketing analysis / review
+  - `qwen3-max` / `qwen3.5-plus` for Chinese marketing generation and adaptation
+- **Model naming + fallback sync slice (Done)**: Settings-page model labels, env examples, and schema defaults are now aligned with the quality-first split. The visible UI now presents the current model generation names more clearly, and new `AppSettings` records default to `gpt-5.4-mini` instead of the old `gpt-4.1-mini`.
 - **Remaining push (next)**:
   - Sweep the remaining lower-priority `workspaceMode` compatibility branches in secondary helpers and edge routes, but the main user-facing surfaces are now aligned.
   - Continue moving read models and navigation toward “latest artifact / next output” instead of “which workflow stage are we on”.
+  - Decide whether the next quality step should expand this artifact harness to `PLATFORM_COPY`, or deepen the current three outputs with a second-pass model reviewer instead of heuristics alone.
+  - Decide whether the next project-brief step should auto-refresh on material ingestion / Today selections as well, so the brief updates itself without requiring the user to click the smart-fill action.
   - Decide whether a lightweight storyboard preview/edit surface should also appear directly inside Marketing Ops, or whether the current bridge card + Scene Planner split is the right long-term boundary.
   - Continue refining Today's artifact-first starts. Marketing copy and ad-storyboard actions now chain shell-project creation and output generation automatically, carry selected materials + keyword focus into project context, and already promote that context in prompt priority. A first lightweight output-quality layer is now in place inside Script Lab and Marketing Ops to detect weak hooks, thin proof, and visually abstract concepts; the next refinement should make those alerts even closer to actual downstream model failure modes.
   - Decide when to split out a separate outer landing page. The current internal homepage is now a clearer task-entry board, but Tahoe may still benefit from a lighter top-level product homepage before users enter the production workspace.
@@ -77,7 +88,7 @@
 
 ### T-012 UI Polish: Clean Typography & Modern Icons ✅
 - **Completed**: 2026-03-21
-- **Result**: Updated font stack to `Inter`, replaced emojis with Lucide React icons (`Rocket`, `Briefcase`), and softened dashboard border radii and shadows for a more intuitive, cleaner aesthetic.
+- **Result**: Updated global typography to a mixed editorial system: English body text stays on `Inter`, English display/title text uses `Cinzel`, and Chinese body/display text now consistently falls back to serif Chinese faces led by `Noto Serif SC` / `Songti SC`. Also replaced emojis with Lucide React icons (`Rocket`, `Briefcase`) and softened dashboard border radii and shadows for a more intuitive, cleaner aesthetic.
 
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16

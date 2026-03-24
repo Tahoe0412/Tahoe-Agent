@@ -96,7 +96,7 @@ export class AppSettingsService {
 
     return {
       llmProvider: record?.llm_provider ?? ((process.env.LLM_PROVIDER?.toUpperCase() as LlmProvider | undefined) || "OPENAI"),
-      llmModel: trimOrNull(record?.llm_model) ?? trimOrNull(process.env.OPENAI_MODEL) ?? "gpt-4.1-mini",
+      llmModel: trimOrNull(record?.llm_model) ?? trimOrNull(process.env.OPENAI_MODEL) ?? "gpt-5.4-mini",
       llmMockMode: record?.llm_mock_mode ?? envBoolean(process.env.LLM_MOCK_MODE, true),
       openaiApiKey: trimOrNull(record?.openai_api_key) ?? trimOrNull(process.env.OPENAI_API_KEY),
       geminiApiKey: trimOrNull(record?.gemini_api_key) ?? trimOrNull(process.env.GEMINI_API_KEY),

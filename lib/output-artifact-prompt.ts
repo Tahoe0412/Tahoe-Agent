@@ -3,6 +3,8 @@ export function buildVideoTitlePrompt(params: {
   topicQuery: string;
   contentLineLabel: string;
   scriptText: string;
+  knowledgeNotes?: string[];
+  reviewChecklist?: string[];
   locale?: "zh" | "en";
 }) {
   const zh = (params.locale ?? "zh") === "zh";
@@ -15,6 +17,12 @@ export function buildVideoTitlePrompt(params: {
       zh ? `项目：${params.title}` : `Project: ${params.title}`,
       zh ? `业务线：${params.contentLineLabel}` : `Business line: ${params.contentLineLabel}`,
       zh ? `主题：${params.topicQuery}` : `Topic: ${params.topicQuery}`,
+      params.knowledgeNotes?.length
+        ? `${zh ? "创作知识" : "Knowledge notes"}:\n${params.knowledgeNotes.map((item) => `- ${item}`).join("\n")}`
+        : "",
+      params.reviewChecklist?.length
+        ? `${zh ? "自检清单" : "Review checklist"}:\n${params.reviewChecklist.map((item) => `- ${item}`).join("\n")}`
+        : "",
       "",
       zh ? "参考脚本：" : "Reference script:",
       params.scriptText,
@@ -31,6 +39,8 @@ export function buildPublishCopyPrompt(params: {
   topicQuery: string;
   scriptText: string;
   videoTitles: string[];
+  knowledgeNotes?: string[];
+  reviewChecklist?: string[];
   locale?: "zh" | "en";
 }) {
   const zh = (params.locale ?? "zh") === "zh";
@@ -42,6 +52,12 @@ export function buildPublishCopyPrompt(params: {
     userPrompt: [
       zh ? `项目：${params.title}` : `Project: ${params.title}`,
       zh ? `主题：${params.topicQuery}` : `Topic: ${params.topicQuery}`,
+      params.knowledgeNotes?.length
+        ? `${zh ? "创作知识" : "Knowledge notes"}:\n${params.knowledgeNotes.map((item) => `- ${item}`).join("\n")}`
+        : "",
+      params.reviewChecklist?.length
+        ? `${zh ? "自检清单" : "Review checklist"}:\n${params.reviewChecklist.map((item) => `- ${item}`).join("\n")}`
+        : "",
       params.videoTitles.length
         ? `${zh ? "可用标题参考" : "Available title references"}:\n${params.videoTitles.map((item) => `- ${item}`).join("\n")}`
         : "",
@@ -60,6 +76,8 @@ export function buildAdCreativePrompt(params: {
   title: string;
   topicQuery: string;
   contextPrompt: string;
+  knowledgeNotes?: string[];
+  reviewChecklist?: string[];
   locale?: "zh" | "en";
 }) {
   const zh = (params.locale ?? "zh") === "zh";
@@ -71,6 +89,12 @@ export function buildAdCreativePrompt(params: {
     userPrompt: [
       zh ? `项目：${params.title}` : `Project: ${params.title}`,
       zh ? `传播主题：${params.topicQuery}` : `Topic: ${params.topicQuery}`,
+      params.knowledgeNotes?.length
+        ? `${zh ? "创作知识" : "Knowledge notes"}:\n${params.knowledgeNotes.map((item) => `- ${item}`).join("\n")}`
+        : "",
+      params.reviewChecklist?.length
+        ? `${zh ? "自检清单" : "Review checklist"}:\n${params.reviewChecklist.map((item) => `- ${item}`).join("\n")}`
+        : "",
       "",
       zh ? "项目上下文：" : "Project context:",
       params.contextPrompt,

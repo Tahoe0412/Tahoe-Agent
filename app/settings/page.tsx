@@ -54,7 +54,7 @@ export default async function SettingsPage() {
         </div>
 
         {/* ── Row 2: Models & Web Search (full-width, core config) ── */}
-        <PanelCard title={locale === "en" ? "Models & Web Search" : "模型与联网"} description={locale === "en" ? "OpenAI, Gemini, DeepSeek, and Qwen are supported. News search supports Mock and Google Custom Search." : "当前支持 OpenAI、Gemini、DeepSeek 与 Qwen，新闻搜索支持 Mock 与 Google Custom Search。"}>
+        <PanelCard title={locale === "en" ? "Models & Web Search" : "模型与联网"} description={locale === "en" ? "OpenAI, Gemini, DeepSeek, and Qwen are supported. The default routing is quality-first: Gemini 3.1 Pro for core creation, GPT-5.4 / GPT-5.4-mini for review and structured judgment, and Qwen 3 for Chinese marketing writing." : "当前支持 OpenAI、Gemini、DeepSeek 与 Qwen。默认路由已切到质量优先：Gemini 3.1 Pro 负责核心创作，GPT-5.4 / GPT-5.4-mini 负责 review 与结构化判断，Qwen 3 负责中文营销写作。"}>
           <SettingsForm
             initial={{
               llmProvider: settings.llmProvider,
@@ -112,8 +112,8 @@ export default async function SettingsPage() {
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Recommended" : "建议项"}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                 {locale === "en"
-                  ? "Enable Google Custom Search plus YouTube/X live connectors if you need real trend evidence in the live workspace."
-                  : "如果要在当前正式工作台里看到真实趋势来源，建议打开 Google Custom Search，以及 YouTube / X live connector。"}
+                  ? "Enable Serper or SerpApi plus YouTube/X live connectors if you need real trend evidence in the live workspace."
+                  : "如果要在当前正式工作台里看到真实趋势来源，建议启用 Serper 或 SerpApi，并打开 YouTube / X live connector。"}
               </div>
             </div>
             <div className="rounded-xl bg-[var(--surface-muted)] p-4">

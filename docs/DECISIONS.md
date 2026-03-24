@@ -92,3 +92,55 @@
   - current execution should remain focused on output quality, prompt quality, artifact-first UX, and cleaner flow
   - near-term changes are encouraged when they create clean seams for later evaluation, retrieval, or agentic orchestration, but not when they derail the active product cleanup
 - **Files**: `docs/FUTURE_BLUEPRINT.md`, `docs/TASKS.md`, `docs/PROJECT_STATE.md`
+
+## D-015 Artifact Generators Should Carry Their Own Lightweight Knowledge + Review Harness
+- **Date**: 2026-03-23
+- **Reason**: Tahoe is starting to outgrow one large implicit prompt per artifact. We want a clean path toward stronger review loops and output-specific guidance without prematurely introducing a heavier multi-agent runtime.
+- **Impact**: Selected project-level generators now attach output-specific `knowledge_notes` and `review_checklist` guidance at generation time, then persist a structured `artifact_review` summary with the saved artifact. The workbenches surface that stored context directly next to the editable artifact so users can see both “how to write this output” and “what still looks weak”.
+- **Rule**:
+  - when adding or upgrading artifact generators, prefer a small output-specific harness layer over burying all rules inside one long prompt
+  - persist review context with the artifact when possible so downstream workbenches and future review passes can reuse it
+  - treat this as a lightweight seam for future stronger review models, not as justification to build a large autonomous multi-agent workflow right now
+- **Files**: `lib/output-artifact-guidance.ts`, `lib/output-artifact-prompt.ts`, `services/project-output-generator.service.ts`, `components/workspace/script-lab-workbench.tsx`, `components/workspace/marketing-ops-workbench.tsx`
+
+## D-016 Project Background Should Default to Smart Brief Generation, Not Blank Manual Fields
+- **Date**: 2026-03-23
+- **Reason**: Raw collected queries and material baskets are useful as source inputs, but they often make poor user-facing project names, themes, and project introductions. Requiring the user to manually rewrite those fields after every research pass creates repeated friction.
+- **Impact**: Tahoe now derives a first-pass project brief from the current topic, workspace mode, writing settings, and selected brand. New project creation can seed generated defaults, and `ProjectContext` can auto-fill cleaner title/topic/introduction/core-idea/style-sample fields instead of showing empty or low-quality raw values.
+- **Rule**:
+  - prefer generated project-brief defaults over exposing blank metadata fields
+  - treat raw search queries / collected material strings as source inputs, not necessarily the best final project-facing title/topic copy
+  - preserve manual editing, but make “smart fill then lightly adjust” the default workflow
+- **Files**: `lib/project-brief.ts`, `services/research-orchestrator.service.ts`, `components/workspace/project-context.tsx`
+
+## D-017 Default Model Routing Should Be Quality-First and Role-Specific
+- **Date**: 2026-03-24
+- **Reason**: Tahoe’s work is no longer best served by one cheap generalized routing baseline. The product now has clearer role splits:
+  - Mars creation and storyboard generation need stronger multimodal creative synthesis
+  - structured scene/asset judgments need stable compact reviewers
+  - Chinese marketing writing benefits from Qwen’s Chinese copy strength
+  - report / diagnosis layers benefit from stronger flagship judgment models
+- **Impact**: Default model routing now uses:
+  - `gemini-3.1-pro-preview` for `SCRIPT_REWRITE`
+  - `gpt-5.4-mini` for `SCENE_CLASSIFICATION` and `ASSET_ANALYSIS`
+  - `gpt-5.4` for `REPORT_GENERATION` and `MARKETING_ANALYSIS`
+  - `qwen3-max` for `PROMOTIONAL_COPY`
+  - `qwen3.5-plus` for `PLATFORM_ADAPTATION`
+- **Rule**:
+  - prefer role-specific model allocation over one-model-for-everything routing
+  - keep Mars creative generation anchored in Gemini while the team is moving toward direct Google image/video API usage
+  - keep Chinese marketing generation anchored in Qwen unless evaluation shows a better Chinese-writing model for that specific task
+  - use OpenAI flagship / mini models primarily for judgment, review, and structured analysis layers
+- **Files**: `lib/model-routing.ts`, `services/app-settings.service.ts`, `app/settings/page.tsx`
+
+## D-018 Visible Model Names and Schema Defaults Must Stay In Sync With Live Routing
+- **Date**: 2026-03-24
+- **Reason**: Once Tahoe switched to a quality-first routing split, leaving older model names in settings labels, env examples, or Prisma defaults would create a misleading live product: the UI would imply one recommendation while new records or copied setup snippets could still resolve to older fallbacks.
+- **Impact**:
+  - settings surfaces should present the current recommended model generation names clearly
+  - README / env examples should mirror the live recommended routing
+  - Prisma defaults for `AppSettings.llm_model` should follow the active fallback baseline (`gpt-5.4-mini`)
+- **Rule**:
+  - when default routing changes, update visible model names, setup docs, and schema defaults in the same task
+  - avoid leaving “current recommended” UI copy on one version while persistence defaults still point at an older generation
+- **Files**: `components/settings/settings-form.tsx`, `app/settings/page.tsx`, `prisma/schema.prisma`, `README.md`

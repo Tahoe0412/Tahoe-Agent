@@ -8,6 +8,7 @@ import { Disclosure } from "@/components/ui/disclosure";
 import { GenerateStoryboardButton } from "@/components/workspace/generate-storyboard-button";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { assessAdCreative, assessMarketingMasterCopy } from "@/lib/artifact-quality";
+import { getOutputKnowledgePack, type ArtifactReview } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
 import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
@@ -190,6 +191,21 @@ function normalizeRichText(value: unknown) {
   }
 
   return value.replace(/\\n/g, "\n").trim();
+}
+
+function normalizeArtifactReview(value: unknown): ArtifactReview | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+  return {
+    status: source.status === "READY" ? "READY" : "NEEDS_REVISION",
+    summary: typeof source.summary === "string" ? source.summary.trim() : "",
+    strengths: normalizeStringList(source.strengths),
+    issues: normalizeStringList(source.issues),
+    nextSteps: normalizeStringList(source.nextSteps),
+  };
 }
 
 function parsePayload(value: unknown): PromotionalCopyPayload | null {
@@ -611,6 +627,12 @@ export function MarketingOpsWorkbench({
 
   const selectedAdaptation = marketingOverview.platformAdaptations.find((item) => item.id === selectedAdaptationId) ?? null;
   const latestAdCreative = marketingOverview.latestAdCreative ? parseAdCreativePayload(marketingOverview.latestAdCreative.taskJson) : null;
+  const latestAdCreativePayload =
+    marketingOverview.latestAdCreative?.taskJson && typeof marketingOverview.latestAdCreative.taskJson === "object"
+      ? (marketingOverview.latestAdCreative.taskJson as Record<string, unknown>)
+      : null;
+  const creativeKnowledgeNotes = normalizeStringList(latestAdCreativePayload?.knowledge_notes);
+  const creativeArtifactReview = normalizeArtifactReview(latestAdCreativePayload?.artifact_review);
   useEffect(() => {
     setCreativeAudience(latestAdCreative?.target_audience ?? "");
     setCreativeAngle(latestAdCreative?.lead_angle ?? "");
@@ -1201,6 +1223,30 @@ export function MarketingOpsWorkbench({
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeSellingPoints}</div>
                 <div className="mt-3">
                   <textarea value={creativeSellingPoints} onChange={(event) => setCreativeSellingPoints(event.target.value)} rows={8} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Knowledge notes" : "创作知识"}</div>
+                  <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                    {(creativeKnowledgeNotes.length ? creativeKnowledgeNotes : getOutputKnowledgePack("AD_CREATIVE").knowledgeNotes).map((item) => (
+                      <div key={item}>- {item}</div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "System review" : "系统复核"}</div>
+                  <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">
+                    {creativeArtifactReview?.summary || (locale === "en" ? "No stored review on this version yet." : "当前版本还没有存档复核结果。")}
+                  </div>
+                  {creativeArtifactReview?.issues.length ? (
+                    <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                      {creativeArtifactReview.issues.slice(0, 3).map((item) => (
+                        <div key={item}>- {item}</div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 
@@ -182,7 +182,7 @@ body {
     linear-gradient(180deg, rgba(255, 255, 255, var(--bg-glow-opacity)) 0%, rgba(255, 255, 255, var(--bg-glow-end)) 42%, transparent 100%),
     var(--canvas);
   color: var(--text-1);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: "Inter", "Noto Serif SC", "Songti SC", "STSong", "SimSun", -apple-system, BlinkMacSystemFont, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -332,7 +332,10 @@ textarea::placeholder {
 }
 
 .theme-font-display {
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Songti SC", "Noto Serif SC", serif;
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", "STSong", "SimSun", "Source Han Serif SC", serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-rendering: geometricPrecision;
 }
 
 .theme-kicker {

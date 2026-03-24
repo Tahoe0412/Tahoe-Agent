@@ -1,6 +1,6 @@
 # Project State
 
-> Last updated: 2026-03-21 by Codex
+> Last updated: 2026-03-24 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
@@ -18,7 +18,7 @@ The platform aggregates trend and research signals, then routes users toward the
 - **Styling**: Vanilla CSS with CSS custom properties (design tokens)
 - **Database**: PostgreSQL (localhost:5432, database `ai_video_mvp`)
 - **ORM**: Prisma
-- **AI**: Google Gemini API
+- **AI**: Google Gemini API + OpenAI API + Qwen API (quality-first routing)
 - **Search**: Serper.dev (replaced Google Custom Search)
 - **Deployment**: Tencent Cloud server (111.229.24.208), PM2, GitHub Actions CI/CD
 - **Proxy**: Clash/Mihomo at 127.0.0.1:7890 (required for mainland China to access Google/YouTube/OpenAI)
@@ -69,6 +69,15 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - Storyboard-first scenes are automatically pushed through scene classification and asset-dependency analysis, so Scene Planner and Render Lab get production metadata without requiring a separate manual prep pass.
 - Dashboard routing is now intentionally sparse: Tahoe shows one primary next step by default and treats briefs, trend review, and deeper workflow detail as optional supporting context rather than universal gates.
 - News-script generation now has an explicit output-type registry for currently supported news entry outputs (`NARRATIVE_SCRIPT`, `AD_SCRIPT`) so future output expansion can add handlers without growing one large conditional block.
+- Project-level packaging outputs now also carry a lightweight artifact harness: `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE` generation inject output-specific knowledge notes + review checklists into prompts, then persist a structured `artifact_review` summary alongside the saved artifact. Script Lab and Marketing Ops surface that context directly so users can see both the guidance and the review result in the same workbench.
+- Project background editing in `ProjectContext` is no longer expected to be fully manual. Tahoe now has a first smart-brief layer that can auto-generate a cleaner project name, normalized topic, detailed project introduction, core idea, and starter style-reference sample from the current topic + workspace + writing settings. Mars Citizen short-video projects default toward a dated “科技快讯” naming pattern instead of echoing raw OR-search strings.
+- Default model routing is now quality-first and split by role instead of one cheap general baseline:
+  - `SCRIPT_REWRITE`, storyboard-related generation, and Mars packaging defaults now lean on `gemini-3.1-pro-preview`
+  - `SCENE_CLASSIFICATION` and `ASSET_ANALYSIS` now default to `gpt-5.4-mini`
+  - `MARKETING_ANALYSIS` and `REPORT_GENERATION` now default to `gpt-5.4`
+  - Chinese marketing writing now defaults to `qwen3-max` / `qwen3.5-plus`
+- Settings-page model labels and README/env examples are now aligned with that routing split, so the live UI no longer presents the older `gpt-4.1` / `gemini-2.5` / `qwen-plus` style defaults as the main recommended path.
+- `AppSettings.llm_model` schema default now also matches the new baseline (`gpt-5.4-mini`) instead of the earlier `gpt-4.1-mini`, preventing new settings records from silently inheriting an outdated fallback model.
 - Long-term architecture direction is now documented separately in `docs/FUTURE_BLUEPRINT.md`. The two most important future vectors are:
   - stronger review-loop / agentic orchestration over time
   - stronger multimodal brand memory / retrieval over time

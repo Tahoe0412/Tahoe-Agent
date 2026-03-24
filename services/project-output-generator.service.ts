@@ -1,5 +1,6 @@
 import { Prisma, type StrategyTaskStatus, type StrategyTaskType } from "@prisma/client";
 import { z } from "zod";
+import { getOutputKnowledgePack, reviewOutputArtifact } from "@/lib/output-artifact-guidance";
 import { prisma } from "@/lib/db";
 import { getContentLineMeta, isOutputType } from "@/lib/content-line";
 import { buildAdCreativePrompt, buildPublishCopyPrompt, buildVideoTitlePrompt } from "@/lib/output-artifact-prompt";
@@ -117,6 +118,7 @@ export class ProjectOutputGeneratorService {
     const lineLabel = getContentLineMeta(intent.contentLine, "zh").label;
     const scriptText = this.resolveProjectSourceText(project);
     const settings = await this.appSettingsService.getEffectiveSettings();
+    const guidance = getOutputKnowledgePack("VIDEO_TITLE");
 
     let output = {
       title_options: [
@@ -134,6 +136,8 @@ export class ProjectOutputGeneratorService {
         topicQuery: project.topic_query,
         contentLineLabel: lineLabel,
         scriptText,
+        knowledgeNotes: guidance.knowledgeNotes,
+        reviewChecklist: guidance.reviewChecklist,
       });
 
       output = await generateStructuredJson({
@@ -154,6 +158,8 @@ export class ProjectOutputGeneratorService {
       });
     }
 
+    const review = reviewOutputArtifact("VIDEO_TITLE", output as Record<string, unknown>);
+
     const task = await prisma.strategyTask.create({
       data: {
         project_id: project.id,
@@ -166,7 +172,11 @@ export class ProjectOutputGeneratorService {
         task_json: toJson({
           kind: "VIDEO_TITLE_PACK",
           output_type: "VIDEO_TITLE",
+          generation_harness: "artifact_guidance_v1",
           generated_at: new Date().toISOString(),
+          knowledge_notes: guidance.knowledgeNotes,
+          review_checklist: guidance.reviewChecklist,
+          artifact_review: review,
           ...output,
         }),
       },
@@ -184,6 +194,7 @@ export class ProjectOutputGeneratorService {
   private async generatePublishCopy(project: ProjectWithArtifacts): Promise<ProjectOutputGenerationResult> {
     const scriptText = this.resolveProjectSourceText(project);
     const settings = await this.appSettingsService.getEffectiveSettings();
+    const guidance = getOutputKnowledgePack("PUBLISH_COPY");
     const existingVideoTitles = project.strategy_tasks
       .filter((task) => ((task.task_json as Record<string, unknown> | null)?.output_type as string | undefined) === "VIDEO_TITLE")
       .flatMap((task) => {
@@ -211,6 +222,8 @@ export class ProjectOutputGeneratorService {
         topicQuery: project.topic_query,
         scriptText,
         videoTitles: existingVideoTitles,
+        knowledgeNotes: guidance.knowledgeNotes,
+        reviewChecklist: guidance.reviewChecklist,
       });
 
       output = await generateStructuredJson({
@@ -233,6 +246,8 @@ export class ProjectOutputGeneratorService {
       });
     }
 
+    const review = reviewOutputArtifact("PUBLISH_COPY", output as Record<string, unknown>);
+
     const task = await prisma.strategyTask.create({
       data: {
         project_id: project.id,
@@ -245,7 +260,11 @@ export class ProjectOutputGeneratorService {
         task_json: toJson({
           kind: "PUBLISH_COPY",
           output_type: "PUBLISH_COPY",
+          generation_harness: "artifact_guidance_v1",
           generated_at: new Date().toISOString(),
+          knowledge_notes: guidance.knowledgeNotes,
+          review_checklist: guidance.reviewChecklist,
+          artifact_review: review,
           ...output,
         }),
       },
@@ -264,6 +283,7 @@ export class ProjectOutputGeneratorService {
     const settings = await this.appSettingsService.getEffectiveSettings();
     const context = await this.marketingContextService.getProjectContext(project.id);
     const contextPrompt = this.marketingContextService.formatPromptContext(context);
+    const guidance = getOutputKnowledgePack("AD_CREATIVE");
 
     let output = {
       target_audience: "对当前议题有明确兴趣、但还缺乏行动理由的核心受众",
@@ -284,6 +304,8 @@ export class ProjectOutputGeneratorService {
         title: project.title,
         topicQuery: project.topic_query,
         contextPrompt,
+        knowledgeNotes: guidance.knowledgeNotes,
+        reviewChecklist: guidance.reviewChecklist,
       });
 
       output = await generateStructuredJson({
@@ -308,6 +330,8 @@ export class ProjectOutputGeneratorService {
       });
     }
 
+    const review = reviewOutputArtifact("AD_CREATIVE", output as Record<string, unknown>);
+
     const task = await prisma.strategyTask.create({
       data: {
         project_id: project.id,
@@ -320,7 +344,11 @@ export class ProjectOutputGeneratorService {
         task_json: toJson({
           kind: "AD_CREATIVE",
           output_type: "AD_CREATIVE",
+          generation_harness: "artifact_guidance_v1",
           generated_at: new Date().toISOString(),
+          knowledge_notes: guidance.knowledgeNotes,
+          review_checklist: guidance.reviewChecklist,
+          artifact_review: review,
           ...output,
         }),
       },

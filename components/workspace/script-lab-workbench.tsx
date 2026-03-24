@@ -8,6 +8,7 @@ import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
 import { assessPublishCopy, assessScenePrompt, assessVideoTitlePack } from "@/lib/artifact-quality";
+import { getOutputKnowledgePack, reviewOutputArtifact, type ArtifactReview } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
 
 type ScriptLabRow = {
@@ -63,6 +64,21 @@ function normalizeStringList(value: unknown) {
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeArtifactReview(value: unknown): ArtifactReview | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+  return {
+    status: source.status === "READY" ? "READY" : "NEEDS_REVISION",
+    summary: normalizeString(source.summary),
+    strengths: normalizeStringList(source.strengths),
+    issues: normalizeStringList(source.issues),
+    nextSteps: normalizeStringList(source.nextSteps),
+  };
 }
 
 async function copyToClipboard(text: string) {
@@ -129,10 +145,18 @@ export function ScriptLabWorkbench({
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
   const latestVideoTitlePayload = (marsOutputs.latestVideoTitlePack?.taskJson as Record<string, unknown> | null) ?? null;
   const latestPublishCopyPayload = (marsOutputs.latestPublishCopy?.taskJson as Record<string, unknown> | null) ?? null;
-  const readySceneCount = rows.filter((row) => row.assetReady).length;
-  const totalRiskFlags = rows.reduce((count, row) => count + (row.classification?.riskFlags.length ?? 0), 0);
   const hasTitlePack = Boolean(marsOutputs.latestVideoTitlePack);
   const hasPublishCopy = Boolean(marsOutputs.latestPublishCopy);
+  const titleKnowledgeNotes = normalizeStringList(latestVideoTitlePayload?.knowledge_notes);
+  const publishKnowledgeNotes = normalizeStringList(latestPublishCopyPayload?.knowledge_notes);
+  const titleArtifactReview =
+    normalizeArtifactReview(latestVideoTitlePayload?.artifact_review) ??
+    (hasTitlePack ? reviewOutputArtifact("VIDEO_TITLE", latestVideoTitlePayload ?? {}) : null);
+  const publishArtifactReview =
+    normalizeArtifactReview(latestPublishCopyPayload?.artifact_review) ??
+    (hasPublishCopy ? reviewOutputArtifact("PUBLISH_COPY", latestPublishCopyPayload ?? {}) : null);
+  const readySceneCount = rows.filter((row) => row.assetReady).length;
+  const totalRiskFlags = rows.reduce((count, row) => count + (row.classification?.riskFlags.length ?? 0), 0);
   const promptReadySceneCount = rows.filter((row) => {
     const hasVisualPriority = row.visualPriority.length > 0;
     const hasAvoid = row.avoid.length > 0;
@@ -589,6 +613,27 @@ export function ScriptLabWorkbench({
                       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">角度说明</div>
                       <textarea value={titleAngleSummary} onChange={(event) => setTitleAngleSummary(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
                     </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">创作知识</div>
+                        <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                          {(titleKnowledgeNotes.length ? titleKnowledgeNotes : getOutputKnowledgePack("VIDEO_TITLE").knowledgeNotes).map((item) => (
+                            <div key={item}>- {item}</div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">系统复核</div>
+                        <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{titleArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
+                        {titleArtifactReview?.issues.length ? (
+                          <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                            {titleArtifactReview.issues.slice(0, 3).map((item) => (
+                              <div key={item}>- {item}</div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
                     <div>
                       <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">备选标题</div>
                       <textarea value={titleOptionsText} onChange={(event) => setTitleOptionsText(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
@@ -640,6 +685,27 @@ export function ScriptLabWorkbench({
                       <div>
                         <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">CTA</div>
                         <textarea value={publishCta} onChange={(event) => setPublishCta(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">创作知识</div>
+                        <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                          {(publishKnowledgeNotes.length ? publishKnowledgeNotes : getOutputKnowledgePack("PUBLISH_COPY").knowledgeNotes).map((item) => (
+                            <div key={item}>- {item}</div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">系统复核</div>
+                        <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{publishArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
+                        {publishArtifactReview?.issues.length ? (
+                          <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                            {publishArtifactReview.issues.slice(0, 3).map((item) => (
+                              <div key={item}>- {item}</div>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>

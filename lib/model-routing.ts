@@ -18,10 +18,10 @@ export type ModelRouteConfig = {
 };
 
 export const providerModelOptions: Record<LlmProvider, string[]> = {
-  OPENAI: ["gpt-4.1-mini", "gpt-4.1", "gpt-4o-mini"],
-  GEMINI: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-3-pro-preview"],
+  OPENAI: ["gpt-5.4-mini", "gpt-5.4", "gpt-5-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4o-mini"],
+  GEMINI: ["gemini-3.1-pro-preview", "gemini-3.1-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"],
   DEEPSEEK: ["deepseek-chat", "deepseek-reasoner"],
-  QWEN: ["qwen-plus", "qwen-max", "qwen-turbo"],
+  QWEN: ["qwen3-max", "qwen3.5-plus", "qwen3.5-flash", "qwen-max", "qwen-plus", "qwen-turbo"],
 };
 
 export function getDefaultModelForProvider(provider: LlmProvider) {
@@ -30,32 +30,32 @@ export function getDefaultModelForProvider(provider: LlmProvider) {
 
 export const defaultModelRoutes: Record<ModelRouteKey, ModelRouteConfig> = {
   MARKETING_ANALYSIS: {
-    provider: "QWEN",
-    model: "qwen-plus",
+    provider: "OPENAI",
+    model: "gpt-5.4",
   },
   PROMOTIONAL_COPY: {
     provider: "QWEN",
-    model: "qwen-max",
+    model: "qwen3-max",
   },
   PLATFORM_ADAPTATION: {
     provider: "QWEN",
-    model: "qwen-plus",
+    model: "qwen3.5-plus",
   },
   SCRIPT_REWRITE: {
     provider: "GEMINI",
-    model: "gemini-2.5-pro",
+    model: "gemini-3.1-pro-preview",
   },
   SCENE_CLASSIFICATION: {
-    provider: "GEMINI",
-    model: "gemini-2.5-flash",
+    provider: "OPENAI",
+    model: "gpt-5.4-mini",
   },
   ASSET_ANALYSIS: {
-    provider: "DEEPSEEK",
-    model: "deepseek-chat",
+    provider: "OPENAI",
+    model: "gpt-5.4-mini",
   },
   REPORT_GENERATION: {
-    provider: "DEEPSEEK",
-    model: "deepseek-chat",
+    provider: "OPENAI",
+    model: "gpt-5.4",
   },
 };
 

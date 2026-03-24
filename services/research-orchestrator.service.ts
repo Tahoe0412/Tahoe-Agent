@@ -1,6 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { deriveProjectTitle, resolveProjectIntent } from "@/lib/project-intent";
+import {
+  buildGeneratedCoreIdea,
+  buildGeneratedProjectIntroduction,
+  buildGeneratedProjectTitle,
+  buildGeneratedStyleReferenceSample,
+} from "@/lib/project-brief";
 import { finalResearchReportOutputSchema } from "@/schemas/ai-output";
 import { projectCreateSchema, type ProjectCreateInput } from "@/schemas/project";
 import { searchLatestNews } from "@/services/news-search";
@@ -38,9 +44,13 @@ export class ResearchOrchestratorService {
       outputType: input.outputType,
       workspaceMode: input.workspaceMode,
     });
-    const projectTitle = deriveProjectTitle({
-      title: input.title,
-      topic: input.topic,
+    const projectTitle = buildGeneratedProjectTitle({
+      title: deriveProjectTitle({
+        title: input.title,
+        topic: input.topic,
+      }),
+      topicQuery: input.topic,
+      workspaceMode: intent.workspaceMode,
     });
     const sourceScript = input.sourceScript.trim();
     const hasSourceScript = sourceScript.length > 0;
@@ -109,9 +119,29 @@ export class ResearchOrchestratorService {
           workspace_mode: intent.workspaceMode,
           content_line: intent.contentLine,
           output_type: intent.outputType,
-          project_introduction: input.projectIntroduction?.trim() || "",
-          core_idea: input.coreIdea?.trim() || "",
-          style_reference_sample: input.styleReferenceSample?.trim() || "",
+          project_introduction:
+            input.projectIntroduction?.trim() ||
+            buildGeneratedProjectIntroduction({
+              topicQuery: input.topic,
+              workspaceMode: intent.workspaceMode,
+              writingMode: input.writingMode,
+              styleTemplate: input.styleTemplate,
+              copyLength: input.copyLength,
+              usageScenario: input.usageScenario,
+              originalScript: sourceScript,
+            }),
+          core_idea:
+            input.coreIdea?.trim() ||
+            buildGeneratedCoreIdea({
+              topicQuery: input.topic,
+              workspaceMode: intent.workspaceMode,
+            }),
+          style_reference_sample:
+            input.styleReferenceSample?.trim() ||
+            buildGeneratedStyleReferenceSample({
+              workspaceMode: intent.workspaceMode,
+              styleTemplate: input.styleTemplate,
+            }),
           writing_mode: input.writingMode ?? "PRODUCT_PROMO",
           style_template: input.styleTemplate ?? "RATIONAL_PRO",
           copy_length: input.copyLength ?? "STANDARD",

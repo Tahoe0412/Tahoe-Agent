@@ -5,6 +5,139 @@
 
 ---
 
+## 2026-03-24 14:17 — Agent: Codex
+
+### T-010 Model Naming Sync + Cloud Release Prep
+
+**Changes**:
+- **`components/settings/settings-form.tsx`**: Added clearer human-readable labels for the current model list so the settings UI now shows names like `GPT-5.4 Mini`, `Gemini 3.1 Pro Preview`, and `Qwen 3.5 Plus` instead of only raw provider IDs.
+- **`app/settings/page.tsx`**: Updated settings guidance copy so the recommended live-search stack references `Serper / SerpApi` instead of older Google Custom Search wording.
+- **`prisma/schema.prisma`**: Updated `AppSettings.llm_model` default from `gpt-4.1-mini` to `gpt-5.4-mini`.
+- **`prisma/migrations/20260324142000_update_app_settings_default_model/migration.sql`**: Added a migration to keep schema-default rebuilds aligned with the current fallback model.
+- **`README.md`**: Updated env examples and recommended route snippets to the current quality-first routing split.
+- **`final_schema.sql` / `all_migrations.sql`**: Synced generated SQL snapshots with the new `AppSettings` default model.
+
+**Reason**:
+- The user wants the site-facing model names updated and the current typography/model-routing changes deployed together. This step removes the last old-model-name drift between settings UI, setup docs, and persistence defaults.
+
+**Verification**:
+- Pending in this entry. Next step: `npm run build`, then commit / push / deploy.
+
+---
+
+## 2026-03-24 00:11 — Agent: Codex
+
+### T-010 Model Routing Refresh: Switch Defaults to Quality-First Gemini 3.1 / GPT-5.4 / Qwen 3 Split
+
+**Changes**:
+- **`lib/model-routing.ts`**: Updated provider model option lists and default routes:
+  - `SCRIPT_REWRITE` -> `gemini-3.1-pro-preview`
+  - `SCENE_CLASSIFICATION` -> `gpt-5.4-mini`
+  - `ASSET_ANALYSIS` -> `gpt-5.4-mini`
+  - `REPORT_GENERATION` -> `gpt-5.4`
+  - `MARKETING_ANALYSIS` -> `gpt-5.4`
+  - `PROMOTIONAL_COPY` -> `qwen3-max`
+  - `PLATFORM_ADAPTATION` -> `qwen3.5-plus`
+- **`services/app-settings.service.ts`**: Updated the fallback main model from `gpt-4.1-mini` to `gpt-5.4-mini`.
+- **`app/settings/page.tsx`**: Updated the settings-page description to reflect the new quality-first default routing.
+
+**Reason**:
+- The user explicitly chose the quality-first model split and confirmed that `gpt-5.4-mini` is now available. Tahoe’s default model routing now matches that decision instead of the older cheaper baseline.
+
+**Verification**:
+- Not yet run in this step. Recommended next verification: `npm run build`
+
+---
+
+## 2026-03-23 15:29 — Agent: Codex
+
+### T-012 Typography Follow-up: Switch Display English to Cinzel
+
+**Changes**:
+- **`app/globals.css`**: Added Google Fonts import for `Cinzel` alongside `Inter`.
+- **`app/globals.css`**: Updated `.theme-font-display` to use `Cinzel` first for English display typography, with Chinese serif fallbacks (`Noto Serif SC`, `Songti SC`, `STSong`, `SimSun`, `Source Han Serif SC`) so mixed Chinese/English headings keep a closer carved-serif / editorial feel.
+- **`app/globals.css`**: Updated global body typography so Chinese body text also consistently uses serif Chinese fonts (`Noto Serif SC` first, then Songti-family fallbacks), while English body text remains `Inter`. This makes the entire interface feel more unified instead of only changing the large headings.
+
+**Reason**:
+- User wants the typography direction applied consistently, not only on English headings. `Cinzel` is a strong web-safe match for the engraved serif reference, and `Noto Serif SC` / Songti-family fallbacks keep Chinese text in the same editorial serif family.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-23 15:20 — Agent: Codex
+
+### Context Handoff Before Switching Tasks
+
+**Current focus to preserve**:
+- **`T-010` still in progress**. The highest-value remaining work is no longer the base intent model; it is the “last-mile quality + artifact readability” layer:
+  - expand the lightweight artifact harness beyond `VIDEO_TITLE` / `PUBLISH_COPY` / `AD_CREATIVE`
+  - decide whether the next quality step is `PLATFORM_COPY` support or a stronger second-pass reviewer
+  - decide whether project briefs should auto-refresh when Today/material context changes, instead of requiring the current one-click smart-fill action
+  - continue removing lower-priority old `workspaceMode` assumptions and old full-workflow teaching copy
+
+**Most important recent completed slices**:
+- Added a lightweight artifact harness for selected outputs: generation now stores `knowledge_notes`, `review_checklist`, and `artifact_review`, and the workbenches surface them directly.
+- Added a smart project-brief layer: title / topic / introduction / core idea / starter style sample now default to generated values, and `ProjectContext` has a one-click auto-fill action instead of forcing repeated manual rewriting.
+
+**Lessons worth carrying forward**:
+- Tahoe benefits most from small harness seams, not heavy new systems. The productive pattern has been: add durable output-specific guidance/review context first, then decide later whether a stronger model-based reviewer is worth it.
+- Raw collected query strings are often poor user-facing project metadata. Treat them as source inputs, then derive cleaner project-facing title/topic/brief copy from them.
+- The right UX direction remains artifact-first and minimal-first. Users should mostly edit the delta, not reconstruct the whole project context every time new materials arrive.
+
+**Verification state at handoff**:
+- `npm run build` passed after both the artifact-harness slice and smart-project-brief slice.
+
+---
+
+## 2026-03-23 15:08 — Agent: Codex
+
+### T-010 Smart Project Brief: Auto-Generate Better Title / Topic / Introduction / Style Sample
+
+**Changes**:
+- **`lib/project-brief.ts`** (new): Added a lightweight smart-brief generator. It can:
+  - normalize raw OR-style topic strings into cleaner project topics
+  - generate a better project title (Mars Citizen short-video defaults now prefer a dated “科技快讯” naming pattern)
+  - generate a fuller `project_introduction`
+  - generate a `core_idea`
+  - generate a starter `style_reference_sample`
+- **`services/research-orchestrator.service.ts`**: New project creation now seeds generated defaults for project title / introduction / core idea / style sample when the user has not filled those fields manually.
+- **`components/workspace/project-context.tsx`**:
+  - empty project background fields now render with generated defaults instead of looking blank
+  - added a one-click `自动补全项目信息` action in the editor
+  - fixed project-context save so `copy_length` is now persisted too
+
+**Reason**:
+- The user should not have to rewrite the project brief every time research inputs change. Raw collection strings are often good source inputs but poor final-facing project names/themes.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-03-23 14:12 — Agent: Codex
+
+### T-010 Artifact Harness: Add Output-Specific Knowledge Notes + Stored Review Context
+
+**Changes**:
+- **`lib/output-artifact-guidance.ts`** (new): Added a lightweight artifact harness layer for `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE`. Each output now has:
+  - output-specific `knowledgeNotes`
+  - output-specific `reviewChecklist`
+  - a structured `artifactReview` derived from existing quality heuristics
+- **`lib/output-artifact-prompt.ts`**: Updated prompt builders so packaging / creative generators can inject those knowledge notes and self-review checklists directly into the generation prompt instead of keeping all rules implicit.
+- **`services/project-output-generator.service.ts`**: `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE` generation now persist `generation_harness`, `knowledge_notes`, `review_checklist`, and `artifact_review` inside `task_json`.
+- **`components/workspace/script-lab-workbench.tsx`**: Title-pack and publish-copy panels now surface the stored “创作知识 / 系统复核” context directly beside the editable artifact, with a fallback to local review when older versions do not have stored review metadata yet.
+- **`components/workspace/marketing-ops-workbench.tsx`**: Ad creative panel now surfaces the same stored “创作知识 / 系统复核” context beside the current creative brief.
+
+**Reason**:
+- We want to absorb the strongest practical lesson from `learn-claude-code` without overbuilding: keep the model-facing rules modular and make review context durable. This gives Tahoe a clear seam for stronger future review loops while staying inside the current sprint’s focus on output quality, prompt quality, and artifact-first UX.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-21 11:23 — Agent: Antigravity
 
 ### T-012 UI Polish Round 2

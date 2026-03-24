@@ -22,6 +22,26 @@ type SettingsPayload = {
 
 export function SettingsForm({ initial }: { initial: SettingsPayload }) {
   type LlmProvider = SettingsPayload["llmProvider"];
+  const modelLabelMap: Record<string, string> = {
+    "gpt-5.4": "GPT-5.4",
+    "gpt-5.4-mini": "GPT-5.4 Mini",
+    "gpt-5-mini": "GPT-5 Mini",
+    "gpt-4.1": "GPT-4.1",
+    "gpt-4.1-mini": "GPT-4.1 Mini",
+    "gpt-4o-mini": "GPT-4o Mini",
+    "gemini-3.1-pro-preview": "Gemini 3.1 Pro Preview",
+    "gemini-3.1-flash-preview": "Gemini 3.1 Flash Preview",
+    "gemini-2.5-pro": "Gemini 2.5 Pro",
+    "gemini-2.5-flash": "Gemini 2.5 Flash",
+    "deepseek-chat": "DeepSeek Chat",
+    "deepseek-reasoner": "DeepSeek Reasoner",
+    "qwen3-max": "Qwen 3 Max",
+    "qwen3.5-plus": "Qwen 3.5 Plus",
+    "qwen3.5-flash": "Qwen 3.5 Flash",
+    "qwen-max": "Qwen Max",
+    "qwen-plus": "Qwen Plus",
+    "qwen-turbo": "Qwen Turbo",
+  };
   const routeDescriptions: Record<ModelRouteKey, string> = {
     MARKETING_ANALYSIS: "影响趋势判断、策略提炼和营销方向分析。",
     PROMOTIONAL_COPY: "直接影响宣传主稿质量，是最关键的文案模型。",
@@ -94,6 +114,10 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
 
   function providerLabel(provider: LlmProvider) {
     return provider === "GEMINI" ? "Google Gemini" : provider === "DEEPSEEK" ? "DeepSeek" : provider === "QWEN" ? "Qwen / 通义千问" : "OpenAI";
+  }
+
+  function modelLabel(model: string) {
+    return modelLabelMap[model] ?? model;
   }
 
   const mainModelOptions = providerModelOptions[form.llm_provider];
@@ -253,7 +277,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                 >
                   {routeOptions.map((model) => (
                     <option key={model} value={model}>
-                      {model}
+                      {modelLabel(model)}
                     </option>
                   ))}
                   <option value="__custom__">自定义模型名称</option>
@@ -286,7 +310,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                         ? "当前未填写 DeepSeek key"
                         : !form.llm_mock_mode && route.provider === "QWEN" && !form.qwen_api_key.trim()
                           ? "当前未填写 Qwen key"
-                          : `当前会使用 ${providerLabel(route.provider)}`}
+                          : `当前会使用 ${providerLabel(route.provider)} / ${modelLabel(route.model)}`}
                 </div>
               </div>
                   </>
@@ -343,7 +367,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
               >
                 {mainModelOptions.map((model) => (
                   <option key={model} value={model}>
-                    {model}
+                    {modelLabel(model)}
                   </option>
                 ))}
                 <option value="__custom__">自定义模型名称</option>
@@ -427,7 +451,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         当前有效模型路径：
         {form.llm_mock_mode
           ? " LLM mock 模式已开启，真实模型不会被调用。"
-          : ` 步骤模型路由优先；如果某一步没有单独配置，才会退回 ${form.llm_provider} / ${form.llm_model}。`}
+          : ` 步骤模型路由优先；如果某一步没有单独配置，才会退回 ${providerLabel(form.llm_provider)} / ${modelLabel(form.llm_model)}。`}
         {!form.llm_mock_mode && form.llm_provider === "OPENAI" && !form.openai_api_key.trim()
           ? " 但当前没有填写 OpenAI key。"
           : null}
