@@ -110,16 +110,62 @@ export function ScenePlannerWorkbench({
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
   const [assetType, setAssetType] = useState<(typeof assetTypeOptions)[number]>("CHARACTER_BASE");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pending, setPending] = useState<"classify" | "assets" | "upload" | null>(null);
-  const [lastAction, setLastAction] = useState<"classify" | "assets" | "upload" | null>(null);
+  const [pending, setPending] = useState<"classify" | "assets" | "upload" | "save" | null>(null);
+  const [lastAction, setLastAction] = useState<"classify" | "assets" | "upload" | "save" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  /* ── Scene editing state (merged from Script Lab) ── */
+  const [editRewritten, setEditRewritten] = useState(rows[0]?.rewritten ?? "");
+  const [editShotGoal, setEditShotGoal] = useState(rows[0]?.shotGoal ?? "");
+  const [editVisualPriority, setEditVisualPriority] = useState("");
+  const [editAvoid, setEditAvoid] = useState("");
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
   const storyboardVersion = rows[0]?.storyboardVersion ?? null;
   const readyFrames = rows.filter((row) => row.frameStatus === "READY" || row.frameStatus === "LOCKED").length;
   const totalReferences = rows.reduce((sum, row) => sum + row.referenceCount, 0);
+
+  function syncEditFields(scene: ScenePlannerRow) {
+    setEditRewritten(scene.rewritten);
+    setEditShotGoal(scene.shotGoal);
+    setEditVisualPriority("");
+    setEditAvoid("");
+    setMessage(null);
+    setError(null);
+  }
+
+  async function saveScene() {
+    if (!selectedScene) return;
+
+    setPending("save");
+    setLastAction("save");
+    setMessage(null);
+    setError(null);
+
+    try {
+      const visualPriorityArr = editVisualPriority.split(",").map((s) => s.trim()).filter(Boolean);
+      const avoidArr = editAvoid.split(",").map((s) => s.trim()).filter(Boolean);
+
+      await apiRequest(`/api/projects/${projectId}/scenes/${selectedScene.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rewritten_for_ai: editRewritten,
+          shot_goal: editShotGoal,
+          ...(visualPriorityArr.length ? { visual_priority: visualPriorityArr } : {}),
+          ...(avoidArr.length ? { avoid: avoidArr } : {}),
+        }),
+      });
+      setMessage("镜头文本已保存。");
+      router.refresh();
+    } catch (requestError) {
+      setError(requestError);
+    } finally {
+      setPending(null);
+    }
+  }
 
   async function rerunClassification() {
     if (!selectedScene) {
@@ -236,8 +282,7 @@ export function ScenePlannerWorkbench({
                   type="button"
                   onClick={() => {
                     setSelectedId(row.id);
-                    setMessage(null);
-                    setError(null);
+                    syncEditFields(row);
                   }}
                   className={`grid w-full gap-5 rounded-[26px] border p-5 text-left transition md:grid-cols-[88px_1fr_210px] ${
                     selected
@@ -288,13 +333,54 @@ export function ScenePlannerWorkbench({
             <div className="text-sm font-medium text-[var(--text-inverse)]">当前分镜</div>
             <div className="mt-3 space-y-3 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
               <div className="text-xl font-semibold text-[var(--text-inverse)]">{selectedScene.frameTitle}</div>
-              <div className="text-sm leading-7 text-white/78">{selectedScene.shotGoal}</div>
               <div className="flex flex-wrap gap-2">
                 <Tag>{selectedScene.productionClass}</Tag>
                 <Tag>{selectedScene.frameStatus}</Tag>
                 <Tag>{selectedScene.durationSec}s</Tag>
                 <Tag>{selectedScene.continuityGroup}</Tag>
               </div>
+            </div>
+          </div>
+
+          {/* ── Scene text editing (merged from Script Lab) ── */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium text-[var(--text-inverse)]">镜头文本编辑</div>
+            <label className="grid gap-2">
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">镜头目标</span>
+              <input
+                value={editShotGoal}
+                onChange={(e) => setEditShotGoal(e.target.value)}
+                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">AI 重构文本</span>
+              <textarea
+                value={editRewritten}
+                onChange={(e) => setEditRewritten(e.target.value)}
+                rows={6}
+                className="theme-input rounded-[16px] px-4 py-3 text-sm leading-7"
+              />
+            </label>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-xs uppercase tracking-[0.16em] text-white/58">视觉重点（逗号隔开）</span>
+                <input
+                  value={editVisualPriority}
+                  onChange={(e) => setEditVisualPriority(e.target.value)}
+                  placeholder="如：火箭发射, 火焰尾迹"
+                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs uppercase tracking-[0.16em] text-white/58">避免项（逗号隔开）</span>
+                <input
+                  value={editAvoid}
+                  onChange={(e) => setEditAvoid(e.target.value)}
+                  placeholder="如：手部特写, 文字叠加"
+                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                />
+              </label>
             </div>
           </div>
 
@@ -318,6 +404,9 @@ export function ScenePlannerWorkbench({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button onClick={() => void saveScene()} disabled={pending !== null}>
+              {pending === "save" ? "保存中..." : "保存镜头"}
+            </Button>
             <Button variant="secondary" onClick={() => void rerunClassification()} disabled={pending !== null}>
               {pending === "classify" ? "重跑中..." : "重跑分类"}
             </Button>
@@ -451,13 +540,15 @@ export function ScenePlannerWorkbench({
             <ErrorNotice
               error={error}
               onRetry={
-                lastAction === "classify"
-                  ? () => void rerunClassification()
-                  : lastAction === "assets"
-                    ? () => void rerunAssets()
-                    : lastAction === "upload"
-                      ? () => void saveAssetMetadata()
-                      : undefined
+                lastAction === "save"
+                  ? () => void saveScene()
+                  : lastAction === "classify"
+                    ? () => void rerunClassification()
+                    : lastAction === "assets"
+                      ? () => void rerunAssets()
+                      : lastAction === "upload"
+                        ? () => void saveAssetMetadata()
+                        : undefined
               }
             />
           ) : null}

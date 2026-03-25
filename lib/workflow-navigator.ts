@@ -47,7 +47,7 @@ export function getDashboardNextStep(
     if (workspace.scriptLabRows.length === 0) {
       return {
         href: `/script-lab?projectId=${workspace.project.id}`,
-        label: t ? "去生成脚本" : "Generate Script",
+        label: t ? "去编辑标题与文案" : "Edit Title & Copy",
       };
     }
 
