@@ -104,16 +104,13 @@ export function TodayWorkbench({
   /* ── Content line & platform state ── */
   const PLATFORM_PRESETS: Record<ContentLine, SupportedPlatform[]> = {
     MARS_CITIZEN: ["YOUTUBE", "X"],
-    MARKETING: ["XHS", "DOUYIN", "X"],
+    MARKETING: ["YOUTUBE", "X"],
   };
-  const PLATFORM_LABELS: Record<SupportedPlatform, string> = {
+  const PLATFORM_LABELS: Record<string, string> = {
     YOUTUBE: "YouTube",
     X: "X / Twitter",
-    TIKTOK: "TikTok",
-    XHS: "小红书",
-    DOUYIN: "抖音",
   };
-  const ALL_PLATFORMS: SupportedPlatform[] = ["YOUTUBE", "X", "XHS", "DOUYIN", "TIKTOK"];
+  const ALL_PLATFORMS: SupportedPlatform[] = ["YOUTUBE", "X"];
 
   const [activeContentLine, setActiveContentLine] = useState<ContentLine>("MARS_CITIZEN");
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<SupportedPlatform>>(
