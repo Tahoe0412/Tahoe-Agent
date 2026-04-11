@@ -684,8 +684,10 @@ export function ProjectContext({
         {project ? (
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
               <div>
-                <div className="break-words text-3xl font-semibold tracking-tight text-[var(--text-1)]">{project.title}</div>
-                <div className="mt-2 max-w-3xl break-words text-lg leading-8 text-[var(--text-2)]">{project.topic_query}</div>
+                <div className="break-words text-3xl font-semibold tracking-tight text-[var(--text-1)]">
+                  {normalizeProjectTopic(project.title || project.topic_query, project.workspaceMode)}
+                </div>
+                <div className="mt-2 max-w-3xl break-words text-sm leading-7 text-[var(--text-2)]">{project.topic_query}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{project.id}</div>
                   {modeLabel ? <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">{modeLabel}</span> : null}

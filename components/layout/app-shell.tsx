@@ -54,8 +54,17 @@ export function AppShell({
         {/* ── Mobile Backdrop ── */}
         {mobileOpen ? (
           <div
-            className="theme-drawer-backdrop fixed inset-0 z-40 xl:hidden"
+            className="fixed inset-0 z-40 bg-black/40 xl:hidden"
             onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+        ) : null}
+
+        {/* ── Desktop Overlay Backdrop (when sidebar is open, click to close) ── */}
+        {!collapsed ? (
+          <div
+            className="fixed inset-0 z-40 hidden xl:block"
+            onClick={() => setCollapsed(true)}
             aria-hidden
           />
         ) : null}
@@ -63,11 +72,11 @@ export function AppShell({
         {/* ── Sidebar ── */}
         <aside
           className={cn(
-            "theme-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[92vw] flex-col overflow-y-auto p-4 transition-all duration-300 ease-in-out",
-            // Mobile
+            "theme-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[92vw] flex-col overflow-y-auto p-4 transition-transform duration-300 ease-in-out",
+            // Mobile: slide in/out
             mobileOpen ? "translate-x-0" : "-translate-x-full",
-            // Desktop: always visible, but collapsed = mini
-            collapsed ? "xl:translate-x-0 xl:theme-sidebar-mini" : "xl:translate-x-0",
+            // Desktop: overlay in/out (no layout push)
+            collapsed ? "xl:-translate-x-full" : "xl:translate-x-0",
           )}
         >
           {/* Close button (mobile only) */}
@@ -83,13 +92,8 @@ export function AppShell({
           <div className="flex-1">{sidebar}</div>
         </aside>
 
-        {/* ── Right Content Wrapper ── */}
-        <div
-          className={cn(
-            "flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out",
-            collapsed ? "xl:ml-[60px]" : "xl:ml-[248px]"
-          )}
-        >
+        {/* ── Right Content Wrapper — always full width ── */}
+        <div className="flex min-w-0 flex-1 flex-col">
           {/* ── Global Top Header ── */}
           <header className="theme-header sticky top-0 z-40 flex h-[64px] items-center justify-between px-4 lg:px-6 xl:px-7">
             <div className="flex items-center gap-3">
