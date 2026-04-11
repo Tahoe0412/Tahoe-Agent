@@ -486,7 +486,7 @@ export function ProjectContext({
                           href={`/brief-studio?projectId=${item.id}`}
                           className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border-soft))] hover:text-[var(--text-1)]"
                         >
-                          <span className="font-medium">{item.title}</span>
+                          <span className="font-medium">{normalizeProjectTopic(item.title || item.topic_query)}</span>
                           <ArrowRight className="size-3.5 text-[var(--text-3)]" />
                         </Link>
                       ))}
@@ -981,7 +981,7 @@ export function ProjectContext({
                 )}
               >
                 {item.is_pinned ? "★ " : ""}
-                {item.title}
+                {normalizeProjectTopic(item.title || item.topic_query)}
               </Link>
             ))}
           </div>

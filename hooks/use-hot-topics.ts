@@ -238,11 +238,11 @@ export function useHotTopics(): UseHotTopicsResult {
 
       // Build merged NewsSearchResult wrappers
       const mergedNews: NewsSearchResult = {
-        provider: successResults[0].news.provider,
-        mode: successResults[0].news.mode,
+        provider: successResults[0].news?.provider ?? "SERPER",
+        mode: successResults[0].news?.mode ?? "live",
         success: true,
         items: mergedNewsItems,
-        errors: successResults.flatMap((r) => r.news.errors ?? []),
+        errors: successResults.flatMap((r) => r.news?.errors ?? []),
         fetched_at: new Date().toISOString(),
       };
 
