@@ -74,6 +74,38 @@ export function buildGeneratedProjectTitle(params: {
   return truncate(normalizedTopic, 120);
 }
 
+/**
+ * Returns an ordered list of 4 title suggestions for a given topic.
+ * The caller can cycle through them with a "re-roll" button (index % 4).
+ */
+export function suggestProjectTitles(params: {
+  topicQuery?: string | null;
+  workspaceMode?: WorkspaceMode;
+  date?: Date;
+}): string[] {
+  const topic = normalizeProjectTopic(params.topicQuery ?? "", params.workspaceMode);
+  const date = formatZhDate(params.date);
+  const isShortVideo = params.workspaceMode === "SHORT_VIDEO";
+
+  if (isShortVideo) {
+    const firstKeyword = topic.split(" / ")[0] ?? topic;
+    return [
+      `${topic} — ${date}`,
+      `火星公民 ${date}｜${firstKeyword}`,
+      `${date} 图文｜${topic}`,
+      `${firstKeyword} · ${date}`,
+    ].map((t) => truncate(compact(t), 60));
+  }
+
+  const firstKeyword = topic.split(" / ")[0] ?? topic;
+  return [
+    `${topic} — ${date}`,
+    `${date}｜${firstKeyword}`,
+    `${firstKeyword} · 传播任务`,
+    `${topic}`,
+  ].map((t) => truncate(compact(t), 60));
+}
+
 function getStylePositioning(styleTemplate: StyleTemplate) {
   switch (styleTemplate) {
     case "RATIONAL_PRO":

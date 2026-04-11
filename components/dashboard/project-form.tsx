@@ -1,18 +1,20 @@
 "use client";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { ProjectIntentPicker } from "@/components/dashboard/project-intent-picker";
-import { apiRequest } from "@/lib/client-api";
 import {
   getContentLineMeta,
   getOutputTypeMeta,
   type ContentLine,
   type OutputType,
 } from "@/lib/content-line";
+import { apiRequest } from "@/lib/client-api";
+import { suggestProjectTitles } from "@/lib/project-brief";
 import { getEditorialDirectionPresets, type EditorialDirectionPresetId } from "@/lib/editorial-direction-presets";
 import {
   deriveProjectTitle,
@@ -66,12 +68,31 @@ export function ProjectForm({
   const copyLengthMeta = useMemo(() => getCopyLengthMeta(copyLength, locale), [copyLength, locale]);
   const usageScenarioMeta = useMemo(() => getUsageScenarioMeta(usageScenario, locale), [locale, usageScenario]);
   const [titleInput, setTitleInput] = useState(initialTitle);
+  const [titleIsManual, setTitleIsManual] = useState(!!initialTitle);
+  const [titleSuggestionIndex, setTitleSuggestionIndex] = useState(0);
   const [topicInput, setTopicInput] = useState(initialTopic);
   const [projectIntroductionInput, setProjectIntroductionInput] = useState("");
   const [coreIdeaInput, setCoreIdeaInput] = useState("");
   const [sourceScriptInput, setSourceScriptInput] = useState("");
   const [styleReferenceInput, setStyleReferenceInput] = useState("");
   const [selectedOwnedMediaPreset, setSelectedOwnedMediaPreset] = useState<EditorialDirectionPresetId | null>(null);
+
+  // Auto-generate title from topic unless user has typed their own
+  const titleSuggestions = useMemo(
+    () => suggestProjectTitles({ topicQuery: topicInput, workspaceMode }),
+    [topicInput, workspaceMode],
+  );
+  useEffect(() => {
+    if (!titleIsManual && titleSuggestions.length > 0) {
+      const idx = titleSuggestionIndex % titleSuggestions.length;
+      setTitleInput(titleSuggestions[idx] ?? "");
+    }
+  }, [titleSuggestions, titleSuggestionIndex, titleIsManual]);
+
+  const cycleTitleSuggestion = useCallback(() => {
+    setTitleIsManual(false);
+    setTitleSuggestionIndex((i) => i + 1);
+  }, []);
   const ui = locale === "en"
     ? {
         created: (id: string) => `Project ${id} created. You can continue with live connectors and model workflows next.`,
@@ -374,16 +395,47 @@ export function ProjectForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2">
-          <span className="text-sm font-medium text-[var(--text-2)]">{ui.projectName}</span>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium text-[var(--text-2)]">{ui.projectName}</span>
+            <div className="flex items-center gap-2">
+              {!titleIsManual && topicInput.trim() ? (
+                <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-strong)]">
+                  {locale === "en" ? "Auto-generated" : "自动命名"}
+                </span>
+              ) : null}
+              {titleIsManual ? (
+                <button
+                  type="button"
+                  onClick={cycleTitleSuggestion}
+                  className="text-xs text-[var(--accent-strong)] hover:underline"
+                >
+                  {locale === "en" ? "Reset to auto" : "恢复自动"}
+                </button>
+              ) : topicInput.trim() ? (
+                <button
+                  type="button"
+                  onClick={cycleTitleSuggestion}
+                  className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                  title={locale === "en" ? "Try another title" : "换一个"}
+                >
+                  <RefreshCw className="size-3" />
+                  {locale === "en" ? "Another" : "换一个"}
+                </button>
+              ) : null}
+            </div>
+          </div>
           <input
             name="title"
             value={titleInput}
-            onChange={(event) => setTitleInput(event.target.value)}
+            onChange={(event) => {
+              setTitleInput(event.target.value);
+              setTitleIsManual(true);
+            }}
             placeholder={ui.projectNamePlaceholder}
             className="theme-input w-full rounded-2xl px-4 py-3 text-sm"
           />
-        </label>
+        </div>
         <label className="space-y-2">
           <span className="text-sm font-medium text-[var(--text-2)]">{topicLabel}</span>
           <input
