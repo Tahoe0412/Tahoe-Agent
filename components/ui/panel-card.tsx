@@ -13,7 +13,7 @@ export function PanelCard({
   className?: string;
 }) {
   return (
-    <section className={cn("theme-panel rounded-[28px] p-8", className)}>
+    <section className={cn("theme-panel rounded-xl p-8", className)}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="theme-font-display text-[1.45rem] leading-[1.04] text-[var(--text-1)]">{title}</h3>

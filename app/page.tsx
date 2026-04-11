@@ -34,8 +34,8 @@ function StatCard({
   caption: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-5 shadow-sm">
-      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{label}</div>
+    <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-5">
+      <div className="text-xs font-medium text-[var(--text-3)]">{label}</div>
       <div className="mt-3 text-3xl font-semibold tracking-tight text-[var(--text-1)]">{value}</div>
       <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{caption}</div>
     </div>
@@ -308,7 +308,7 @@ export default async function Home({
         ) : null}
 
         {recentProjectsUnavailable && !projectId ? (
-          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+          <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
             {locale === "en"
               ? "The recent-project list is temporarily unavailable, but you can still start from a new project below."
               : "最近项目列表暂时不可用，但你仍然可以直接从下面开始一个新项目。"}
@@ -327,22 +327,22 @@ export default async function Home({
           />
         ) : workspace ? (
           <div className="space-y-6">
-            <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+            <div className="grid gap-6 xl:grid-cols-2">
               <PanelCard title={ui.focusTitle} description={ui.focusDesc}>
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     {lineMeta ? <SummaryPill><lineMeta.icon className="mr-1.5 inline-block h-3.5 w-3.5" />{lineMeta.label}</SummaryPill> : null}
                     {outputMeta ? <SummaryPill>{outputMeta.label}</SummaryPill> : null}
                   </div>
-                  <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 shadow-sm">
-                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.nextTitle}</div>
+                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6">
+                    <div className="text-xs font-medium text-[var(--text-3)]">{ui.nextTitle}</div>
                     <div className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-1)]">{nextStep.label}</div>
                     <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{focusReason}</div>
                     <div className="mt-5">
                       <NextStepLink href={nextStep.href} label={nextStep.label} />
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-5 text-sm leading-relaxed text-[var(--text-1)]">
+                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-5 text-sm leading-relaxed text-[var(--text-1)]">
                     {workspace.projectSummary.coreIdea?.trim() ||
                       workspace.projectSummary.introduction?.trim() ||
                       workspace.project.topic_query}
@@ -401,7 +401,7 @@ export default async function Home({
             />
 
             <Disclosure
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] p-5"
               summaryClassName="text-sm font-medium text-[var(--text-1)]"
               contentClassName="mt-4 space-y-6"
               title={ui.moreTitle}
@@ -418,7 +418,7 @@ export default async function Home({
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
+                  <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
                     {ui.noBriefYet}
                   </div>
                 )}
@@ -428,7 +428,7 @@ export default async function Home({
                 <div className="grid gap-4 md:grid-cols-3">
                   {(workspace.priorities ?? []).length > 0
                     ? workspace.priorities.slice(0, 3).map((item, index) => (
-                        <div key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                        <div key={item} className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
                             {locale === "en" ? `Note ${index + 1}` : `备注 ${index + 1}`}
                           </div>
@@ -436,7 +436,7 @@ export default async function Home({
                         </div>
                       ))
                     : (
-                      <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)] md:col-span-3">
+                      <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)] md:col-span-3">
                         {locale === "en"
                           ? "No extra notes right now. That is fine."
                           : "当前没有额外备注，这很正常。"}
@@ -465,8 +465,8 @@ export default async function Home({
           />
         ) : (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-6 py-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.quickStartTitle}</div>
+            <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-6 py-4">
+              <div className="text-xs font-medium text-[var(--text-3)]">{ui.quickStartTitle}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                 {locale === "en"
                   ? "① Pick a direction — ② Name the topic — ③ Paste raw material and create."
@@ -522,7 +522,7 @@ export default async function Home({
             </PanelCard>
 
             <Disclosure
-              className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-solid)] p-6"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] p-6"
               summaryClassName="text-sm font-medium text-[var(--text-1)]"
               contentClassName="mt-5"
               title={locale === "en" ? "Why these directions exist" : "为什么现在是这三条方向"}

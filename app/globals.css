@@ -175,14 +175,9 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(34, 184, 207, 0.06), transparent 24%),
-    radial-gradient(circle at 84% 8%, rgba(15, 61, 94, 0.06), transparent 24%),
-    radial-gradient(circle at 50% 100%, rgba(27, 95, 138, 0.04), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, var(--bg-glow-opacity)) 0%, rgba(255, 255, 255, var(--bg-glow-end)) 42%, transparent 100%),
-    var(--canvas);
+  background: var(--canvas);
   color: var(--text-1);
-  font-family: "Inter", "Noto Serif SC", "Songti SC", "STSong", "SimSun", -apple-system, BlinkMacSystemFont, serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -273,38 +268,19 @@ textarea::placeholder {
 
 .theme-panel {
   border: 1px solid var(--border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, var(--panel-glow-opacity)) 0%, rgba(255, 255, 255, var(--panel-glow-end)) 100%),
-    var(--surface-solid);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface-solid);
   position: relative;
   overflow: hidden;
 }
 
-.theme-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at top right, rgba(34, 184, 207, 0.05), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, transparent 18%);
-  opacity: 0.95;
-}
-
 .theme-panel-muted {
   border: 1px solid var(--border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, var(--panel-muted-glow)) 0%, transparent 100%),
-    var(--surface-muted);
+  background: var(--surface-muted);
 }
 
 .theme-panel-strong {
   border: 1px solid color-mix(in srgb, var(--surface-strong-2) 42%, transparent);
-  background:
-    radial-gradient(circle at top left, rgba(183, 186, 162, 0.16), transparent 22%),
-    linear-gradient(180deg, var(--surface-strong) 0%, var(--surface-strong-2) 100%);
-  box-shadow: var(--shadow-soft);
+  background: var(--surface-strong);
   color: var(--text-inverse);
 }
 
@@ -332,9 +308,9 @@ textarea::placeholder {
 }
 
 .theme-font-display {
-  font-family: "Cinzel", "Noto Serif SC", "Songti SC", "STSong", "SimSun", "Source Han Serif SC", serif;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   text-rendering: geometricPrecision;
 }
 
