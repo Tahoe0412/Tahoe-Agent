@@ -177,7 +177,7 @@ body {
   min-height: 100vh;
   background: var(--canvas);
   color: var(--text-1);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  font-family: "Inter", "Noto Serif SC", "Songti SC", "STSong", "SimSun", -apple-system, BlinkMacSystemFont, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -308,9 +308,9 @@ textarea::placeholder {
 }
 
 .theme-font-display {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", "STSong", "SimSun", "Source Han Serif SC", serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-rendering: geometricPrecision;
 }
 
