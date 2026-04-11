@@ -7,6 +7,11 @@ import { Menu, X, Settings, PanelLeftClose, PanelLeftOpen, GalleryVerticalEnd } 
 import { cn } from "@/lib/utils";
 import { copy, type Locale } from "@/lib/locale-copy";
 
+// collapsed: sidebar hidden completely (desktop)
+// pinned: sidebar always visible, pushes content (desktop default)
+// overlay: sidebar visible but floats over content (after first expand from collapsed)
+type DesktopSidebarMode = "pinned" | "collapsed" | "overlay";
+
 type SidebarContextValue = { collapsed: boolean };
 const SidebarContext = createContext<SidebarContextValue>({ collapsed: false });
 export function useSidebar() {
@@ -23,34 +28,56 @@ export function AppShell({
   locale: Locale;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  // Desktop sidebar state machine: pinned → collapsed → overlay → collapsed
+  const [desktopMode, setDesktopMode] = useState<DesktopSidebarMode>("pinned");
   const text = copy[locale];
 
   const toggle = useCallback(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setMobileOpen((v) => !v);
-    } else {
-      setCollapsed((v) => !v);
+      return;
     }
+    setDesktopMode((current) => {
+      if (current === "pinned") return "collapsed";  // pin → hide
+      if (current === "collapsed") return "overlay"; // hidden → overlay
+      return "collapsed";                             // overlay → hide
+    });
   }, []);
 
+  const closeOverlay = useCallback(() => {
+    setDesktopMode("collapsed");
+  }, []);
+
+  // Close on route change (mobile)
   useEffect(() => {
-    const close = () => setMobileOpen(false);
+    const close = () => {
+      setMobileOpen(false);
+      if (desktopMode === "overlay") setDesktopMode("collapsed");
+    };
     window.addEventListener("popstate", close);
     return () => window.removeEventListener("popstate", close);
-  }, []);
+  }, [desktopMode]);
 
+  // ESC closes everything
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileOpen(false);
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+        setDesktopMode((m) => (m === "overlay" ? "collapsed" : m));
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const sidebarVisible =
+    desktopMode === "pinned" || desktopMode === "overlay";
+  const collapsed = desktopMode === "collapsed";
+
   return (
     <SidebarContext.Provider value={{ collapsed }}>
       <div className="theme-shell flex min-h-screen bg-[var(--canvas)]">
+
         {/* ── Mobile Backdrop ── */}
         {mobileOpen ? (
           <div
@@ -60,11 +87,11 @@ export function AppShell({
           />
         ) : null}
 
-        {/* ── Desktop Overlay Backdrop (when sidebar is open, click to close) ── */}
-        {!collapsed ? (
+        {/* ── Desktop Overlay Backdrop (overlay mode only — click anywhere to close) ── */}
+        {desktopMode === "overlay" ? (
           <div
             className="fixed inset-0 z-40 hidden xl:block"
-            onClick={() => setCollapsed(true)}
+            onClick={closeOverlay}
             aria-hidden
           />
         ) : null}
@@ -73,13 +100,13 @@ export function AppShell({
         <aside
           className={cn(
             "theme-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] max-w-[92vw] flex-col overflow-y-auto p-4 transition-transform duration-300 ease-in-out",
-            // Mobile: slide in/out
+            // Mobile
             mobileOpen ? "translate-x-0" : "-translate-x-full",
-            // Desktop: overlay in/out (no layout push)
-            collapsed ? "xl:-translate-x-full" : "xl:translate-x-0",
+            // Desktop
+            sidebarVisible ? "xl:translate-x-0" : "xl:-translate-x-full",
           )}
         >
-          {/* Close button (mobile only) */}
+          {/* Close button — mobile only */}
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
@@ -92,8 +119,17 @@ export function AppShell({
           <div className="flex-1">{sidebar}</div>
         </aside>
 
-        {/* ── Right Content Wrapper — always full width ── */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* ── Right Content Wrapper ── */}
+        {/*
+          pinned  → content pushed right by 248px
+          others  → content takes full width (sidebar either hidden or floating as overlay)
+        */}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out",
+            desktopMode === "pinned" ? "xl:ml-[248px]" : "xl:ml-0",
+          )}
+        >
           {/* ── Global Top Header ── */}
           <header className="theme-header sticky top-0 z-40 flex h-[64px] items-center justify-between px-4 lg:px-6 xl:px-7">
             <div className="flex items-center gap-3">
@@ -103,9 +139,14 @@ export function AppShell({
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)] px-3 text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_38%,var(--border))] hover:text-[var(--text-1)]"
                 aria-label={text.shell.toggleSidebar}
               >
-                {collapsed ? <PanelLeftOpen className="size-5 hidden xl:block" /> : <PanelLeftClose className="size-5 hidden xl:block" />}
+                {sidebarVisible
+                  ? <PanelLeftClose className="size-5 hidden xl:block" />
+                  : <PanelLeftOpen className="size-5 hidden xl:block" />
+                }
                 <Menu className="size-5 xl:hidden" />
-                <span className="theme-kicker hidden text-[10px] font-semibold text-[var(--text-3)] md:inline xl:hidden">{text.shell.menuLabel}</span>
+                <span className="theme-kicker hidden text-[10px] font-semibold text-[var(--text-3)] md:inline xl:hidden">
+                  {text.shell.menuLabel}
+                </span>
               </button>
 
               <Link
