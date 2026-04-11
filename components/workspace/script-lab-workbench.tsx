@@ -8,6 +8,7 @@ import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
 import { assessPublishCopy, assessScenePrompt, assessVideoTitlePack } from "@/lib/artifact-quality";
+import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
 import { getOutputKnowledgePack, reviewOutputArtifact, type ArtifactReview } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
 
@@ -58,6 +59,18 @@ type MarsOutputs = {
   publishCopyPacks: OutputArtifact[];
 };
 
+type ScriptDraftPreview = {
+  id: string;
+  title: string | null;
+  originalText: string;
+  structuredOutput: unknown;
+  rawPayload: unknown;
+  modelName: string | null;
+  sourceType: string;
+  createdAt: string | Date;
+  versionNumber?: number;
+};
+
 function normalizeStringList(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
 }
@@ -79,6 +92,42 @@ function normalizeArtifactReview(value: unknown): ArtifactReview | null {
     issues: normalizeStringList(source.issues),
     nextSteps: normalizeStringList(source.nextSteps),
   };
+}
+
+function renderAudiencePanel(panel: AudiencePanelReview | null, empty: string) {
+  if (!panel) {
+    return <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">{empty}</div>;
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Tag>{`平均分 ${panel.averageScore}`}</Tag>
+        <Tag>{`媒体贴合度 ${panel.styleFitScore}`}</Tag>
+        <Tag tone={panel.publishReadiness === "READY" ? "success" : "danger"}>{panel.publishReadiness === "READY" ? "可继续发布" : "先修再发"}</Tag>
+      </div>
+      <div className="text-sm leading-6 text-[var(--text-1)]">{panel.overallVerdict}</div>
+      <div className="text-sm leading-6 text-[var(--text-2)]">{panel.calibrationSummary}</div>
+      <div className="space-y-2">
+        {panel.reviewers.map((reviewer) => (
+          <div key={reviewer.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
+              <span className="text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
+            </div>
+            <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{reviewer.verdict}</div>
+            {reviewer.concerns.length ? (
+              <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">
+                {reviewer.concerns.slice(0, 2).map((item) => (
+                  <div key={item}>- {item}</div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 async function copyToClipboard(text: string) {
@@ -114,10 +163,12 @@ export function ScriptLabWorkbench({
   projectId,
   rows,
   marsOutputs,
+  latestDraftPreview,
 }: {
   projectId: string;
   rows: ScriptLabRow[];
   marsOutputs: MarsOutputs;
+  latestDraftPreview?: ScriptDraftPreview | null;
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
@@ -149,6 +200,16 @@ export function ScriptLabWorkbench({
   const hasPublishCopy = Boolean(marsOutputs.latestPublishCopy);
   const titleKnowledgeNotes = normalizeStringList(latestVideoTitlePayload?.knowledge_notes);
   const publishKnowledgeNotes = normalizeStringList(latestPublishCopyPayload?.knowledge_notes);
+  const titleAudiencePanel = normalizeAudiencePanelReview(latestVideoTitlePayload?.audience_panel_review);
+  const publishAudiencePanel = normalizeAudiencePanelReview(latestPublishCopyPayload?.audience_panel_review);
+  const latestDraftStructured = (latestDraftPreview?.structuredOutput as Record<string, unknown> | null) ?? null;
+  const latestDraftAudiencePanel = normalizeAudiencePanelReview(latestDraftStructured?.audience_panel_review);
+  const latestDraftSections = {
+    title: normalizeString(latestDraftStructured?.title) || latestDraftPreview?.title || "",
+    opening: normalizeString(latestDraftStructured?.opening),
+    body: normalizeString(latestDraftStructured?.body),
+    closing: normalizeString(latestDraftStructured?.closing),
+  };
   const titleArtifactReview =
     normalizeArtifactReview(latestVideoTitlePayload?.artifact_review) ??
     (hasTitlePack ? reviewOutputArtifact("VIDEO_TITLE", latestVideoTitlePayload ?? {}) : null);
@@ -173,15 +234,27 @@ export function ScriptLabWorkbench({
     let weakest = "先继续把镜头文本改到更清楚、更可执行。";
     let next = "从左侧挑一条最关键镜头开始细修，然后补跑分类或素材分析。";
 
-    if (!hasTitlePack) {
-      weakest = "还缺少视频标题包，发布包装没有闭环。";
-      next = "回总览页点“视频标题”，拿到第一版标题包后再回这里微调。";
+    if (latestDraftAudiencePanel?.reviewers?.length && latestDraftAudiencePanel.publishReadiness !== "READY") {
+      const weakestReviewer = [...latestDraftAudiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
+      weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "主稿还不够像一篇能直接发布的内容。";
+      next = weakestReviewer?.nextAction || "先修主稿的信息密度、证据感和段落推进，再处理包装。";
+    } else if (!hasTitlePack) {
+      weakest = "还缺少内容标题包，发布包装没有闭环。";
+      next = "回总览页点“内容标题”，拿到第一版标题包后再回这里微调。";
     } else if (!hasPublishCopy) {
       weakest = "还缺少发布文案，发布层还不完整。";
       next = "回总览页点“发布文案”，补出可直接发布的一版说明文案。";
+    } else if (publishAudiencePanel?.reviewers?.length && publishAudiencePanel.publishReadiness !== "READY") {
+      const weakestReviewer = [...publishAudiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
+      weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "模拟观众判断当前发布包装还不适合直接发。";
+      next = weakestReviewer?.nextAction || "先解决掉分最严重的观众异议，再继续下游工作。";
+    } else if (titleAudiencePanel?.reviewers?.length && titleAudiencePanel.publishReadiness !== "READY") {
+      const weakestReviewer = [...titleAudiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
+      weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "模拟观众判断当前标题包还不够能停住人。";
+      next = weakestReviewer?.nextAction || "先补强标题钩子和区分度，再继续推进。";
     } else if (readySceneCount < rows.length) {
       weakest = `还有 ${rows.length - readySceneCount} 个镜头没到可执行状态。`;
-      next = "优先处理待补素材的镜头，把这条内容推进到可做分镜 / 生成准备。";
+      next = "优先处理待补素材的条目，把这条内容推进到可做配图说明 / 图片生产。";
     } else if (promptReadySceneCount < rows.length) {
       weakest = `还有 ${rows.length - promptReadySceneCount} 个镜头不够适合 Nano Banana / Seedance / Veo 的后续生成。`;
       next = "补齐连续性锚点、视觉重点和 avoid 标签，确保每镜头都是单主体、单动作、清晰环境。";
@@ -189,8 +262,8 @@ export function ScriptLabWorkbench({
       weakest = `当前还有 ${totalRiskFlags} 个风险标记需要复核。`;
       next = "先检查高风险镜头的动作、口型和素材依赖，再决定是否进入下游生成。";
     } else {
-      weakest = "主脚本、发布包装和镜头提示词都比较完整，可以进入分镜 / 生成准备。";
-      next = "继续去分镜页或生成准备页，把这条内容推进到 Nano Banana / Seedance / Veo 的生产阶段。";
+      weakest = "主稿、发布包装和配图提示词都比较完整，可以进入配图说明 / 图片生产。";
+      next = "继续去配图说明或图片生产页，把这条内容推进到图片生产阶段。";
     }
 
     return {
@@ -198,7 +271,7 @@ export function ScriptLabWorkbench({
       weakest,
       next,
     };
-  }, [hasPublishCopy, hasTitlePack, promptReadySceneCount, readySceneCount, rows.length, totalRiskFlags]);
+  }, [hasPublishCopy, hasTitlePack, latestDraftAudiencePanel, promptReadySceneCount, publishAudiencePanel, readySceneCount, rows.length, titleAudiencePanel, totalRiskFlags]);
   const titleQualityAlerts = useMemo(
     () =>
       hasTitlePack
@@ -455,7 +528,7 @@ export function ScriptLabWorkbench({
         body: JSON.stringify({
           task_type: "SCRIPT",
           task_status: "DONE",
-          task_title: `视频标题包 · ${recommendedTitle.trim()}`,
+          task_title: `内容标题包 · ${recommendedTitle.trim()}`,
           task_summary: recommendedTitle.trim(),
           priority_score: 84,
           task_json: {
@@ -535,7 +608,7 @@ export function ScriptLabWorkbench({
     <div className="space-y-6">
       {/* ── Section 1: Title Pack + Publish Copy (primary area) ── */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <PanelCard title="视频标题包" description="编辑推荐标题和备选标题，一键复制到发布平台。">
+        <PanelCard title="内容标题包" description="编辑推荐标题和备选标题，用于图文发布包装。">
           <div className="space-y-4">
             {marsOutputs.latestVideoTitlePack ? (
               <div className="theme-panel-muted rounded-[24px] p-4">
@@ -583,13 +656,15 @@ export function ScriptLabWorkbench({
                           ))}
                         </div>
                       ) : null}
+                      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
+                      {renderAudiencePanel(titleAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
-                还没有生成标题包。回到总览页点一下"视频标题"就能补上。
+                还没有生成标题包。回到总览页点一下“内容标题”就能补上。
               </div>
             )}
           </div>
@@ -653,6 +728,8 @@ export function ScriptLabWorkbench({
                           ))}
                         </div>
                       ) : null}
+                      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
+                      {renderAudiencePanel(publishAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
                     </div>
                   </div>
                 </div>
@@ -683,6 +760,56 @@ export function ScriptLabWorkbench({
           </div>
         </div>
       </PanelCard>
+
+      {latestDraftPreview && (latestDraftSections.opening || latestDraftSections.body || latestDraftSections.closing || latestDraftAudiencePanel) ? (
+        <PanelCard title="主稿复核" description="主稿本身是否像一篇能发的图文，要先于镜头和包装成立。">
+          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+            <div className="space-y-4">
+              <div className="theme-panel-muted rounded-[22px] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">主稿标题</div>
+                    <div className="mt-2 text-lg font-semibold text-[var(--text-1)]">
+                      {latestDraftSections.title || "当前主稿"}
+                    </div>
+                  </div>
+                  {latestDraftPreview.versionNumber ? (
+                    <Tag>{`v${latestDraftPreview.versionNumber}`}</Tag>
+                  ) : null}
+                </div>
+              </div>
+
+              {latestDraftSections.opening ? (
+                <div className="theme-panel-muted rounded-[22px] p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">开头</div>
+                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">{latestDraftSections.opening}</div>
+                </div>
+              ) : null}
+
+              {latestDraftSections.body ? (
+                <div className="theme-panel-muted rounded-[22px] p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">主体</div>
+                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">
+                    {latestDraftSections.body}
+                  </div>
+                </div>
+              ) : null}
+
+              {latestDraftSections.closing ? (
+                <div className="theme-panel-muted rounded-[22px] p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">结尾</div>
+                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">{latestDraftSections.closing}</div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="theme-panel-muted rounded-[22px] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
+              {renderAudiencePanel(latestDraftAudiencePanel, "系统完成主稿复核后，这里会出现多观众评分。")}
+            </div>
+          </div>
+        </PanelCard>
+      ) : null}
 
       {/* ── Section 3: Collapsible shot editor ── */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)]">
@@ -909,4 +1036,3 @@ export function ScriptLabWorkbench({
     </div>
   );
 }
-

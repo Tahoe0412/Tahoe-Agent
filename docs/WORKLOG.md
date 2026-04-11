@@ -5,6 +5,163 @@
 
 ---
 
+## 2026-04-11 17:35 — Agent: Antigravity
+
+### Task: T-014 Image-first terminology sweep across user-visible surfaces
+
+**Changes**:
+- Modified `app/page.tsx` — replaced remaining storyboard/video-era labels in dashboard focus reasons, stat card captions, and status labels. Changed 东方元气 icon from `BriefcaseBusiness` to `Heart`. Renamed "视觉条目" → "配图条目", "视觉脚本" → "配图说明", "分镜 / 生成准备" → "配图说明 / 图片生产" across both Chinese and English surfaces.
+- Modified `components/dashboard/project-form.tsx` — replaced "配图脚本" → "配图说明" in the owned-media flow summary and storyboard-script flow line.
+- Modified `lib/workspace-mode.ts` — replaced "配图脚本" → "配图说明" in the `SHORT_VIDEO` workspace mode description.
+- Modified `components/dashboard/sidebar.tsx` — replaced sidebar hint "素材与分镜规划" → "配图说明与素材" for Scene Planner nav.
+- Modified `app/script-lab/page.tsx` — replaced "做分镜与素材" → "配图说明" in the next-step CTA label.
+- Modified `components/workspace/script-lab-workbench.tsx` — replaced 3 remaining "分镜 / 生成准备" references in the feedback logic with "配图说明 / 图片生产".
+
+**Reason**:
+- The product focus is article + static-image publishing, but the pages most visible to new users — homepage, create form, sidebar, and Script Lab — still leaked storyboard/video-era terminology at several points. This pass cleans the first-run-critical surfaces while keeping internal schema compatibility untouched.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 10:28 — Agent: Codex
+
+### Task: T-014 Image-brief readiness review
+
+**Changes**:
+- Added `lib/image-brief-review.ts` — introduced a lightweight heuristic review that scores each image-brief row on prompt specificity, reference coverage, asset readiness, composition guidance, and current risk flags.
+- Modified `components/workspace/scene-planner-workbench.tsx` — each image-brief row now shows a compact `可开工 / 待补强` readiness badge, and the detail panel now includes a short “图片 brief 复核” block with score, main issues, and next actions.
+- Modified `components/workspace/render-lab-workbench.tsx` — the image-job editor now surfaces the same readiness review above the form so users can see the main brief gap before creating a new image task.
+- Updated `docs/TASKS.md`, `docs/PROJECT_STATE.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- After changing these surfaces to image-first language, the next weak spot was that Tahoe still treated any non-empty prompt as enough to start image generation. The system now makes prompt/reference/composition gaps visible before users spend generation attempts on a weak row.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 10:54 — Agent: Codex
+
+### Task: T-014 Image-job outcome feedback loop
+
+**Changes**:
+- Modified `schemas/production-control.ts` — added a compact `renderJobFeedbackSchema` with one verdict, a small issue-tag set, and an optional short note.
+- Modified `services/render-job.service.ts` — added `updateFeedback(...)` so Tahoe can persist structured image-run feedback into `render_jobs.output_json.feedback` without changing the database schema.
+- Added `app/api/projects/[id]/render-jobs/[jobId]/route.ts` — introduced a `PATCH` endpoint for saving per-job feedback.
+- Modified `components/workspace/render-lab-workbench.tsx` — image-job history now indicates when feedback exists, and the right-side job detail panel now includes a small result-feedback form (`保留这一版 / 继续重试 / 先改 brief` + issue tags + short note).
+- Updated `docs/TASKS.md`, `docs/PROJECT_STATE.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- The new image-brief readiness review was still only a heuristic. Tahoe now needs real image-run outcomes captured on the job record itself so future prompt/brief quality checks can learn from actual failures instead of only generic rules.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 11:16 — Agent: Codex
+
+### Task: T-014 Feed image-job outcomes back into Scene Planner
+
+**Changes**:
+- Added `lib/render-job-feedback.ts` — extracted shared helpers for parsing saved image-run feedback, labeling issue tags, and summarizing recent row-level failure patterns.
+- Modified `components/workspace/render-lab-workbench.tsx` — moved result-feedback parsing/labels onto the shared helper so Render Lab and Scene Planner now read from the same feedback layer.
+- Modified `app/scene-planner/page.tsx` — passed the recent render jobs into the Scene Planner workbench.
+- Modified `components/workspace/scene-planner-workbench.tsx` — rows now show when recent retry / rewrite history exists, and the detail panel now includes a compact “最近出图反馈” block with latest verdict, top issue tags, and the latest short note.
+- Updated `docs/TASKS.md`, `docs/PROJECT_STATE.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- Once Tahoe started saving image-run outcome feedback, keeping that information only inside Render Lab left the planning surface blind to the most useful signal. The planner now shows the recent failure pattern before users launch another image attempt.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 09:56 — Agent: Codex
+
+### Task: T-014 Image-first language pass for Scene Planner + Render Lab
+
+**Changes**:
+- Modified `lib/locale-copy.ts` — renamed the two production-side surfaces in user-facing copy from storyboard/render-first language to `配图说明 / 图片生产`, and tightened sidebar hints accordingly.
+- Modified `app/scene-planner/page.tsx` — updated page-level header actions, empty states, and fallback copy so the page now guides users toward image-brief work instead of storyboard-first/video-first work.
+- Modified `app/render-lab/page.tsx` — updated page-level copy so the page now teaches image-job creation first and points users back to `主稿与发布包装` or `配图说明` instead of generic render/video framing.
+- Modified `components/workspace/generate-storyboard-button.tsx` — changed the default CTA text to `生成配图说明 / Generate Image Brief`.
+- Modified `components/workspace/scene-planner-workbench.tsx` — retitled the main stats, cards, and detail panel around `配图条目 / 配图说明 / 参考素材`, without changing the underlying data model.
+- Modified `components/workspace/render-lab-workbench.tsx` — retitled the main cards and empty states to `图片任务`, `图片任务编辑区`, and `图片任务历史`, and changed the primary create CTA from `创建渲染任务` to `创建图片任务`.
+- Updated `docs/TASKS.md`, `docs/PROJECT_STATE.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- After the product focus moved to article + static-image publishing, these pages were still teaching users to think in storyboard/render/video terms. The immediate fix was to change the user-facing language while keeping the current backend compatibility layer intact.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 01:20 — Agent: Codex
+
+### Task: T-014 Shared editorial presets for Brand Profiles + Brief Studio
+
+**Changes**:
+- Added `lib/editorial-direction-presets.ts` — centralized the three owned-media directions (`AI增长官`, `金钱不眠`, `东方元气`) into one reusable preset source that now carries:
+  - project-shell defaults
+  - brand-profile defaults
+  - default content pillars
+  - brief defaults
+- Modified `components/dashboard/project-form.tsx` — the existing quick direction presets now reuse the shared preset source and also prefill style-reference guidance.
+- Modified `components/workspace/brand-profile-workbench.tsx` — added short direction preset cards above the create form. Applying one preset now pre-fills the visible brand fields and also submits hidden brand skeleton fields (`core_belief`, `target_personas`, `product_lines`, `compliance_notes`, metadata). After creating a profile from a preset, Tahoe also auto-creates the first default content pillars.
+- Modified `components/workspace/brief-studio-workbench.tsx` — added the same short direction preset cards above the brief form and wired them to prefill title, objective, tone, audience, platforms, key message, CTA, target audience, and default constraints.
+- Modified `components/workspace/brief-studio-workbench.tsx` — normalized brief platform values to the schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`) and removed the old create-form reliance on `XIAOHONGSHU` / `BRAND_PAGE`, which could drift away from the backend schema.
+- Modified `app/brief-studio/page.tsx` — tightened remaining owned-media helper copy so the page now talks about main drafts and image planning instead of script/storyboard-first language.
+- Updated `docs/TASKS.md`, `docs/PROJECT_STATE.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- The next valuable step after quick project presets was to make the same three editorial directions reusable deeper in the workflow. Doing that without a shared source would create drift immediately. Brief Studio also had a latent platform-value mismatch that needed to be fixed before adding more presets on top.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-11 00:35 — Agent: Codex
+
+### Task: T-014 Card-copy tightening + owned-media quick presets
+
+**Changes**:
+- Modified `app/page.tsx` — shortened homepage start-card descriptions and footers so cards signal direction without explaining the full workflow inside each card.
+- Modified `lib/content-line.ts` and `components/dashboard/project-intent-picker.tsx` — tightened business-line and output-type card descriptions; the owned-media package block is now a compact asset row instead of a longer explanatory paragraph.
+- Modified `components/dashboard/project-form.tsx` — switched key inputs to controlled state and added three quick owned-media presets (`AI增长官`, `金钱不眠`, `东方元气`) that prefill topic, project introduction, and core idea for faster project creation.
+- Updated `docs/TASKS.md` and `docs/PROJECT_STATE.md`.
+
+**Reason**: The user asked to keep feature cards concise and to start turning the three editorial directions into something operational. The fastest useful move was to shorten entry-card copy and make those three directions directly selectable in the shared project-creation form.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
+## 2026-04-10 10:45 — Agent: Codex
+
+### Task: T-014 Owned-media main-draft audience review
+
+**Changes**:
+- Modified `services/news-script.service.ts` — owned-media narrative draft generation now backfills a persisted `audience_panel_review` onto `script.structured_output` using the same Chinese-media calibration + four-audience panel pattern already used in Marketing and packaging review.
+- Modified `services/workspace-query.service.ts` — the workspace read model now keeps the latest previewable structured draft available instead of only exposing the absolute latest script row, so later rewrite/scene records do not hide the main article draft.
+- Modified `components/workspace/script-preview-panel.tsx` — the pre-scene preview now shows main-draft audience scores, verdict, calibration summary, and reviewer concerns directly above the structured opening/body/closing sections.
+- Modified `components/workspace/script-lab-workbench.tsx` and `app/script-lab/page.tsx` — Script Lab now carries the latest structured main draft into the workbench and shows a dedicated “主稿复核” block even after scene rows exist. Top-level “当前判断” also prioritizes main-draft audience objections before packaging advice.
+- Updated `docs/TASKS.md`, `docs/DECISIONS.md`, and `docs/PROJECT_STATE.md`.
+
+**Reason**: Packaging review was already strong, but the owned-media article itself still lacked a persistent quality layer. That created the wrong optimization order. The system now judges the main draft as a publishable article first, and keeps that verdict visible after downstream scene work starts.
+
+**Verification**:
+- `npm run build` ✅
+
+---
+
 ## 2026-03-24 16:27 — Agent: Antigravity
 
 ### Serper-Based Platform Connectors for XHS, Douyin, TikTok
@@ -73,6 +230,181 @@
 **Verification**:
 - Confirmed `X_BEARER_TOKEN` is present and non-empty in `.env.local`
 - `.env.local` takes higher priority than `.env` in Next.js, so the old empty placeholder was not causing a runtime issue, but was misleading
+
+---
+
+## 2026-04-10 00:00 — Agent: Codex
+
+### T-014 Reposition Tahoe Around Toutiao-First Article/Image Publishing
+
+**Changes**:
+- **`docs/CONTENT_MATRIX_STRATEGY.md`** (new): Added a near-term business strategy baseline for Tahoe:
+  - use AI + agentic workflows to build an owned-media matrix
+  - start from 头条号 / Toutiao
+  - prioritize article + static-image production over video-first execution
+  - anchor the first three directions in `AI增长官`, `金钱不眠`, and `东方元气`
+- **`docs/PROJECT_STATE.md`**: Updated the project goal and module notes so the owned-media line is described as article/image-first instead of short-video-first.
+- **`docs/TASKS.md`**: Added `T-014` to track the repositioning work.
+- **`docs/DECISIONS.md`**: Added `D-019`, making Toutiao-first article/image publishing the near-term product baseline.
+- **`app/page.tsx`**: Rewrote the homepage entry copy and workspace framing so the owned-media line now reads as article/image-first. Marketing copy now reads as client-facing commercial services.
+- **`lib/content-line.ts`**: Updated content-line and output-type metadata so user-facing labels now describe article/image packages and client-service outputs rather than defaulting to video language.
+- **`components/dashboard/project-intent-picker.tsx`**: Reframed the owned-media project package from “one project = one video” to “one project = one publishable article package”.
+- **`lib/project-brief.ts`**: Updated generated titles, introductions, core ideas, and style-reference defaults so the owned-media line now generates article/image-first briefs rather than short-video briefs.
+
+**Reason**:
+- The user explicitly changed the business target: Tahoe should now focus on high-quality text and refined image publishing, starting from Toutiao, before returning to video.
+
+**Verification**:
+- `npm run build` passed after the code/doc edits in this entry
+
+---
+
+## 2026-04-10 21:10 — Agent: Codex
+
+### Task: Install UI/UX Pro Max project-local Codex skill
+
+**Changes**:
+- Installed `UI/UX Pro Max` into the current repository as a project-local Codex skill at **`.codex/skills/ui-ux-pro-max/SKILL.md`** using `npx uipro-cli init --ai codex`.
+
+**Reason**:
+- The user asked to install the external UI skill from `nextlevelbuilder/ui-ux-pro-max-skill` for use inside this project.
+
+**Verification**:
+- Confirmed `.codex/skills/ui-ux-pro-max/SKILL.md` exists after installation.
+- The upstream repo is not a standard `SKILL.md` repository for the generic installer; the supported install path for Codex is via `uipro-cli`.
+
+---
+
+## 2026-04-10 21:20 — Agent: Codex
+
+### Task: Adapt UI/UX Pro Max skill for Tahoe constraints
+
+**Changes**:
+- Modified **`.codex/skills/ui-ux-pro-max/SKILL.md`** so the local skill now:
+  - defaults to `nextjs` for Tahoe work
+  - uses `.codex/skills/ui-ux-pro-max/scripts/search.py` paths instead of the upstream generic examples
+  - explicitly treats upstream output as design guidance rather than direct implementation code
+  - explicitly forbids Tailwind-based implementation inside Tahoe
+  - tells future agents to translate recommendations into Tahoe's `vanilla CSS + CSS custom properties` system
+
+**Reason**:
+- The upstream skill assumes `html-tailwind` as the default implementation path, which conflicts with Tahoe's repo constraints and would produce the wrong kind of code if used unmodified.
+
+**Verification**:
+- Confirmed the local `SKILL.md` now contains a Tahoe-specific override section and nextjs-based command examples.
+
+---
+
+## 2026-04-10 21:40 — Agent: Codex
+
+### Task: First UI/UX Pro Max-guided homepage pass
+
+**Changes**:
+- **`app/page.tsx`**: Reworked the no-project homepage state into a more editorial landing surface:
+  - added a strategy board for the current business model and the three owned-media directions
+  - changed the start surface from a uniform four-card launcher into a more directional production entry grid
+  - added richer start-card footers so each path reads like a concrete production sequence
+- **`app/globals.css`**: Added homepage-specific styles for:
+  - the strategy board
+  - editorial direction pills
+  - production-note cards
+  - asymmetric start-card layout and hover states
+- **`docs/TASKS.md`**: Recorded this as part of the current T-014 repositioning slice.
+
+**Reason**:
+- After shifting Tahoe toward Toutiao-first article/image publishing, the homepage still behaved like a generic dashboard launcher. The first no-project surface needed to read more like an editorial production desk with a clear business frame.
+
+**Verification**:
+- `npm run build` passed after the homepage edits
+- local visual check on `http://localhost:3001/` confirmed the new strategy board and asymmetric start-card layout render in the no-project state
+- local dev still reports existing Prisma permission errors when loading recent projects; the homepage falls back and remains usable, but that database issue is separate from this UI change
+
+---
+
+## 2026-04-10 22:05 — Agent: Codex
+
+### Task: Upgrade shared project-creation form for article/image-first quality
+
+**Changes**:
+- **`components/dashboard/project-form.tsx`**:
+  - rewrote the form intro copy so it now emphasizes concrete topic definition and source-material quality instead of generic workflow language
+  - changed the owned-media flow copy from short-video language to `选题研究 -> 主稿生成 -> 配图脚本 -> 发布包装`
+  - added a “最能提高首稿质量的输入” helper block that explains what kind of topic, source material, and style reference produces better first drafts
+  - upgraded owned-media placeholders from “口播 / 脚本” framing to “背景材料 / 事实底稿” framing
+  - made `styleReferenceSample` visible for both lines so owned-media article work can also benefit from style anchoring when needed
+- **`lib/workspace-mode.ts`**:
+  - changed the user-facing `SHORT_VIDEO` metadata to read as the current owned-media/article-image compatibility bucket
+  - updated default topic / source defaults and visible default platforms accordingly
+- **`components/settings/project-manager.tsx`**:
+  - aligned the filter and create-surface labels so the owned-media mode no longer appears as “短视频 / Short Video” in settings UI
+
+**Reason**:
+- After the homepage was repositioned, the shared project form was still teaching an older short-video mental model. That was weakening both clarity and first-draft quality.
+
+**Verification**:
+- `npm run build` passed after the form and metadata edits
+- local visual check on `http://localhost:3001/` confirmed the upgraded create-project copy and the new input-quality helper block render in the no-project state
+- local dev still reports the existing Prisma permission error when trying to load recent projects; that database issue is separate from this form/UI slice
+
+---
+
+## 2026-04-10 23:10 — Agent: Codex
+
+### Task: Add Chinese-media calibration + multi-audience review for marketing master copy
+
+**Changes**:
+- **`lib/copy-review-panel.ts`** (new):
+  - added a reusable “Chinese high-quality media calibration” notes layer
+  - defined a persisted `AudiencePanelReview` shape with four simulated audience types:
+    - `feed_scanner`
+    - `skeptical_reader`
+    - `editor`
+    - `sharer`
+  - added prompt builders and JSON / Zod schemas for second-pass audience scoring
+- **`services/promotional-copy.service.ts`**:
+  - added the new calibration notes directly into master-copy generation and enhancement prompts
+  - added async post-save review enrichment so generated and manually saved master-copy versions can now persist:
+    - `quality_diagnosis`
+    - `audience_panel_review`
+  - kept this review enrichment non-fatal so the main draft still saves even if the second-pass reviewer fails
+- **`components/workspace/marketing-ops-workbench.tsx`**:
+  - added a new “观众评分面板 / Audience panel” surface under the master-copy editor
+  - surfaced average score, style-fit score, readiness judgment, overall verdict, and per-reviewer likes / concerns / next action
+  - updated the top feedback summary so it can now react to the weakest simulated audience, not only the old diagnosis field
+- **`components/workspace/project-context.tsx`**, **`components/dashboard/project-form.tsx`**, **`components/settings/project-manager.tsx`**:
+  - tightened style-reference guidance so users are explicitly pushed toward 1-3 high-quality Chinese media / blogger samples instead of vague slogan-like references
+
+**Reason**:
+- The user explicitly wants copy quality to move closer to strong Chinese media writing patterns, and wants Tahoe to judge drafts using multiple audience perspectives instead of one generic score. The right seam was to upgrade the persisted review layer, not just add more prompt text.
+
+**Verification**:
+- `npm run build` passed after the review-layer and UI changes
+- no schema migration was required because the new review panel is stored inside `strategy_tasks.task_json`
+
+---
+
+## 2026-04-10 23:40 — Agent: Codex
+
+### Task: Extend multi-audience review to owned-media packaging in Script Lab
+
+**Changes**:
+- **`lib/output-artifact-prompt.ts`**:
+  - removed the strongest remaining short-video framing from the title-pack and publish-copy prompt copy so these outputs are now prompted as article/image-first publishing artifacts
+- **`services/project-output-generator.service.ts`**:
+  - added the same “Chinese high-quality media calibration” notes to `VIDEO_TITLE` and `PUBLISH_COPY` generation
+  - added async post-save `audience_panel_review` enrichment for generated title packs and publish-copy packs
+- **`services/marketing-operations.service.ts`**:
+  - extended manual `strategy_task` saves so Script Lab’s “另存新版本” flow for `VIDEO_TITLE` / `PUBLISH_COPY` also backfills an `audience_panel_review` instead of dropping to no second-pass review
+- **`components/workspace/script-lab-workbench.tsx`**:
+  - renamed the main title-pack card to “内容标题包”
+  - added a new “观众评分” block for both title pack and publish copy
+  - updated the top-level Script Lab “当前判断” logic so it can react to the weakest simulated audience, not only the older heuristic review
+
+**Reason**:
+- After adding multi-audience review to Marketing master copy, the highest-value next step was to extend the same judgment layer to owned-media publishing artifacts. This keeps Tahoe’s packaging quality loop consistent across both business lines and avoids letting manually saved title/publish versions silently lose the review layer.
+
+**Verification**:
+- `npm run build` passed after the packaging-review changes
 
 ---
 
@@ -1188,3 +1520,46 @@
 - Check `services/news-search/serper.ts` for news search implementation
 - Check `services/web-search/serper-search.service.ts` for web search
 - The old Google files exist but are unused
+## 2026-04-11 13:35 — Agent: Codex
+
+### Task: Harden Homepage First-Run Create Flow
+
+**Changes**:
+- Modified `components/dashboard/project-form.tsx`
+  - owned-media presets no longer overwrite the current topic field
+  - current topic is now framed as `本期题目`
+  - `项目介绍` and `核心想法` are now visible in the main owned-media create path instead of hiding behind advanced controls
+  - shared project creation now slices default `platforms` to the schema-safe max of 3
+- Modified `lib/workspace-mode.ts` — reduced shared default platform payloads to a schema-safe set of 3
+- Modified `services/research-orchestrator.service.ts` — fixed empty project-shell report generation so `script_summary.version_number` stays schema-valid
+- Modified `lib/client-api.ts` — improved validation-error guidance for the two hidden-default failure modes
+- Modified `components/dashboard/project-intent-picker.tsx`, `lib/content-line.ts`, `app/page.tsx` — replaced lingering `配图脚本` / `Mars Citizen` style labels on the homepage path with more direct image/article-first wording
+
+**Reason**:
+- A real first-run UX pass showed the homepage create path failing on hidden system defaults before a new user could even create a first project. The form also mixed up long-term direction presets with the current article topic, which made the first step harder than necessary for copy-first users.
+
+**Validation**:
+- `npm run build` passed after the fixes
+- Browser verification confirmed the original hidden `platforms` blocker was removed; subsequent create attempts no longer fail on that issue
+
+### Follow-up: Make the no-project homepage answer “what do I do now?”
+
+**Changes**:
+- Modified `app/page.tsx`
+  - reordered the no-project homepage to: quick-start steps -> create form -> alternative entry cards -> optional strategy details
+  - moved the heavier editorial strategy explanation behind a disclosure instead of showing it ahead of the create path
+- Modified `components/dashboard/project-form.tsx`
+  - shortened the create-form title and description so the form reads like an immediate action, not a system overview
+
+**Reason**:
+- After the first-run UX pass, the next issue was not only hidden validation blockers; it was that the page still taught strategy before it taught the first action. The homepage now prioritizes immediate task clarity over editorial framing.
+
+### Follow-up: Compress the create form itself
+
+**Changes**:
+- Modified `components/dashboard/project-form.tsx`
+  - shortened the create-form headline and description again
+  - converted the first-draft quality guidance from a three-card wall into a denser numbered list
+
+**Reason**:
+- Even after the homepage reorder, the create form still asked a first-time user to visually parse too many equally weighted panels. The form now puts more weight on fields and less on explanatory cards.

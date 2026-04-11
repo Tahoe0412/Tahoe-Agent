@@ -15,14 +15,14 @@ export function getWorkspaceMode(input: unknown): WorkspaceMode {
 export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = "zh") {
   const zh = {
     SHORT_VIDEO: {
-      label: "短视频",
-      description: "适合做趋势研究、脚本拆解、分镜规划与素材编排。",
-      titleDefault: "短视频内容项目",
-      topicDefault: "品牌短视频内容方向",
+      label: "内容矩阵",
+      description: "适合做选题研究、文章主稿、配图说明与发布包装。",
+      titleDefault: "内容矩阵项目",
+      topicDefault: "本期图文选题方向",
       sourceScriptDefault:
-        "原始脚本：\n我们要围绕一个核心主题，做一条更适合短视频传播的内容，重点强调钩子、节奏、镜头表达和转化动作。",
-      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
-      displayPlatforms: ["YouTube", "TikTok", "小红书", "抖音"],
+        "背景材料：\n围绕一个核心主题整理素材、事实、判断和表达角度，目标是形成一篇更适合图文发布的高质量主稿，并为后续配图留出清晰视觉方向。",
+      platforms: ["X", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["头条号", "微信公众号", "小红书", "知乎"],
     },
     COPYWRITING: {
       label: "文案写作",
@@ -41,21 +41,21 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "新品宣传与平台推广",
       sourceScriptDefault:
         "推广需求：\n我们希望围绕一个产品或活动做整套宣传内容，明确目标用户、平台重点、核心卖点、风险边界和发布前准备。",
-      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      platforms: ["X", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
       displayPlatforms: ["全平台分发"],
     },
   } as const;
 
   const en = {
     SHORT_VIDEO: {
-      label: "Short Video",
-      description: "For trend research, script breakdown, storyboard planning, and asset orchestration.",
-      titleDefault: "Short Video Project",
-      topicDefault: "Brand short-form direction",
+      label: "Owned Media",
+      description: "For topic research, master drafts, image briefs, and publishing packages.",
+      titleDefault: "Owned Media Project",
+      topicDefault: "Current article/image direction",
       sourceScriptDefault:
-        "Source script:\nWe want to turn one core idea into a short-form video with a stronger hook, cleaner pacing, and clearer visual actions.",
-      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
-      displayPlatforms: ["YouTube", "TikTok", "Xiaohongshu", "Douyin"],
+        "Background material:\nOrganize source facts, judgments, and framing around one topic so the project can turn into a stronger article draft and a clearer image direction.",
+      platforms: ["X", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      displayPlatforms: ["Toutiao", "WeChat", "Xiaohongshu", "Zhihu"],
     },
     COPYWRITING: {
       label: "Copywriting",
@@ -74,7 +74,7 @@ export function getWorkspaceModeMeta(mode: WorkspaceMode, locale: "zh" | "en" = 
       topicDefault: "Launch and promotion strategy",
       sourceScriptDefault:
         "Promotion brief:\nWe want to build a full set of messaging around one product or campaign, including audience, key value, platform focus, and publishing prep.",
-      platforms: ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
+      platforms: ["X", "XHS", "DOUYIN"] satisfies SupportedPlatform[],
       displayPlatforms: ["All Platforms"],
     },
   } as const;

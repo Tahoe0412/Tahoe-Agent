@@ -43,8 +43,8 @@ export default async function ScriptLabPage({
   const nextLabel =
     routesToStoryboard
       ? locale === "en"
-        ? "Next: Plan Storyboard"
-        : "下一步：做分镜与素材"
+        ? "Next: Image Brief"
+        : "下一步：配图说明"
       : locale === "en"
         ? "Next: Write Marketing Copy"
         : "下一步：去写宣传文案";
@@ -138,7 +138,12 @@ export default async function ScriptLabPage({
             }
           />
         ) : (
-          <ScriptLabWorkbench projectId={projectId} rows={workspace.scriptLabRows} marsOutputs={workspace.marsOutputs} />
+          <ScriptLabWorkbench
+            projectId={projectId}
+            rows={workspace.scriptLabRows}
+            marsOutputs={workspace.marsOutputs}
+            latestDraftPreview={workspace.latestScriptPreview}
+          />
         )}
       </div>
     </WorkspaceLayout>

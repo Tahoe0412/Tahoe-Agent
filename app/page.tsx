@@ -15,6 +15,7 @@ import { copy, getLocale } from "@/lib/locale";
 import { buildDashboardCreateHref, coerceOutputType, resolveContentLine } from "@/lib/project-intent";
 import { getDashboardNextStep } from "@/lib/workflow-navigator";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
+import { ArrowUpRight, Heart, Newspaper, Sparkles, WalletCards } from "lucide-react";
 
 const workspaceQueryService = new WorkspaceQueryService();
 
@@ -46,31 +47,74 @@ function StartCard({
   title,
   description,
   locale,
+  footer,
+  featured = false,
 }: {
   href: Route;
   eyebrow: string;
   title: string;
   description: string;
   locale: string;
+  footer?: string;
+  featured?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-[0_12px_30px_rgba(34,184,207,0.08)]"
+      className={`home-start-card group ${featured ? "home-start-card-featured" : ""}`}
     >
-      <div
-        className="pointer-events-none absolute right-[-1.5rem] top-[-1.5rem] h-20 w-20 rounded-full bg-[radial-gradient(circle,var(--accent-soft),transparent_70%)] opacity-60 transition-opacity group-hover:opacity-100"
-        aria-hidden
-      />
-      <div className="relative z-[1]">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{eyebrow}</div>
-        <div className="mt-3 text-lg font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
-        <div className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{description}</div>
-        <div className="mt-6 flex items-center text-sm font-semibold text-[var(--accent)] opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100">
-          {locale === "en" ? "Start" : "开始"} &rarr;
+      <div className="home-start-card__orb" aria-hidden />
+      <div className="home-start-card__content">
+        <div className="home-start-card__eyebrow">{eyebrow}</div>
+        <div className="home-start-card__title">{title}</div>
+        <div className="home-start-card__description">{description}</div>
+        {footer ? <div className="home-start-card__footer">{footer}</div> : null}
+        <div className="home-start-card__action">
+          <span>{locale === "en" ? "Open path" : "进入路径"}</span>
+          <ArrowUpRight className="h-4 w-4" />
         </div>
       </div>
     </Link>
+  );
+}
+
+function StrategyNote({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Newspaper | typeof Heart;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="home-strategy-note">
+      <div className="home-strategy-note__icon">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <div className="home-strategy-note__label">{label}</div>
+        <div className="home-strategy-note__value">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function QuickStep({
+  index,
+  title,
+  description,
+}: {
+  index: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-5 shadow-sm">
+      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{index}</div>
+      <div className="mt-3 text-base font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
+      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{description}</div>
+    </div>
   );
 }
 
@@ -108,20 +152,20 @@ export default async function Home({
     workspace?.contentLine === "MARKETING"
       ? {
           eyebrow: "MARKETING",
-          title: locale === "en" ? "Marketing Workspace" : "Marketing 工作台",
+          title: locale === "en" ? "Commercial Services Workspace" : "商业服务工作台",
           description:
             locale === "en"
-              ? "Choose the next content action and keep the rest of the system in the background."
-              : "只保留当前最重要的内容动作，其余流程交给系统在后台处理。",
+              ? "Focus on the next client-facing content action and keep delivery details in the background."
+              : "先推进下一条客户内容或广告交付，其余细节交给系统在后台处理。",
         }
       : workspace?.contentLine === "MARS_CITIZEN"
         ? {
-            eyebrow: "MARS CITIZEN",
-            title: locale === "en" ? "Mars Citizen Workspace" : "火星公民工作台",
+            eyebrow: "OWNED MEDIA",
+            title: locale === "en" ? "Owned Media Workspace" : "内容矩阵工作台",
             description:
               locale === "en"
-                ? "Focus on the next publishable output instead of navigating every module."
-                : "直接推进下一条可发布内容，而不是先理解所有模块。",
+                ? "Focus on the next publishable article or image package instead of navigating every module."
+                : "直接推进下一条可发布图文，而不是先理解所有模块。",
           }
         : text.pages.dashboard;
 
@@ -135,15 +179,15 @@ export default async function Home({
           statusDesc: "Only the numbers that help you decide whether to continue.",
           trendsLabel: "Trends",
           outputsLabel: "Current output",
-          storyboardLabel: "Storyboard rows",
+          storyboardLabel: "Image brief rows",
           reportLabel: "Report",
           reportReady: "Ready",
           reportPending: "Pending",
           focusReasonNoProject: "Start from one topic and one target output. Everything else can stay empty for now.",
-          focusReasonStoryboard: "Go straight to storyboard. You do not need to finish the whole workflow first.",
-          focusReasonScript: "Generate the first script or scene draft, then decide whether it needs deeper editing.",
-          focusReasonRender: "The storyboard is ready enough. Move on to render preparation instead of reopening upstream steps.",
-          focusReasonMarketing: "Generate the first usable marketing draft first. Briefs and refinements can follow when needed.",
+          focusReasonStoryboard: "Go straight to the image brief. You do not need to finish the whole pipeline first.",
+          focusReasonScript: "Generate the first master draft, then decide whether it needs deeper editing or supporting images.",
+          focusReasonRender: "The image brief is ready enough. Move to image production instead of reopening upstream steps.",
+          focusReasonMarketing: "Generate the first usable client-facing draft first. Briefs and refinements can follow when needed.",
           moreTitle: "More details",
           briefTitle: "Current brief",
           briefDesc: "Only open this if you need to confirm the message and constraints.",
@@ -154,14 +198,40 @@ export default async function Home({
           noProjectDesc: "The selected project could not be loaded. Create a new one or switch projects.",
           startTitle: "Start here",
           startDesc: "Choose the path that matches what you want to produce right now.",
+          quickStartTitle: "What to do first",
+          quickStartDesc: "You only need one direction, one concrete topic, and some raw material.",
+          quickStep1Title: "Pick a direction",
+          quickStep1Desc: "Choose owned media or commercial work. If needed, click a preset.",
+          quickStep2Title: "Name the current topic",
+          quickStep2Desc: "Write the exact question or judgment for this piece.",
+          quickStep3Title: "Paste raw material and create",
+          quickStep3Desc: "Add notes, facts, or links if you have them. Then create the project shell.",
           startTodayTitle: "Find today's topics",
-          startTodayDesc: "Open Today Workbench to search trends, gather facts, and pick a topic first.",
-          startMarsTitle: "Make a Mars Citizen video",
-          startMarsDesc: "Start a new science/tech video project and go straight into script or publish output.",
-          startMarketingTitle: "Make marketing content",
-          startMarketingDesc: "Start a new marketing project for platform copy, ad creative, or ad storyboard.",
+          startTodayDesc: "Trends and source material",
+          startMarsTitle: "Build owned-media content",
+          startMarsDesc: "Owned-media article package",
+          startMarketingTitle: "Build commercial content",
+          startMarketingDesc: "Client copy and ad work",
           startRecentTitle: "Continue a recent project",
-          startRecentDesc: "Jump back into the latest project instead of creating a new one.",
+          startRecentDesc: "Resume the last active thread",
+          strategyEyebrow: "Editorial desk",
+          strategyTitle: "Build a tighter owned-media system before you expand again.",
+          strategyDesc:
+            "Start from Toutiao. Turn one topic into a publishable article package, then reuse the same engine for commercial service work.",
+          strategyTrackTitle: "Current directions",
+          strategyLaunchLabel: "Launch channel",
+          strategyLaunchValue: "Toutiao / article + image publishing",
+          strategyRevenueLabel: "Revenue loop",
+          strategyRevenueValue: "Content / advertising + service / technical delivery",
+          strategyFocusLabel: "Current focus",
+          strategyFocusValue: "Article quality, packaging quality, and refined static images",
+          strategyTrackAi: "AI增长官 · 大模型 / Agent / AI 商业应用",
+          strategyTrackMoney: "金钱不眠 · 金融 / 股市 / 资本 / 财经人物",
+          strategyTrackLife: "东方元气 · 食养 / 疗愈 / 心理健康",
+          startTodayFooter: "Research / topic / material",
+          startMarsFooter: "Draft / image / publish",
+          startMarketingFooter: "Copy / creative / image",
+          startRecentFooter: "Last active project",
         }
       : {
           focusTitle: "当前重点",
@@ -171,15 +241,15 @@ export default async function Home({
           statusDesc: "只保留会影响你下一步判断的几个数字。",
           trendsLabel: "趋势",
           outputsLabel: "当前产出",
-          storyboardLabel: "分镜条目",
+          storyboardLabel: "配图条目",
           reportLabel: "报告",
           reportReady: "已生成",
           reportPending: "未生成",
           focusReasonNoProject: "从一个主题和一个目标产物开始就够了，其他信息现在都可以先留空。",
-          focusReasonStoryboard: "直接去做分镜，不需要先把整套流程走完。",
-          focusReasonScript: "先生成第一版脚本或 scene，再决定要不要进入更细的编辑。",
-          focusReasonRender: "当前分镜已经足够进入生成准备，不必反复回到上游步骤。",
-          focusReasonMarketing: "先拿到第一版可用内容，再补任务单、风格和细化约束。",
+          focusReasonStoryboard: "直接去做配图说明，不需要先把整套流程走完。",
+          focusReasonScript: "先生成第一版主稿，再决定要不要进入更细的编辑和配图准备。",
+          focusReasonRender: "当前配图说明已经足够进入图片生产，不必反复回到上游步骤。",
+          focusReasonMarketing: "先拿到第一版可用客户内容，再补任务单、风格和细化约束。",
           moreTitle: "更多信息",
           briefTitle: "当前任务单",
           briefDesc: "只有在你要确认目标、约束和表达口径时，再展开这里。",
@@ -190,14 +260,40 @@ export default async function Home({
           noProjectDesc: "当前选中的项目没有加载成功。你可以重新创建，或者切换到其他项目。",
           startTitle: "先从这里开始",
           startDesc: "按你现在想产出的内容来选路径，不用先理解整个系统。",
+          quickStartTitle: "现在先做这三步",
+          quickStartDesc: "你只需要先定方向、写题目、贴素材，不用先理解整套系统。",
+          quickStep1Title: "先选方向",
+          quickStep1Desc: "选内容矩阵或商业服务；需要时再点 preset。",
+          quickStep2Title: "写本期题目",
+          quickStep2Desc: "把这篇内容真正要讨论的问题写具体。",
+          quickStep3Title: "贴素材后创建项目",
+          quickStep3Desc: "有事实、笔记、链接摘要就贴进去，然后直接创建项目。",
           startTodayTitle: "今日选题",
-          startTodayDesc: "搜热点、选素材、定题目",
-          startMarsTitle: "火星公民",
-          startMarsDesc: "科技脚本 · 视频分镜 · 发布包装",
-          startMarketingTitle: "Marketing",
-          startMarketingDesc: "平台文案 · 广告创意 · 广告分镜",
+          startTodayDesc: "热点与素材",
+          startMarsTitle: "内容矩阵",
+          startMarsDesc: "自营图文内容包",
+          startMarketingTitle: "商业服务",
+          startMarketingDesc: "客户内容与广告",
           startRecentTitle: "继续项目",
           startRecentDesc: "回到上次进行中的项目",
+          strategyEyebrow: "编辑部入口",
+          strategyTitle: "先把内容矩阵做扎实，再扩张渠道和形态。",
+          strategyDesc:
+            "从头条号启动，把一个主题稳定变成可发布图文包，再把同一套方法复用到商业内容与技术服务收入上。",
+          strategyTrackTitle: "当前三条方向",
+          strategyLaunchLabel: "启动渠道",
+          strategyLaunchValue: "头条号 / 图文发布",
+          strategyRevenueLabel: "收入闭环",
+          strategyRevenueValue: "内容广告收入 + 服务技术收入",
+          strategyFocusLabel: "当前重点",
+          strategyFocusValue: "文章质量、包装质量、精细静态配图",
+          strategyTrackAi: "AI增长官 · 大模型 / Agent / AI 商业应用",
+          strategyTrackMoney: "金钱不眠 · 金融 / 股市 / 资本 / 财经动态",
+          strategyTrackLife: "东方元气 · 食养 / 疗愈 / 心理健康",
+          startTodayFooter: "研究 / 定题 / 素材",
+          startMarsFooter: "主稿 / 配图 / 发布",
+          startMarketingFooter: "文案 / 创意 / 配图",
+          startRecentFooter: "最近项目",
         };
 
   const focusReason = !workspace
@@ -322,8 +418,8 @@ export default async function Home({
                       value={String(workspace.scenePlannerRows.length)}
                       caption={
                         locale === "en"
-                          ? "Rows ready for storyboard / render work"
-                          : "当前已可进入分镜 / 生成准备的条目数"
+                          ? "Rows ready for image brief and image production"
+                          : "当前已可进入配图说明 / 图片生产的条目数"
                       }
                     />
                   </div>
@@ -416,36 +512,11 @@ export default async function Home({
           />
         ) : (
           <div className="space-y-6">
-            <PanelCard title={ui.startTitle} description={ui.startDesc}>
-              <div className="grid gap-4 xl:grid-cols-4">
-                <StartCard href="/today" eyebrow="Today" title={ui.startTodayTitle} description={ui.startTodayDesc} locale={locale} />
-                <StartCard
-                  href={buildDashboardCreateHref({
-                    contentLine: "MARS_CITIZEN",
-                    outputType: "NARRATIVE_SCRIPT",
-                  }) as Route}
-                  eyebrow="Mars Citizen"
-                  title={ui.startMarsTitle}
-                  description={ui.startMarsDesc}
-                  locale={locale}
-                />
-                <StartCard
-                  href={buildDashboardCreateHref({
-                    contentLine: "MARKETING",
-                    outputType: "PLATFORM_COPY",
-                  }) as Route}
-                  eyebrow="Marketing"
-                  title={ui.startMarketingTitle}
-                  description={ui.startMarketingDesc}
-                  locale={locale}
-                />
-                <StartCard
-                  href={(recentProjects[0] ? `/?projectId=${recentProjects[0].id}` : "/project-hub") as Route}
-                  eyebrow="Recent"
-                  title={ui.startRecentTitle}
-                  description={ui.startRecentDesc}
-                  locale={locale}
-                />
+            <PanelCard title={ui.quickStartTitle} description={ui.quickStartDesc}>
+              <div className="grid gap-4 md:grid-cols-3">
+                <QuickStep index={locale === "en" ? "Step 1" : "第 1 步"} title={ui.quickStep1Title} description={ui.quickStep1Desc} />
+                <QuickStep index={locale === "en" ? "Step 2" : "第 2 步"} title={ui.quickStep2Title} description={ui.quickStep2Desc} />
+                <QuickStep index={locale === "en" ? "Step 3" : "第 3 步"} title={ui.quickStep3Title} description={ui.quickStep3Desc} />
               </div>
             </PanelCard>
 
@@ -459,6 +530,79 @@ export default async function Home({
                 initialTitle={title ?? ""}
               />
             </div>
+
+            <PanelCard title={ui.startTitle} description={ui.startDesc}>
+              <div className="home-start-grid">
+                <StartCard href="/today" eyebrow="Today" title={ui.startTodayTitle} description={ui.startTodayDesc} footer={ui.startTodayFooter} locale={locale} featured />
+                <StartCard
+                  href={buildDashboardCreateHref({
+                    contentLine: "MARS_CITIZEN",
+                    outputType: "NARRATIVE_SCRIPT",
+                  }) as Route}
+                  eyebrow={locale === "en" ? "Owned Media" : "内容矩阵"}
+                  title={ui.startMarsTitle}
+                  description={ui.startMarsDesc}
+                  footer={ui.startMarsFooter}
+                  locale={locale}
+                />
+                <StartCard
+                  href={buildDashboardCreateHref({
+                    contentLine: "MARKETING",
+                    outputType: "PLATFORM_COPY",
+                  }) as Route}
+                  eyebrow={locale === "en" ? "Commercial" : "商业服务"}
+                  title={ui.startMarketingTitle}
+                  description={ui.startMarketingDesc}
+                  footer={ui.startMarketingFooter}
+                  locale={locale}
+                />
+                <StartCard
+                  href={(recentProjects[0] ? `/?projectId=${recentProjects[0].id}` : "/project-hub") as Route}
+                  eyebrow="Recent"
+                  title={ui.startRecentTitle}
+                  description={ui.startRecentDesc}
+                  footer={ui.startRecentFooter}
+                  locale={locale}
+                />
+              </div>
+            </PanelCard>
+
+            <Disclosure
+              className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-solid)] p-6"
+              summaryClassName="text-sm font-medium text-[var(--text-1)]"
+              contentClassName="mt-5"
+              title={locale === "en" ? "Why these directions exist" : "为什么现在是这三条方向"}
+            >
+              <section className="home-strategy-board">
+                <div className="home-strategy-board__hero">
+                  <div className="home-strategy-board__eyebrow">{ui.strategyEyebrow}</div>
+                  <h2 className="home-strategy-board__title">{ui.strategyTitle}</h2>
+                  <p className="home-strategy-board__description">{ui.strategyDesc}</p>
+                  <div className="home-strategy-board__tracks">
+                    <div className="home-direction-pill">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>{ui.strategyTrackAi}</span>
+                    </div>
+                    <div className="home-direction-pill">
+                      <WalletCards className="h-3.5 w-3.5" />
+                      <span>{ui.strategyTrackMoney}</span>
+                    </div>
+                    <div className="home-direction-pill">
+                      <Heart className="h-3.5 w-3.5" />
+                      <span>{ui.strategyTrackLife}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="home-strategy-board__aside">
+                  <div className="home-strategy-board__aside-title">{ui.strategyTrackTitle}</div>
+                  <div className="home-strategy-board__notes">
+                    <StrategyNote icon={Newspaper} label={ui.strategyLaunchLabel} value={ui.strategyLaunchValue} />
+                    <StrategyNote icon={WalletCards} label={ui.strategyRevenueLabel} value={ui.strategyRevenueValue} />
+                    <StrategyNote icon={Sparkles} label={ui.strategyFocusLabel} value={ui.strategyFocusValue} />
+                  </div>
+                </div>
+              </section>
+            </Disclosure>
           </div>
         )}
 

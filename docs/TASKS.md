@@ -4,6 +4,44 @@
 
 ## In Progress
 
+### T-014 Toutiao-First Owned Media Repositioning 🔴
+- **Goal**: Reposition Tahoe around a Toutiao-first article/image workflow for the near term, while preserving the existing internal architecture.
+- **Business target**:
+  - use AI tools and agentic workflows to build an owned-media matrix
+  - start from 头条号
+  - support both content/ad revenue and service/technical revenue
+- **Editorial directions**:
+  - AI增长官
+  - 金钱不眠
+  - 东方元气
+- **Rules for this phase**:
+  - de-prioritize video-first product thinking
+  - prioritize article quality, publish packaging, and refined image output
+  - keep current internal types (`MARS_CITIZEN` / `MARKETING`) for compatibility instead of starting with a schema rename
+- **Current slice (Done)**:
+  - user-facing copy for the owned-media line now speaks in article/image-first language on the homepage and project-intent entry surfaces
+  - generated project briefs for the owned-media line now default to article/image-first framing instead of short-video framing
+  - strategy baseline is now written in `docs/CONTENT_MATRIX_STRATEGY.md`
+  - the no-project homepage start surface now reads as an editorial production desk instead of a generic four-card launcher
+  - the shared project-creation form now teaches article/image-first input quality and no longer defaults its owned-media copy to short-video language
+  - homepage and intent cards now use shorter, less procedural copy instead of explaining the whole workflow inside every card
+  - style-reference prompts now explicitly steer users toward 1-3 high-quality Chinese media / blogger samples instead of vague slogans
+  - Marketing master-copy generation now includes a “Chinese high-quality media calibration” layer plus a persisted multi-audience review panel
+  - owned-media packaging (`VIDEO_TITLE`, `PUBLISH_COPY`) now also carries the same persisted multi-audience review panel in Script Lab, including manually saved versions
+  - owned-media main drafts now also backfill a persisted `audience_panel_review` onto `script.structured_output`, and Script Lab keeps showing the latest structured draft + its audience verdict even after scene rows exist
+  - the shared project-creation form now includes quick owned-media presets for `AI增长官`, `金钱不眠`, and `东方元气`, so users can prefill the brief without manually rewriting the whole context block
+  - the same three editorial directions now also exist as shared preset skeletons for Brand Profiles and Brief Studio, so owned-media projects can carry a reusable brand/brief baseline instead of only a one-off create-form prefill
+  - Brief Studio now submits schema-safe platform values (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`) instead of the older mixed UI-only labels, so presets and manual brief creation no longer risk invalid platform payloads
+  - Scene Planner and Render Lab now speak in image-first language on the user-facing surface (`配图说明` / `图片生产`) while still keeping the internal `storyboard` / `render` compatibility model unchanged
+  - Scene Planner and Render Lab now carry a lightweight `image brief review` layer that scores each row for readiness before image generation, surfaces the main gap, and nudges users to fix prompt/reference/composition issues before opening a new image job
+  - Image Production now also supports structured per-job result feedback (`保留这一版 / 继续重试 / 先改 brief` + issue tags + short note), so real image failures can start feeding back into the planning loop instead of living only in transient chat comments
+  - Scene Planner now also reads back recent image-job feedback for the same row, so users can see whether a brief has already been retried or repeatedly sent back for rewrite, plus the current high-frequency failure tags
+- **Next**:
+  - merge image-brief readiness and recent image-job outcomes into one tighter score, so repeated real failures can directly drag down “可开工”判断
+  - continue sweeping remaining 分镜 references in lower-traffic secondary pages (help-center, workflow-actions, marketing-ops, approval-board)
+
+> **2026-04-11 (Antigravity)**: swept remaining video-era terminology from homepage, create form, sidebar, Script Lab, and workspace-mode. All first-run-visible surfaces now say 配图说明 / 图片生产 instead of 配图脚本 / 分镜 / 视觉脚本.
+
 ### T-010 Dual Content Line Architecture 🔴
 - **Goal**: Restructure system around two content lines: 火星公民 (science content) and Marketing (commercial content).
 - **Phase 1 (Done)**: ContentLine/OutputType type system, Mars Citizen narrative prompt, Marketing ad script prompt, branching in `NewsScriptService`, API/hook/schema/orchestrator updates.
@@ -29,6 +67,7 @@
 - **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, and the first small generator registry seam.
 - **Current status**: T-010's foundation is in place. Tahoe now has a stable intent model (`contentLine + outputType`), shell-friendly project creation, storyboard-first generation, simplified default UX, the first small generator registry seam, and a first lightweight artifact harness for selected output generators.
 - **Artifact harness slice (Done)**: `VIDEO_TITLE`, `PUBLISH_COPY`, and `AD_CREATIVE` generation now attach output-specific knowledge notes and review checklists at generation time, then persist a structured `artifact_review` with the saved artifact. Script Lab and Marketing Ops now surface that stored guidance/review context directly beside the editable artifact, creating a clean seam for future stronger review loops without introducing a heavier multi-agent system yet.
+- **Audience-review slice (Done)**: Marketing master-copy generation and saved versions now backfill a second-pass `audience_panel_review` alongside the existing diagnosis. Tahoe simulates four audience archetypes (`feed_scanner`, `skeptical_reader`, `editor`, `sharer`) and stores their scores, likes, concerns, and next actions directly on the saved version payload.
 - **Smart project-brief slice (Done)**: Tahoe now has a first automatic project-background layer for `ProjectContext`. New projects get generated defaults for title / introduction / core idea / style reference sample, and the edit UI now exposes a one-click “自动补全项目信息” action that rewrites those fields from the current topic, workspace mode, writing settings, and selected brand. This reduces the need to manually rewrite the brief every time raw collected query strings or materials change.
 - **Quality-first model routing slice (Done)**: Default model routing has now been updated to the current preferred split:
   - `gemini-3.1-pro-preview` for core Mars creation / script rewrite
@@ -40,12 +79,14 @@
   - Sweep the remaining lower-priority `workspaceMode` compatibility branches in secondary helpers and edge routes, but the main user-facing surfaces are now aligned.
   - Continue moving read models and navigation toward “latest artifact / next output” instead of “which workflow stage are we on”.
   - Decide whether the next quality step should expand this artifact harness to `PLATFORM_COPY`, or deepen the current three outputs with a second-pass model reviewer instead of heuristics alone.
+  - Expand the new Chinese-media calibration + audience-panel review layer from Marketing master copy into owned-media article and publish-packaging outputs.
   - Decide whether the next project-brief step should auto-refresh on material ingestion / Today selections as well, so the brief updates itself without requiring the user to click the smart-fill action.
   - Decide whether a lightweight storyboard preview/edit surface should also appear directly inside Marketing Ops, or whether the current bridge card + Scene Planner split is the right long-term boundary.
   - Continue refining Today's artifact-first starts. Marketing copy and ad-storyboard actions now chain shell-project creation and output generation automatically, carry selected materials + keyword focus into project context, and already promote that context in prompt priority. A first lightweight output-quality layer is now in place inside Script Lab and Marketing Ops to detect weak hooks, thin proof, and visually abstract concepts; the next refinement should make those alerts even closer to actual downstream model failure modes.
   - Decide when to split out a separate outer landing page. The current internal homepage is now a clearer task-entry board, but Tahoe may still benefit from a lighter top-level product homepage before users enter the production workspace.
   - Rewrite remaining empty-state / helper copy that still teaches the old “run full workflow first” mental model across artifact pages. Script Lab, Scene Planner, and Render Lab have been updated; other pages should follow the same artifact-first language.
   - Add stronger post-generation feedback so each output area can tell the user what was generated, what is weak, and the best next move. Script Lab and Marketing Ops now have a first feedback layer plus a first quality-alert layer for title hooks, publish-proof density, ad-creative specificity, and scene prompt executability; the next refinement should make those suggestions even more prompt-quality-aware and scene-quality-aware.
+  - Coordinate with T-014 so the owned-media line is treated as article/image-first in user-facing copy, while the current internal compatibility types stay stable.
 - **Files (new)**: `lib/content-line.ts`, `lib/mars-citizen-prompt.ts`, `lib/ad-script-prompt.ts`, `lib/project-intent.ts`, `lib/storyboard-seed-prompt.ts`, `components/dashboard/project-intent-picker.tsx`, `components/workspace/generate-storyboard-button.tsx`
 - **Files (modified)**: `services/news-script.service.ts`, `hooks/use-generate-script.ts`, `app/api/scripts/generate-from-news/route.ts`, `schemas/project.ts`, `services/research-orchestrator.service.ts`, `app/api/projects/route.ts`, `services/workflow.service.ts`, `services/promotional-copy.service.ts`, `services/workspace-query.service.ts`, `components/dashboard/project-form.tsx`, `components/settings/project-manager.tsx`, `services/storyboard-generator.service.ts`, `app/scene-planner/page.tsx`, `app/script-lab/page.tsx`, `app/render-lab/page.tsx`, `app/page.tsx`, `lib/workflow-navigator.ts`, `services/news-script-generator-registry.ts`
 
@@ -94,6 +135,10 @@
 ### T-013 Finance Ops: Cost & Budget Workbook Template ✅
 - **Completed**: 2026-03-24
 - **Result**: Added a reusable Excel workbook for Tahoe financial planning at `docs/Tahoe_cost_budget_template.xlsx`, plus a generator script `scripts/generate_tahoe_cost_budget_workbook.py`. The workbook includes a README sheet, parameters, unit-cost assumptions, single-project estimator, monthly budget planner, and project ledger so costs can be tracked by production depth and include retry / revision overhead.
+
+### T-014 Homepage First-Run Flow Hardening ✅
+- **Completed**: 2026-04-11
+- **Result**: Fixed the homepage new-user create path so it no longer fails on hidden schema-constrained defaults. Owned-media presets no longer overwrite the current topic, the form now exposes topic + writing context earlier, and homepage/start-card language is more direct for copy-first users.
 
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16

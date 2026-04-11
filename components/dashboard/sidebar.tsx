@@ -108,7 +108,7 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
   /* ── Group 2: 生产车间 (Build) ── */
   const buildItems: NavItem[] = [
     { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
-    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "素材与分镜规划", icon: BarChart3, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
+    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "配图说明与素材", icon: BarChart3, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
     { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
     { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
   ];
