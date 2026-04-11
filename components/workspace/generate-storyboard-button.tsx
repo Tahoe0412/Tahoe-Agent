@@ -45,9 +45,9 @@ export function GenerateStoryboardButton({
       <Button variant={variant} onClick={() => void handleGenerate()} disabled={pending}>
         {pending
           ? locale === "en"
-            ? "Generating storyboard..."
-            : "正在生成分镜..."
-          : label ?? (locale === "en" ? "Generate Storyboard" : "直接生成分镜")}
+            ? "Generating image brief..."
+            : "正在生成配图说明..."
+          : label ?? (locale === "en" ? "Generate Image Brief" : "生成配图说明")}
       </Button>
       {error ? <div className="max-w-sm text-center text-xs leading-6 text-[var(--danger-text)]">{error}</div> : null}
     </div>

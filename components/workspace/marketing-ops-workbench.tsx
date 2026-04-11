@@ -8,14 +8,16 @@ import { Disclosure } from "@/components/ui/disclosure";
 import { GenerateStoryboardButton } from "@/components/workspace/generate-storyboard-button";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { assessAdCreative, assessMarketingMasterCopy } from "@/lib/artifact-quality";
-import { getOutputKnowledgePack, type ArtifactReview } from "@/lib/output-artifact-guidance";
+import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
+import { getOutputKnowledgePack } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
-import { copyLengthList, getCopyLengthMeta, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
+import { normalizeArtifactReview, copyToClipboard } from "@/lib/utils";
+import { copyLengthList, getCopyLength, getCopyLengthMeta, getUsageScenario, getUsageScenarioMeta, type CopyLength, type UsageScenario, usageScenarioList } from "@/lib/copy-goal";
 import type { Locale } from "@/lib/locale-copy";
 import { getAdaptationStatusLabel, getPlatformSurfaceMeta, platformSurfaceList, type PlatformSurface } from "@/lib/platform-surface";
 import type { StyleReferenceInsight } from "@/lib/style-reference";
-import { getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
-import { getWritingModeMeta, type WritingMode, writingModeList } from "@/lib/writing-mode";
+import { getStyleTemplate, getStyleTemplateMeta, type StyleTemplate, styleTemplateList } from "@/lib/style-template";
+import { getWritingMode, getWritingModeMeta, type WritingMode, writingModeList } from "@/lib/writing-mode";
 
 type PromotionalCopyPayload = {
   generation_source?: string;
@@ -26,6 +28,7 @@ type PromotionalCopyPayload = {
     rewrite_focus?: unknown[];
     summary?: string;
   };
+  audience_panel_review?: AudiencePanelReview | null;
   master_angle?: string;
   headline_options?: string[];
   hero_copy?: string;
@@ -193,20 +196,7 @@ function normalizeRichText(value: unknown) {
   return value.replace(/\\n/g, "\n").trim();
 }
 
-function normalizeArtifactReview(value: unknown): ArtifactReview | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
 
-  const source = value as Record<string, unknown>;
-  return {
-    status: source.status === "READY" ? "READY" : "NEEDS_REVISION",
-    summary: typeof source.summary === "string" ? source.summary.trim() : "",
-    strengths: normalizeStringList(source.strengths),
-    issues: normalizeStringList(source.issues),
-    nextSteps: normalizeStringList(source.nextSteps),
-  };
-}
 
 function parsePayload(value: unknown): PromotionalCopyPayload | null {
   if (!value || typeof value !== "object") {
@@ -229,6 +219,7 @@ function parsePayload(value: unknown): PromotionalCopyPayload | null {
           summary: typeof diagnosisSource.summary === "string" ? diagnosisSource.summary : toDisplayString(diagnosisSource.summary),
         }
       : undefined,
+    audience_panel_review: normalizeAudiencePanelReview(source.audience_panel_review),
     master_angle: typeof source.master_angle === "string" ? source.master_angle : undefined,
     headline_options: normalizeStringList(source.headline_options),
     hero_copy: normalizeRichText(source.hero_copy),
@@ -257,13 +248,7 @@ function parseAdCreativePayload(value: unknown): AdCreativePayload | null {
   };
 }
 
-async function copyToClipboard(text: string) {
-  if (typeof navigator === "undefined" || !navigator.clipboard) {
-    throw new Error("当前环境不支持剪贴板复制。");
-  }
 
-  await navigator.clipboard.writeText(text);
-}
 
 export function MarketingOpsWorkbench({
   projectId,
@@ -274,10 +259,10 @@ export function MarketingOpsWorkbench({
   projectId: string;
   marketingOverview: MarketingOverview;
   projectConfig: {
-    writingMode: WritingMode;
-    styleTemplate: StyleTemplate;
-    copyLength: CopyLength;
-    usageScenario: UsageScenario;
+    writingMode: string;
+    styleTemplate: string;
+    copyLength: string;
+    usageScenario: string;
     styleReferenceSample?: string;
     styleReferenceInsight?: StyleReferenceInsight | null;
   };
@@ -290,10 +275,10 @@ export function MarketingOpsWorkbench({
   const [pending, setPending] = useState<string | null>(null);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(marketingOverview.latestPromotionalCopy?.id ?? null);
   const [selectedAdaptationId, setSelectedAdaptationId] = useState<string | null>(marketingOverview.platformAdaptations[0]?.id ?? null);
-  const [writingMode, setWritingMode] = useState<WritingMode>(projectConfig.writingMode);
-  const [styleTemplate, setStyleTemplate] = useState<StyleTemplate>(projectConfig.styleTemplate);
-  const [copyLength, setCopyLength] = useState<CopyLength>(projectConfig.copyLength);
-  const [usageScenario, setUsageScenario] = useState<UsageScenario>(projectConfig.usageScenario);
+  const [writingMode, setWritingMode] = useState<WritingMode>(getWritingMode(projectConfig.writingMode));
+  const [styleTemplate, setStyleTemplate] = useState<StyleTemplate>(getStyleTemplate(projectConfig.styleTemplate));
+  const [copyLength, setCopyLength] = useState<CopyLength>(getCopyLength(projectConfig.copyLength));
+  const [usageScenario, setUsageScenario] = useState<UsageScenario>(getUsageScenario(projectConfig.usageScenario));
   const [draftTitle, setDraftTitle] = useState("");
   const [masterAngle, setMasterAngle] = useState("");
   const [headlineOptions, setHeadlineOptions] = useState("");
@@ -377,6 +362,18 @@ export function MarketingOpsWorkbench({
         longFormPlaceholder: "The full master marketing draft",
         diagnosisTitle: "Quality diagnosis",
         diagnosisFallback: "A quality diagnosis is available for this version.",
+        audiencePanelTitle: "Audience panel",
+        audiencePanelDesc: "Four simulated readers score the piece from different angles so quality is judged like a real publishing decision, not just by one rubric.",
+        audienceAvg: "Avg score",
+        audienceStyleFit: "Style fit",
+        audienceReady: "Readiness",
+        audienceReadyValue: (ready: boolean) => ready ? "Ready" : "Revise first",
+        audienceVerdict: "Overall verdict",
+        audienceCalibration: "Chinese media calibration",
+        audienceLikes: "What lands",
+        audienceConcerns: "What still misses",
+        audienceNext: "Next fix",
+        audienceEmpty: "The audience panel will appear after the system finishes a second-pass review.",
         scoreLabel: "Score",
         strengths: "Strengths",
         issues: "Key issues",
@@ -508,6 +505,18 @@ export function MarketingOpsWorkbench({
         longFormPlaceholder: "完整宣传文案正文",
         diagnosisTitle: "质量诊断",
         diagnosisFallback: "当前版本已有质量诊断。",
+        audiencePanelTitle: "观众评分面板",
+        audiencePanelDesc: "用 4 类不同性格的模拟观众来打分，逼着系统按真实发布判断，而不是只按单一 rubric 自嗨。",
+        audienceAvg: "平均分",
+        audienceStyleFit: "媒体贴合度",
+        audienceReady: "发布判断",
+        audienceReadyValue: (ready: boolean) => ready ? "可继续发布" : "先修再发",
+        audienceVerdict: "总判断",
+        audienceCalibration: "中文优质内容校准",
+        audienceLikes: "打动点",
+        audienceConcerns: "掉分点",
+        audienceNext: "下一步",
+        audienceEmpty: "系统完成第二轮复核后，这里会出现多观众评分。",
         scoreLabel: "质量分",
         strengths: "当前优点",
         issues: "主要问题",
@@ -660,6 +669,7 @@ export function MarketingOpsWorkbench({
     if (marketingOverview.storyboardSummary.frameCount > 0) completed.push(locale === "en" ? "ad storyboard available" : "广告分镜已生成");
 
     const diagnosis = selectedVersionPayload?.quality_diagnosis;
+    const audiencePanel = selectedVersionPayload?.audience_panel_review;
     let weakest =
       locale === "en"
         ? "Start with a usable master draft first."
@@ -682,6 +692,10 @@ export function MarketingOpsWorkbench({
       next = diagnosis.rewrite_focus?.length
         ? diagnosis.rewrite_focus.slice(0, 2).map((item) => toDisplayString(item)).join("；")
         : (locale === "en" ? "Use the diagnosis and improve this master draft before branching further." : "先根据诊断继续增强这一版主稿，再继续往下派生。");
+    } else if (audiencePanel?.reviewers?.length && audiencePanel.publishReadiness !== "READY") {
+      const weakestReviewer = [...audiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
+      weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || (locale === "en" ? "The simulated audience still would not publish this as-is." : "模拟观众判断这版稿子还不适合直接发。");
+      next = weakestReviewer?.nextAction || (locale === "en" ? "Fix the weakest audience objection before moving on." : "先解决掉分最严重的那类观众异议，再往下推进。");
     } else if (!marketingOverview.latestAdCreative) {
       weakest = locale === "en" ? "The copy exists, but creative direction is still missing." : "文案已有基础，但创意方向还没立起来。";
       next = locale === "en" ? "Generate an ad creative pack so the script and storyboard share one clear brief." : "补一版广告创意包，让脚本和分镜围绕同一个 brief。";
@@ -1377,6 +1391,78 @@ export function MarketingOpsWorkbench({
                         {(diagnosis.rewrite_focus ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
+                  </div>
+                </div>
+              );
+            })() : null}
+
+            {selectedVersion ? (() => {
+              const payload = parsePayload(selectedVersion.taskJson);
+              const panel = payload?.audience_panel_review;
+              if (!panel) {
+                return (
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-sm leading-7 text-[var(--text-2)]">
+                    {ui.audienceEmpty}
+                  </div>
+                );
+              }
+
+              return (
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audiencePanelTitle}</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.audiencePanelDesc}</div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceAvg} {panel.averageScore}</span>
+                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceStyleFit} {panel.styleFitScore}</span>
+                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceReady} {ui.audienceReadyValue(panel.publishReadiness === "READY")}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceVerdict}</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{panel.overallVerdict}</div>
+                    </div>
+                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceCalibration}</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{panel.calibrationSummary}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    {panel.reviewers.map((reviewer) => (
+                      <div key={reviewer.id} className="rounded-xl bg-[var(--surface-solid)] p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
+                            <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{reviewer.persona}</div>
+                          </div>
+                          <span className="rounded-full border border-[var(--border)] px-3 py-1 text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
+                        </div>
+                        <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{reviewer.verdict}</div>
+                        <div className="mt-3 grid gap-3">
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceLikes}</div>
+                            <div className="mt-2 space-y-1 text-sm leading-6 text-[var(--text-2)]">
+                              {reviewer.likes.map((item) => (<div key={item}>• {item}</div>))}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceConcerns}</div>
+                            <div className="mt-2 space-y-1 text-sm leading-6 text-[var(--text-2)]">
+                              {reviewer.concerns.map((item) => (<div key={item}>• {item}</div>))}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceNext}</div>
+                            <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{reviewer.nextAction}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );

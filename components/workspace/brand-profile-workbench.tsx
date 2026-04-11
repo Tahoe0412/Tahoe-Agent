@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Disclosure } from "@/components/ui/disclosure";
 import { TagInput } from "@/components/ui/tag-input";
+import { getEditorialDirectionPresets, type EditorialDirectionPresetId } from "@/lib/editorial-direction-presets";
 import { getPlatformSurfaceMeta, type PlatformSurface } from "@/lib/platform-surface";
 
 type BrandProfileRow = {
@@ -80,6 +81,7 @@ export function BrandProfileWorkbench({
   const [platformPriority, setPlatformPriority] = useState<string[]>(["XIAOHONGSHU_POST", "DOUYIN_VIDEO"]);
   const [forbidden, setForbidden] = useState<string[]>([]);
   const [keywordPool, setKeywordPool] = useState<string[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<EditorialDirectionPresetId | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState(profiles[0]?.id ?? "");
   const [pillarName, setPillarName] = useState("");
   const [pillarType, setPillarType] = useState<(typeof pillarTypes)[number]>("EDUCATION");
@@ -90,9 +92,24 @@ export function BrandProfileWorkbench({
   const [pending, setPending] = useState<"brand" | "pillar" | "attach" | null>(null);
 
   const activeProfile = profiles.find((item) => item.id === selectedProfileId) ?? profiles[0] ?? null;
+  const directionPresets = getEditorialDirectionPresets("zh");
+  const selectedPreset = directionPresets.find((item) => item.id === selectedPresetId) ?? null;
 
   function toggleSurface(surface: PlatformSurface) {
     setPlatformPriority((current) => (current.includes(surface) ? current.filter((item) => item !== surface) : [...current, surface]));
+  }
+
+  function applyDirectionPreset(presetId: EditorialDirectionPresetId) {
+    const preset = directionPresets.find((item) => item.id === presetId);
+    if (!preset) return;
+    setSelectedPresetId(presetId);
+    setBrandName(preset.brand.name);
+    setPositioning(preset.brand.positioning);
+    setVoice(preset.brand.voice);
+    setStage(preset.brand.stage);
+    setPlatformPriority(preset.brand.platformPriority);
+    setForbidden(preset.brand.forbiddenPhrases);
+    setKeywordPool(preset.brand.keywordPool);
   }
 
   async function createProfile() {
@@ -108,21 +125,50 @@ export function BrandProfileWorkbench({
           brand_positioning: positioning,
           brand_voice: voice || undefined,
           brand_stage: stage,
-          product_lines: [],
-          target_personas: [],
+          product_lines: selectedPreset?.brand.productLines ?? [],
+          target_personas: selectedPreset?.brand.targetPersonas ?? [],
           platform_priority: platformPriority,
           forbidden_phrases: forbidden,
           keyword_pool: keywordPool,
+          core_belief: selectedPreset?.brand.coreBelief,
+          compliance_notes: selectedPreset?.brand.complianceNotes,
+          metadata_json: selectedPreset?.brand.metadata,
         }),
       });
-      const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
+      const payload = (await response.json()) as { success: boolean; data?: { id: string }; error?: { message?: string; detail?: string } };
       if (!payload.success) throw new Error(payload.error?.detail || payload.error?.message || "创建品牌档案失败。");
-      setMessage("品牌档案已创建。");
+      const createdProfileId = payload.data?.id;
+      if (createdProfileId) {
+        setSelectedProfileId(createdProfileId);
+      }
+      if (createdProfileId && selectedPreset?.pillars.length) {
+        for (const pillar of selectedPreset.pillars) {
+          const pillarResponse = await fetch(`/api/brand-profiles/${createdProfileId}/content-pillars`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pillar_name: pillar.name,
+              pillar_type: pillar.type,
+              pillar_summary: pillar.summary,
+              topic_directions: pillar.topics,
+              platform_fit: selectedPreset.brand.platformPriority,
+              priority_score: 70,
+              active: true,
+            }),
+          });
+          const pillarPayload = (await pillarResponse.json()) as { success: boolean; error?: { message?: string; detail?: string } };
+          if (!pillarPayload.success) {
+            throw new Error(pillarPayload.error?.detail || pillarPayload.error?.message || "创建内容支柱失败。");
+          }
+        }
+      }
+      setMessage(selectedPreset ? "品牌档案与默认内容方向已创建。" : "品牌档案已创建。");
       setBrandName("");
       setPositioning("");
       setVoice("");
       setForbidden([]);
       setKeywordPool([]);
+      setSelectedPresetId(null);
       router.refresh();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "创建品牌档案失败。");
@@ -215,6 +261,29 @@ export function BrandProfileWorkbench({
           <div className="space-y-4">
             <div className="theme-panel-muted rounded-[22px] p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">先填最关键的品牌信息</div>
+              <div className="mt-4 rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-3)]">方向 preset</div>
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  {directionPresets.map((preset) => {
+                    const active = selectedPresetId === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => applyDirectionPreset(preset.id)}
+                        className={`rounded-2xl border px-4 py-4 text-left transition ${
+                          active
+                            ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                            : "border-[var(--border-soft)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-solid)]"
+                        }`}
+                      >
+                        <div className="text-sm font-semibold text-[var(--text-1)]">{preset.label}</div>
+                        <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{preset.focus}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="mt-4 grid gap-4">
                 <input value={brandName} onChange={(event) => setBrandName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="品牌名" />
                 <textarea value={positioning} onChange={(event) => setPositioning(event.target.value)} rows={4} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="一句话写清品牌是谁、想占据什么认知位置" />

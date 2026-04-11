@@ -5,19 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { PanelCard } from "@/components/ui/panel-card";
+import { getEditorialDirectionPresets, type EditorialDirectionPresetId } from "@/lib/editorial-direction-presets";
 
 const objectives = ["AWARENESS", "CONSIDERATION", "CONVERSION", "RETENTION", "LAUNCH"] as const;
 const tones = ["PREMIUM", "DIRECT", "PLAYFUL", "TECHNICAL", "HUMAN", "CINEMATIC"] as const;
 const awarenessLevels = ["COLD", "WARM", "HOT"] as const;
-const publishingPlatforms = [
-  "XIAOHONGSHU",
-  "DOUYIN",
-  "YOUTUBE",
-  "X",
-  "TIKTOK",
-  "BRAND_PAGE",
-] as const;
+const publishingPlatforms = ["XHS", "DOUYIN", "YOUTUBE", "X", "TIKTOK"] as const;
 const callToActionPresets = ["了解品牌", "查看产品", "预约体验", "进店咨询", "加入社群"] as const;
+type BriefPlatform = (typeof publishingPlatforms)[number];
 
 function getObjectiveMeta(objective: (typeof objectives)[number]) {
   const meta = {
@@ -54,30 +49,32 @@ function getAwarenessLabel(level: (typeof awarenessLevels)[number]) {
   return meta[level];
 }
 
-function getPlatformLabel(platform: (typeof publishingPlatforms)[number]) {
+function getPlatformLabel(platform: string) {
   const meta = {
-    XIAOHONGSHU: "小红书",
+    XHS: "小红书",
     DOUYIN: "抖音",
     YOUTUBE: "YouTube",
     X: "X",
     TIKTOK: "TikTok",
+    XIAOHONGSHU: "小红书",
     BRAND_PAGE: "品牌页 / 官网",
   } as const;
 
-  return meta[platform];
+  return meta[platform as keyof typeof meta] ?? platform;
 }
 
-function getPlatformDescription(platform: (typeof publishingPlatforms)[number]) {
+function getPlatformDescription(platform: string) {
   const meta = {
-    XIAOHONGSHU: "适合品牌种草、图文正文、生活方式内容。",
+    XHS: "适合品牌种草、图文正文、生活方式内容。",
     DOUYIN: "适合短视频传播、口播内容、强钩子表达。",
     YOUTUBE: "适合长视频、深度内容、国际平台分发。",
     X: "适合短帖观点、热点评论、话题传播。",
     TIKTOK: "适合海外短视频传播与测试爆点。",
+    XIAOHONGSHU: "适合品牌种草、图文正文、生活方式内容。",
     BRAND_PAGE: "适合品牌介绍页、活动页、官网长文内容。",
   } as const;
 
-  return meta[platform];
+  return meta[platform as keyof typeof meta] ?? "适合作为这一轮内容的主发布平台。";
 }
 
 function getBriefStatusLabel(status: BriefRow["brief_status"]) {
@@ -133,7 +130,7 @@ export function BriefStudioWorkbench({
   const [objective, setObjective] = useState<(typeof objectives)[number]>("AWARENESS");
   const [tone, setTone] = useState<(typeof tones)[number]>("PREMIUM");
   const [audienceAwareness, setAudienceAwareness] = useState<(typeof awarenessLevels)[number]>("COLD");
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["XIAOHONGSHU", "DOUYIN"]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<BriefPlatform[]>(["XHS", "DOUYIN"]);
   const [keyMessage, setKeyMessage] = useState("");
   const [callToAction, setCallToAction] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
@@ -144,16 +141,35 @@ export function BriefStudioWorkbench({
   const [error, setError] = useState<string | null>(null);
   const [selectedBriefId, setSelectedBriefId] = useState(briefs[0]?.id ?? "");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<EditorialDirectionPresetId | null>(null);
+  const directionPresets = getEditorialDirectionPresets("zh");
 
   const activeBrief = useMemo(() => briefs.find((item) => item.id === selectedBriefId) ?? briefs[0] ?? null, [briefs, selectedBriefId]);
 
-  function togglePlatform(platform: string) {
+  function togglePlatform(platform: BriefPlatform) {
     setSelectedPlatforms((current) => {
       if (current.includes(platform)) {
         return current.filter((item) => item !== platform);
       }
       return [...current, platform];
     });
+  }
+
+  function applyDirectionPreset(presetId: EditorialDirectionPresetId) {
+    const preset = directionPresets.find((item) => item.id === presetId);
+    if (!preset) return;
+    setSelectedPresetId(presetId);
+    setTitle(preset.brief.title);
+    setCampaignName(preset.brief.campaignName ?? "");
+    setObjective(preset.brief.objective);
+    setTone(preset.brief.tone);
+    setAudienceAwareness(preset.brief.audienceAwareness);
+    setSelectedPlatforms(preset.brief.platforms);
+    setKeyMessage(preset.brief.keyMessage);
+    setCallToAction(preset.brief.callToAction);
+    setTargetAudience(preset.brief.targetAudience);
+    setDurationSec(preset.brief.durationSec);
+    setConstraintsText(preset.brief.constraints.join("\n"));
   }
 
   async function createBrief() {
@@ -245,6 +261,30 @@ export function BriefStudioWorkbench({
 
           <div className="space-y-4">
             <div className="theme-panel-muted rounded-[24px] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">方向 preset</div>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {directionPresets.map((preset) => {
+                  const active = selectedPresetId === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => applyDirectionPreset(preset.id)}
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${
+                        active
+                          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+                          : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]"
+                      }`}
+                    >
+                      <div className="text-sm font-semibold text-[var(--text-1)]">{preset.label}</div>
+                      <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{preset.focus}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="theme-panel-muted rounded-[24px] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第一步：项目目标</div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
@@ -278,7 +318,7 @@ export function BriefStudioWorkbench({
               <div className="mt-5">
                 <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布平台</div>
                 <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
-                  这里选的是这轮内容准备发到哪里，不是数据抓取来源。做国内品牌传播，通常先选“小红书 + 抖音”；做品牌长文，再加“品牌页 / 官网”。
+                  这里选的是这轮内容准备发到哪里。国内图文优先一般先选“小红书”，需要更强分发时再加“抖音”。
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {publishingPlatforms.map((platform) => {
@@ -300,12 +340,12 @@ export function BriefStudioWorkbench({
                   })}
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                {selectedPlatforms.map((platform) => (
-                  <div key={platform} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
-                    <div className="text-sm font-medium">{getPlatformLabel(platform as (typeof publishingPlatforms)[number])}</div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {selectedPlatforms.map((platform) => (
+                    <div key={platform} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
+                    <div className="text-sm font-medium">{getPlatformLabel(platform)}</div>
                     <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">
-                      {getPlatformDescription(platform as (typeof publishingPlatforms)[number])}
+                      {getPlatformDescription(platform)}
                     </div>
                   </div>
                 ))}
@@ -503,8 +543,8 @@ export function BriefStudioWorkbench({
           </>
         ) : (
           <>
-            <div>先把商业目标、受众、CTA 和风格边界写成 brief，后面所有研究、脚本和分镜都围绕它展开。</div>
-            <div>建议至少明确：目标平台、核心信息、受众热度、时长目标、不能踩的风格边界。</div>
+            <div>先把商业目标、受众、CTA 和风格边界写成 brief，后面的主稿、配图说明和发布包装都围绕它展开。</div>
+            <div>建议至少明确：目标平台、核心信息、受众熟悉度和不能踩的表达边界。</div>
           </>
         )}
       </DetailPanel>

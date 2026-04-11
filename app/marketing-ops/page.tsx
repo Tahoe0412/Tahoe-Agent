@@ -3,6 +3,7 @@ import { EmptyPanel, ErrorPanel } from "@/components/ui/state-panel";
 import { MarketingOpsWorkbench } from "@/components/workspace/marketing-ops-workbench";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { ProjectContext } from "@/components/workspace/project-context";
+import { buildProjectContextProject } from "@/lib/build-project-context";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { copy, getLocale } from "@/lib/locale";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
@@ -47,29 +48,7 @@ export default async function MarketingOpsPage({
           }
         />
         <ProjectContext
-          project={
-            workspace
-              ? {
-                  id: workspace.project.id,
-                  title: workspace.project.title,
-                  topic_query: workspace.project.topic_query,
-                  workspaceMode: workspace.workspaceMode,
-                  introduction: workspace.projectSummary.introduction,
-                  coreIdea: workspace.projectSummary.coreIdea,
-                  originalScript: workspace.projectSummary.originalScript,
-                  styleReferenceSample: workspace.projectSummary.styleReferenceSample,
-                  styleReferenceInsight: workspace.projectSummary.styleReferenceInsight,
-                  writingMode: workspace.projectSummary.writingMode as never,
-              writingModeLabel: workspace.projectSummary.writingModeLabel,
-              styleTemplate: workspace.projectSummary.styleTemplate as never,
-              styleTemplateLabel: workspace.projectSummary.styleTemplateLabel,
-              copyLength: workspace.projectSummary.copyLength as never,
-              copyLengthLabel: workspace.projectSummary.copyLengthLabel,
-              usageScenario: workspace.projectSummary.usageScenario as never,
-              usageScenarioLabel: workspace.projectSummary.usageScenarioLabel,
-            }
-          : null
-          }
+          project={workspace ? buildProjectContextProject(workspace) : null}
           recentProjects={recentProjects.map((project) => ({ id: project.id, title: project.title, topic_query: project.topic_query, is_pinned: project.is_pinned }))}
           locale={locale}
           density="compact"
@@ -117,10 +96,10 @@ export default async function MarketingOpsPage({
             marketingOverview={workspace.marketingOverview}
             locale={locale}
             projectConfig={{
-              writingMode: workspace.projectSummary.writingMode as never,
-              styleTemplate: workspace.projectSummary.styleTemplate as never,
-              copyLength: workspace.projectSummary.copyLength as never,
-              usageScenario: workspace.projectSummary.usageScenario as never,
+              writingMode: workspace.projectSummary.writingMode,
+              styleTemplate: workspace.projectSummary.styleTemplate,
+              copyLength: workspace.projectSummary.copyLength,
+              usageScenario: workspace.projectSummary.usageScenario,
               styleReferenceSample: workspace.projectSummary.styleReferenceSample,
             }}
           />

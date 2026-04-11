@@ -96,26 +96,26 @@ export function getContentLineMeta(
 ): ContentLineMeta {
   const zh: Record<ContentLine, ContentLineMeta> = {
     MARS_CITIZEN: {
-      label: "火星公民",
-      description: "每期视频一个项目 — 自动产出脚本、分镜、标题、简介、发布文案",
+      label: "内容矩阵",
+      description: "头条号图文矩阵",
       icon: Rocket,
     },
     MARKETING: {
-      label: "商业线",
-      description: "面向企业客户的营销内容 — 小红书/抖音文案、商业广告创意与广告视频",
+      label: "商业服务",
+      description: "客户内容与广告服务",
       icon: Briefcase,
     },
   };
 
   const en: Record<ContentLine, ContentLineMeta> = {
     MARS_CITIZEN: {
-      label: "Mars Citizen",
-      description: "Public-facing science content brand — tech news, deep science explainers, robotics & Mars colonization videos",
+      label: "Owned Media",
+      description: "Toutiao-first article and image publishing",
       icon: Rocket,
     },
     MARKETING: {
-      label: "Marketing",
-      description: "Enterprise marketing content — Xiaohongshu/Douyin copy, commercial ad creatives & video ads",
+      label: "Commercial Services",
+      description: "Client-facing content and ad work",
       icon: Briefcase,
     },
   };
@@ -128,27 +128,27 @@ export function getOutputTypeMeta(
   locale: "zh" | "en" = "zh",
 ): OutputTypeMeta {
   const zh: Record<OutputType, OutputTypeMeta> = {
-    NARRATIVE_SCRIPT: { label: "叙事脚本", description: "可直接播报的完整口播稿", contentLine: "MARS_CITIZEN" },
-    STORYBOARD_SCRIPT: { label: "AI 视频分镜", description: "AI 视频生成的画面指令分镜稿", contentLine: "MARS_CITIZEN" },
-    VIDEO_TITLE: { label: "视频标题", description: "适合发布的吸引人标题", contentLine: "MARS_CITIZEN" },
-    VIDEO_DESCRIPTION: { label: "视频简介", description: "视频简介 / 描述文字", contentLine: "MARS_CITIZEN" },
-    PUBLISH_COPY: { label: "发布文案", description: "多平台发布文案", contentLine: "MARS_CITIZEN" },
-    PLATFORM_COPY: { label: "平台文案", description: "小红书 / 抖音帖子文案", contentLine: "MARKETING" },
-    AD_SCRIPT: { label: "广告脚本", description: "商业广告口播 / 配音脚本", contentLine: "MARKETING" },
-    AD_STORYBOARD: { label: "广告分镜", description: "商业广告分镜脚本", contentLine: "MARKETING" },
-    AD_CREATIVE: { label: "广告创意", description: "广告创意 Brief / 策略方案", contentLine: "MARKETING" },
+    NARRATIVE_SCRIPT: { label: "主稿 / 长文", description: "文章主稿", contentLine: "MARS_CITIZEN" },
+    STORYBOARD_SCRIPT: { label: "配图说明", description: "封面与组图 brief", contentLine: "MARS_CITIZEN" },
+    VIDEO_TITLE: { label: "内容标题", description: "标题包", contentLine: "MARS_CITIZEN" },
+    VIDEO_DESCRIPTION: { label: "内容摘要", description: "摘要与导语", contentLine: "MARS_CITIZEN" },
+    PUBLISH_COPY: { label: "发布文案", description: "平台发布文案", contentLine: "MARS_CITIZEN" },
+    PLATFORM_COPY: { label: "平台文案", description: "平台正文", contentLine: "MARKETING" },
+    AD_SCRIPT: { label: "广告主稿", description: "广告正文", contentLine: "MARKETING" },
+    AD_STORYBOARD: { label: "广告配图说明", description: "广告配图 brief", contentLine: "MARKETING" },
+    AD_CREATIVE: { label: "广告创意", description: "创意方向", contentLine: "MARKETING" },
   };
 
   const en: Record<OutputType, OutputTypeMeta> = {
-    NARRATIVE_SCRIPT: { label: "Narrative Script", description: "Complete voiceover script ready for recording", contentLine: "MARS_CITIZEN" },
-    STORYBOARD_SCRIPT: { label: "AI Video Storyboard", description: "Visual prompt storyboard for AI video generation", contentLine: "MARS_CITIZEN" },
-    VIDEO_TITLE: { label: "Video Title", description: "Catchy, platform-ready video title", contentLine: "MARS_CITIZEN" },
-    VIDEO_DESCRIPTION: { label: "Video Description", description: "Video description / metadata text", contentLine: "MARS_CITIZEN" },
-    PUBLISH_COPY: { label: "Publish Copy", description: "Multi-platform publishing copy", contentLine: "MARS_CITIZEN" },
-    PLATFORM_COPY: { label: "Platform Copy", description: "Xiaohongshu / Douyin post copy", contentLine: "MARKETING" },
-    AD_SCRIPT: { label: "Ad Script", description: "Commercial ad voiceover / narration script", contentLine: "MARKETING" },
-    AD_STORYBOARD: { label: "Ad Storyboard", description: "Commercial ad storyboard script", contentLine: "MARKETING" },
-    AD_CREATIVE: { label: "Ad Creative", description: "Ad creative brief / strategy", contentLine: "MARKETING" },
+    NARRATIVE_SCRIPT: { label: "Master Draft", description: "Article draft", contentLine: "MARS_CITIZEN" },
+    STORYBOARD_SCRIPT: { label: "Image Brief", description: "Cover and image brief", contentLine: "MARS_CITIZEN" },
+    VIDEO_TITLE: { label: "Content Title", description: "Title pack", contentLine: "MARS_CITIZEN" },
+    VIDEO_DESCRIPTION: { label: "Content Summary", description: "Summary and lead", contentLine: "MARS_CITIZEN" },
+    PUBLISH_COPY: { label: "Publish Copy", description: "Publishing copy", contentLine: "MARS_CITIZEN" },
+    PLATFORM_COPY: { label: "Platform Copy", description: "Platform post copy", contentLine: "MARKETING" },
+    AD_SCRIPT: { label: "Ad Master Draft", description: "Ad draft", contentLine: "MARKETING" },
+    AD_STORYBOARD: { label: "Ad Image Brief", description: "Ad image brief", contentLine: "MARKETING" },
+    AD_CREATIVE: { label: "Ad Creative", description: "Creative direction", contentLine: "MARKETING" },
   };
 
   return (locale === "en" ? en : zh)[type];

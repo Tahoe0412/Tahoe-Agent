@@ -1,5 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  audiencePanelReviewJsonSchema,
+  audiencePanelReviewSchema,
+  buildAudiencePanelPrompt,
+  normalizeAudiencePanelReview,
+} from "@/lib/copy-review-panel";
 import { canUseModelRoute } from "@/lib/model-routing";
 import { generateStructuredJson } from "@/lib/openai-json";
 import {
@@ -13,6 +19,7 @@ import {
 } from "@/schemas/production-control";
 import { platformAdaptationJsonSchema } from "@/services/platform-adaptation/json-schema";
 import { AppSettingsService } from "@/services/app-settings.service";
+import { normalizeStringList } from "@/lib/utils";
 import { MarketingContextService } from "@/services/marketing-context.service";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
@@ -42,7 +49,7 @@ export class MarketingOperationsService {
 
   async createStrategyTask(projectId: string, input: unknown) {
     const payload = strategyTaskCreateSchema.parse(input);
-    return prisma.strategyTask.create({
+    const created = await prisma.strategyTask.create({
       data: {
         project_id: projectId,
         brand_profile_id: payload.brand_profile_id,
@@ -58,6 +65,16 @@ export class MarketingOperationsService {
         task_json: payload.task_json ? toJson(payload.task_json) : undefined,
       },
     });
+
+    const taskJson = (payload.task_json as Record<string, unknown> | null) ?? null;
+    const outputType = typeof taskJson?.output_type === "string" ? taskJson.output_type : null;
+    if (taskJson && (outputType === "VIDEO_TITLE" || outputType === "PUBLISH_COPY")) {
+      void this.enrichPackagingTaskReview(projectId, created.id, outputType, taskJson).catch(() => {
+        // Non-fatal review enrichment.
+      });
+    }
+
+    return created;
   }
 
   async createPlatformAdaptation(projectId: string, input: unknown) {
@@ -179,6 +196,84 @@ export class MarketingOperationsService {
         metric_json: toJson(payload.metric_json),
         optimization_summary: payload.optimization_summary,
         next_recommendations: toJson(payload.next_recommendations),
+      },
+    });
+  }
+
+  private async enrichPackagingTaskReview(
+    projectId: string,
+    taskId: string,
+    outputType: "VIDEO_TITLE" | "PUBLISH_COPY",
+    taskJson: Record<string, unknown>,
+  ) {
+    const settings = await this.appSettingsService.getEffectiveSettings();
+    if (!canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      return;
+    }
+
+    const context = await this.marketingContextService.getProjectContext(projectId);
+    const draftTypeLabel = outputType === "VIDEO_TITLE" ? "内容标题包" : "发布文案";
+    const title =
+      outputType === "VIDEO_TITLE"
+        ? (typeof taskJson.recommended_title === "string" ? taskJson.recommended_title : "")
+        : (typeof taskJson.primary_title === "string" ? taskJson.primary_title : "");
+    const heroCopy =
+      outputType === "VIDEO_TITLE"
+        ? (typeof taskJson.angle_summary === "string" ? taskJson.angle_summary : "")
+        : (typeof taskJson.lead_in === "string" ? taskJson.lead_in : "");
+    const bodyCopy =
+      outputType === "VIDEO_TITLE"
+        ? [title, ...normalizeStringList(taskJson.title_options)].filter(Boolean).join("\n")
+        : [
+            typeof taskJson.video_description === "string" ? taskJson.video_description : "",
+            ...normalizeStringList(taskJson.highlights).map((item) => `- ${item}`),
+          ].filter(Boolean).join("\n");
+    const proofPoints =
+      outputType === "VIDEO_TITLE"
+        ? normalizeStringList(taskJson.title_options).slice(0, 3)
+        : normalizeStringList(taskJson.highlights);
+    const callToAction =
+      outputType === "PUBLISH_COPY" && typeof taskJson.publish_cta === "string"
+        ? taskJson.publish_cta
+        : null;
+
+    const prompt = buildAudiencePanelPrompt({
+      topic: context?.topicQuery ?? title ?? "当前内容主题",
+      draftTypeLabel,
+      title,
+      heroCopy,
+      bodyCopy,
+      proofPoints,
+      callToAction,
+      styleReferenceInsight: context?.styleReferenceInsight,
+    });
+
+    const audiencePanel = await generateStructuredJson({
+      routeKey: "MARKETING_ANALYSIS",
+      schemaName: "manual_packaging_audience_panel_review",
+      schema: audiencePanelReviewJsonSchema,
+      zodSchema: audiencePanelReviewSchema,
+      temperature: 0.15,
+      systemPrompt: prompt.systemPrompt,
+      userPrompt: prompt.userPrompt,
+    });
+
+    const current = await prisma.strategyTask.findUnique({
+      where: { id: taskId },
+      select: { task_json: true },
+    });
+    if (!current) {
+      return;
+    }
+
+    const existingJson = (current.task_json as Record<string, unknown>) ?? {};
+    await prisma.strategyTask.update({
+      where: { id: taskId },
+      data: {
+        task_json: toJson({
+          ...existingJson,
+          audience_panel_review: normalizeAudiencePanelReview(audiencePanel),
+        }),
       },
     });
   }

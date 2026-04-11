@@ -8,7 +8,7 @@ import {
   type OutputType,
 } from "@/lib/content-line";
 import { cn } from "@/lib/utils";
-import { FileText, Clapperboard, Type, AlignLeft, Send } from "lucide-react";
+import { FileText, Images, Type, AlignLeft, Send } from "lucide-react";
 
 export function ProjectIntentPicker({
   contentLine,
@@ -73,20 +73,15 @@ export function ProjectIntentPicker({
       {contentLine === "MARS_CITIZEN" ? (
         <div className="space-y-3">
           <div className="text-sm font-medium text-[var(--text-2)]">
-            {locale === "en" ? "One project = one video" : "一个项目 = 一期视频"}
+            {locale === "en" ? "Default package" : "默认内容包"}
           </div>
           <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-5">
-            <div className="text-sm leading-relaxed text-[var(--text-2)]">
-              {locale === "en"
-                ? "Each project produces a complete video package:"
-                : "每个项目自动产出一整套视频方案："}
-            </div>
-            <div className="mt-4 grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {[
-                { icon: FileText, label: locale === "en" ? "Script" : "脚本" },
-                { icon: Clapperboard, label: locale === "en" ? "Storyboard" : "分镜" },
+                { icon: FileText, label: locale === "en" ? "Draft" : "主稿" },
+                { icon: Images, label: locale === "en" ? "Image Brief" : "配图说明" },
                 { icon: Type, label: locale === "en" ? "Title" : "标题" },
-                { icon: AlignLeft, label: locale === "en" ? "Description" : "简介" },
+                { icon: AlignLeft, label: locale === "en" ? "Summary" : "摘要" },
                 { icon: Send, label: locale === "en" ? "Publish Copy" : "发布文案" },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col items-center gap-1.5 text-center">

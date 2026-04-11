@@ -123,6 +123,25 @@ export const renderJobCreateSchema = z.object({
   job_status: renderJobStatusSchema.optional(),
 });
 
+export const renderJobFeedbackSchema = z.object({
+  verdict: z.enum(["KEEP", "RETRY", "REWRITE_BRIEF"]),
+  issue_tags: z
+    .array(
+      z.enum([
+        "PROMPT_TOO_ABSTRACT",
+        "SUBJECT_DRIFT",
+        "STYLE_DRIFT",
+        "COMPOSITION_WEAK",
+        "DETAIL_TOO_THIN",
+        "TEXT_ARTIFACTS",
+        "REFERENCE_NOT_USED",
+      ]),
+    )
+    .max(5)
+    .default([]),
+  note: z.string().max(600).optional(),
+});
+
 export const brandProfileCreateSchema = z.object({
   brand_name: z.string().min(2).max(120),
   brand_positioning: z.string().min(6).max(2000),
@@ -260,6 +279,7 @@ export type StoryboardCreateInput = z.infer<typeof storyboardCreateSchema>;
 export type StoryboardFrameInput = z.infer<typeof storyboardFrameInputSchema>;
 export type FrameReferenceCreateInput = z.infer<typeof frameReferenceCreateSchema>;
 export type RenderJobCreateInput = z.infer<typeof renderJobCreateSchema>;
+export type RenderJobFeedbackInput = z.infer<typeof renderJobFeedbackSchema>;
 export type BrandProfileCreateInput = z.infer<typeof brandProfileCreateSchema>;
 export type IndustryTemplateCreateInput = z.infer<typeof industryTemplateCreateSchema>;
 export type CompetitorProfileInput = z.infer<typeof competitorProfileInputSchema>;

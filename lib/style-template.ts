@@ -21,7 +21,7 @@ export function getStyleTemplate(input: unknown): StyleTemplate {
   return styleTemplateList.includes(input as StyleTemplate) ? (input as StyleTemplate) : "RATIONAL_PRO";
 }
 
-export function getStyleTemplateMeta(style: StyleTemplate, locale: "zh" | "en" = "zh") {
+export function getStyleTemplateMeta(style: string, locale: "zh" | "en" = "zh") {
   const zh = {
     RATIONAL_PRO: {
       label: "理性专业",
@@ -84,5 +84,5 @@ export function getStyleTemplateMeta(style: StyleTemplate, locale: "zh" | "en" =
     },
   } as const;
 
-  return (locale === "en" ? en : zh)[style];
+  return (locale === "en" ? en : zh)[style as StyleTemplate] ?? (locale === "en" ? en : zh).RATIONAL_PRO;
 }

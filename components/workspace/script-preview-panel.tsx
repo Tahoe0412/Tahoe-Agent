@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
 import {
   FileText,
   Clock,
@@ -23,6 +24,7 @@ interface ScriptPreviewData {
   modelName: string | null;
   sourceType: string;
   createdAt: string | Date;
+  versionNumber?: number;
 }
 
 export function ScriptPreviewPanel({
@@ -41,6 +43,7 @@ export function ScriptPreviewPanel({
     closing?: string;
     estimated_duration_sec?: number;
     scene_split_status?: string;
+    audience_panel_review?: AudiencePanelReview | null;
   } | null;
   const rawPayload = script.rawPayload as {
     origin?: string;
@@ -54,6 +57,7 @@ export function ScriptPreviewPanel({
   } | null;
   const isNewsRoundup = rawPayload?.origin === "news_roundup";
   const newsItems = rawPayload?.news_items ?? [];
+  const audiencePanel = normalizeAudiencePanelReview(structured?.audience_panel_review);
 
   // Determine if we should poll
   const initialStatus = structured?.scene_split_status;
@@ -102,6 +106,9 @@ export function ScriptPreviewPanel({
                   ~{structured.estimated_duration_sec}s
                 </span>
               )}
+              {script.versionNumber ? (
+                <span>v{script.versionNumber}</span>
+              ) : null}
               {newsItems.length > 0 && (
                 <span className="flex items-center gap-1">
                   <Newspaper className="size-3" />
@@ -128,6 +135,8 @@ export function ScriptPreviewPanel({
           }).then(() => router.refresh());
         }}
       />
+
+      <AudiencePanelSummary panel={audiencePanel} locale={locale} />
 
       {/* Script body — structured sections */}
       {structured && (structured.opening || structured.body || structured.closing) ? (
@@ -194,6 +203,106 @@ export function ScriptPreviewPanel({
         </div>
       )}
     </div>
+  );
+}
+
+function AudiencePanelSummary({
+  panel,
+  locale,
+}: {
+  panel: AudiencePanelReview | null;
+  locale: "zh" | "en";
+}) {
+  if (!panel) {
+    return null;
+  }
+
+  const t = locale === "zh";
+
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
+            {t ? "主稿观众评分" : "Audience panel"}
+          </div>
+          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
+            {t
+              ? "先看这版主稿是否像一篇能发的内容，而不是只看 scene 有没有拆出来。"
+              : "Judge whether this draft reads like a publishable piece, not just a script that splits into scenes."}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <MetricChip label={t ? "平均分" : "Average"} value={panel.averageScore} />
+          <MetricChip label={t ? "媒体贴合度" : "Style fit"} value={panel.styleFitScore} />
+          <MetricChip
+            label={t ? "发布判断" : "Readiness"}
+            value={panel.publishReadiness === "READY" ? (t ? "可继续" : "Ready") : (t ? "先修" : "Revise")}
+            tone={panel.publishReadiness === "READY" ? "success" : "danger"}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
+            {t ? "总判断" : "Verdict"}
+          </div>
+          <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{panel.overallVerdict}</div>
+        </div>
+        <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
+            {t ? "媒体校准" : "Calibration"}
+          </div>
+          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{panel.calibrationSummary}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {panel.reviewers.map((reviewer) => (
+          <div key={reviewer.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
+              <span className="text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
+            </div>
+            <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{reviewer.verdict}</div>
+            {reviewer.concerns.length ? (
+              <div className="mt-3 space-y-1 text-sm leading-6 text-[var(--text-2)]">
+                {reviewer.concerns.slice(0, 2).map((item) => (
+                  <div key={item}>- {item}</div>
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">
+              {t ? "下一步：" : "Next:"} {reviewer.nextAction}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MetricChip({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string | number;
+  tone?: "default" | "danger" | "success";
+}) {
+  const className =
+    tone === "danger"
+      ? "theme-chip-danger"
+      : tone === "success"
+        ? "theme-chip-ok"
+        : "theme-chip";
+
+  return (
+    <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${className}`}>
+      {label} {value}
+    </span>
   );
 }
 

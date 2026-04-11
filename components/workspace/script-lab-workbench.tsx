@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
+import { Tag } from "@/components/ui/tag";
 import { assessPublishCopy, assessScenePrompt, assessVideoTitlePack } from "@/lib/artifact-quality";
 import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
-import { getOutputKnowledgePack, reviewOutputArtifact, type ArtifactReview } from "@/lib/output-artifact-guidance";
+import { getOutputKnowledgePack, reviewOutputArtifact } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
+import { normalizeStringList, normalizeString, normalizeArtifactReview, copyToClipboard } from "@/lib/utils";
 
 type ScriptLabRow = {
   id: string;
@@ -71,28 +73,7 @@ type ScriptDraftPreview = {
   versionNumber?: number;
 };
 
-function normalizeStringList(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
-}
 
-function normalizeString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeArtifactReview(value: unknown): ArtifactReview | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const source = value as Record<string, unknown>;
-  return {
-    status: source.status === "READY" ? "READY" : "NEEDS_REVISION",
-    summary: normalizeString(source.summary),
-    strengths: normalizeStringList(source.strengths),
-    issues: normalizeStringList(source.issues),
-    nextSteps: normalizeStringList(source.nextSteps),
-  };
-}
 
 function renderAudiencePanel(panel: AudiencePanelReview | null, empty: string) {
   if (!panel) {
@@ -130,24 +111,9 @@ function renderAudiencePanel(panel: AudiencePanelReview | null, empty: string) {
   );
 }
 
-async function copyToClipboard(text: string) {
-  if (typeof navigator === "undefined" || !navigator.clipboard) {
-    throw new Error("当前环境不支持剪贴板复制。");
-  }
 
-  await navigator.clipboard.writeText(text);
-}
 
-function Tag({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "danger" | "success" }) {
-  const className =
-    tone === "danger"
-      ? "theme-chip-danger"
-      : tone === "success"
-        ? "theme-chip-ok"
-        : "theme-chip";
 
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>{children}</span>;
-}
 
 function StatCard({ label, value, caption }: { label: string; value: string; caption: string }) {
   return (

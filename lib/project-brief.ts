@@ -29,16 +29,12 @@ function truncate(text: string, max: number) {
 export function normalizeProjectTopic(topic: string, workspaceMode?: WorkspaceMode) {
   const source = compact(topic);
   if (!source) {
-    return workspaceMode === "SHORT_VIDEO" ? "本期科技快讯选题" : "当前传播主题";
+    return workspaceMode === "SHORT_VIDEO" ? "本期图文选题" : "当前传播主题";
   }
 
   const candidates = dedupe(splitTopicCandidates(source));
   if (candidates.length <= 1) {
     return truncate(source, 120);
-  }
-
-  if (workspaceMode === "SHORT_VIDEO") {
-    return truncate(`${candidates.slice(0, 4).join(" / ")} 最新动态`, 120);
   }
 
   return truncate(candidates.slice(0, 4).join(" / "), 120);
@@ -60,7 +56,15 @@ export function buildGeneratedProjectTitle(params: {
   const brandName = compact(params.brandName) || (params.workspaceMode === "SHORT_VIDEO" ? "火星公民" : "");
 
   if (params.workspaceMode === "SHORT_VIDEO") {
-    return truncate(`${brandName || "火星公民"}科技快讯 ${formatZhDate(params.date)}`, 120);
+    if (brandName === "火星公民") {
+      return truncate(`${brandName}科技快讯 ${formatZhDate(params.date)}`, 120);
+    }
+
+    if (brandName) {
+      return truncate(`${brandName}｜${normalizedTopic}`, 120);
+    }
+
+    return truncate(`内容选题｜${normalizedTopic}`, 120);
   }
 
   if (brandName) {
@@ -138,9 +142,9 @@ export function buildGeneratedProjectIntroduction(params: {
 
   if (params.workspaceMode === "SHORT_VIDEO") {
     return [
-      `本项目用于输出 ${brandName} 当期科技快讯内容，围绕「${topic}」整理最新动态、关键判断和可传播表达。`,
-      "目标不是堆砌新闻点，而是把分散信息压缩成一条适合短视频表达的清晰主线：先说最值得关注的变化，再解释它为什么重要，最后给出用户能带走的结论。",
-      `整体表达应保持${getStylePositioning(styleTemplate)}，最终优先适配短视频发布与后续包装使用。`,
+      `本项目用于输出 ${brandName} 当前选题的图文与文章内容，围绕「${topic}」整理最新信息、关键判断和可传播表达。`,
+      "目标不是堆砌信息点，而是把分散材料压缩成一条适合头条号与图文发布的清晰主线：先抛出最值得关心的判断，再解释它为什么重要，最后给出读者能带走的结论。",
+      `整体表达应保持${getStylePositioning(styleTemplate)}，最终优先适配文章主稿、标题摘要、发布包装与后续精细配图使用。`,
       sourceExcerpt ? `当前已收集的原始材料可作为事实底稿继续展开：${sourceExcerpt}${sourceExcerpt.length >= 120 ? "…" : ""}` : "",
     ].filter(Boolean).join("\n\n");
   }
@@ -159,7 +163,7 @@ export function buildGeneratedCoreIdea(params: {
 }) {
   const topic = normalizeProjectTopic(params.topicQuery ?? "", params.workspaceMode);
   return params.workspaceMode === "SHORT_VIDEO"
-    ? `把「${topic}」讲成一条用户愿意看完、能快速获得判断的科技快讯。`
+    ? `把「${topic}」整理成一篇用户愿意看完、能快速获得判断的图文主稿，并为后续配图留出明确视觉方向。`
     : `把「${topic}」整理成一个可直接进入传播执行的清晰表达角度。`;
 }
 
@@ -173,9 +177,9 @@ export function buildGeneratedStyleReferenceSample(params: {
 
   if (params.workspaceMode === "SHORT_VIDEO") {
     return [
-      `今天这条，不是把 ${brandName} 相关信息再复述一遍，而是先抓住一个真正值得关心的变化。`,
-      "我们先讲这件事到底发生了什么，再讲它为什么重要，最后再判断它会把接下来的技术竞速推向哪里。",
-      "整条表达尽量短、准、清楚，不靠夸张口号撑节奏，而靠信息增量和判断力把人留下来。",
+      `这篇内容，不是把 ${brandName} 相关信息再复述一遍，而是先抓住一个真正值得关心的变化或判断。`,
+      "我们先讲这件事到底发生了什么，再讲它为什么重要，最后再判断它会对行业、技术或生活方式产生什么影响。",
+      "整篇表达尽量短、准、清楚，不靠夸张口号撑节奏，而靠信息增量、判断力和可视化空间把人留下来。",
     ].join("\n\n");
   }
 

@@ -8,3 +8,24 @@ coverage
 generated
 public/uploads/*
 !public/uploads/.gitkeep
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# Temp / scratch
+tmp/
+output/
+
+# Test recordings
+.playwright-cli/
+
+# SQL dumps at root (migrations live in prisma/)
+/*.sql
+
+# Non-project files (coursework, analysis scripts)
+analysis/
+econometrics_assignment2b_bundle/

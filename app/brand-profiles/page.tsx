@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { ErrorPanel } from "@/components/ui/state-panel";
 import { ProjectContext } from "@/components/workspace/project-context";
+import { buildProjectContextProject } from "@/lib/build-project-context";
 import { BrandProfileWorkbench } from "@/components/workspace/brand-profile-workbench";
 import { WorkspaceLayout } from "@/components/workspace/layout";
 import { copy, getLocale } from "@/lib/locale";
@@ -36,23 +37,7 @@ export default async function BrandProfilesPage({
       <div className="space-y-6 xl:space-y-5">
         <PageHeader eyebrow={text.pages.brands.eyebrow} title={text.pages.brands.title} description={text.pages.brands.description} locale={locale} />
         <ProjectContext
-          project={
-            workspace
-              ? {
-                  id: workspace.project.id,
-                  title: workspace.project.title,
-                  topic_query: workspace.project.topic_query,
-                  workspaceMode: workspace.workspaceMode,
-                  introduction: workspace.projectSummary.introduction,
-                  coreIdea: workspace.projectSummary.coreIdea,
-                  originalScript: workspace.projectSummary.originalScript,
-                  writingMode: workspace.projectSummary.writingMode as never,
-                  writingModeLabel: workspace.projectSummary.writingModeLabel,
-                  styleTemplate: workspace.projectSummary.styleTemplate as never,
-                  styleTemplateLabel: workspace.projectSummary.styleTemplateLabel,
-                }
-              : null
-          }
+          project={workspace ? buildProjectContextProject(workspace) : null}
           recentProjects={recentProjects.map((project) => ({ id: project.id, title: project.title, topic_query: project.topic_query, is_pinned: project.is_pinned }))}
           locale={locale}
           density="compact"

@@ -25,7 +25,7 @@ export function getUsageScenario(input: unknown): UsageScenario {
   return usageScenarioList.includes(input as UsageScenario) ? (input as UsageScenario) : "XIAOHONGSHU_POST";
 }
 
-export function getCopyLengthMeta(length: CopyLength, locale: "zh" | "en" = "zh") {
+export function getCopyLengthMeta(length: string, locale: "zh" | "en" = "zh") {
   const zh = {
     SHORT: { label: "短版", description: "适合做首屏摘要、平台正文或轻量传播文案。" },
     STANDARD: { label: "标准版", description: "适合做完整宣传主稿，兼顾信息量和阅读速度。" },
@@ -38,10 +38,10 @@ export function getCopyLengthMeta(length: CopyLength, locale: "zh" | "en" = "zh"
     LONG: { label: "Long", description: "For detailed landing pages and long-form persuasion." },
   } as const;
 
-  return (locale === "en" ? en : zh)[length];
+  return (locale === "en" ? en : zh)[length as CopyLength] ?? (locale === "en" ? en : zh).STANDARD;
 }
 
-export function getUsageScenarioMeta(scenario: UsageScenario, locale: "zh" | "en" = "zh") {
+export function getUsageScenarioMeta(scenario: string, locale: "zh" | "en" = "zh") {
   const zh = {
     XIAOHONGSHU_POST: { label: "小红书正文", description: "偏可读性、可转发、可共鸣，强调平台传播感。" },
     BRAND_LANDING: { label: "品牌介绍页", description: "适合品牌页、官网页和品牌整体表达。" },
@@ -60,5 +60,5 @@ export function getUsageScenarioMeta(scenario: UsageScenario, locale: "zh" | "en
     FOUNDER_IP: { label: "Founder / IP", description: "For first-person conviction and personality-led narrative." },
   } as const;
 
-  return (locale === "en" ? en : zh)[scenario];
+  return (locale === "en" ? en : zh)[scenario as UsageScenario] ?? (locale === "en" ? en : zh).XIAOHONGSHU_POST;
 }

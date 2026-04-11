@@ -1,6 +1,7 @@
 import { EmptyPanel, ErrorPanel } from "@/components/ui/state-panel";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProjectContext } from "@/components/workspace/project-context";
+import { buildProjectContextProject } from "@/lib/build-project-context";
 import { ApprovalBoard } from "@/components/workspace/approval-board";
 import { BriefStudioWorkbench } from "@/components/workspace/brief-studio-workbench";
 import { WorkspaceLayout } from "@/components/workspace/layout";
@@ -36,7 +37,7 @@ export default async function BriefStudioPage({
       ? {
           eyebrow: locale === "en" ? "Science Context" : "科普起点",
           title: "快速任务单",
-          description: locale === "en" ? "Use this page only when you need to sharpen the angle before script or storyboard generation." : "只有在你需要先把角度和表达收清时，再来这里补充上下文，然后继续做脚本或分镜。",
+          description: locale === "en" ? "Use this page only when you need to sharpen the angle before article drafting or image planning." : "只有在你需要先把角度和表达收清时，再来这里补充上下文，然后继续做主稿或配图。",
         }
       : workspace?.contentLine === "MARKETING"
         ? {
@@ -73,29 +74,7 @@ export default async function BriefStudioPage({
         ) : null}
 
         <ProjectContext
-          project={
-            workspace
-              ? {
-                  id: workspace.project.id,
-                  title: workspace.project.title,
-                  topic_query: workspace.project.topic_query,
-                  workspaceMode: workspace.workspaceMode,
-                  introduction: workspace.projectSummary.introduction,
-                  coreIdea: workspace.projectSummary.coreIdea,
-                  originalScript: workspace.projectSummary.originalScript,
-                  styleReferenceSample: workspace.projectSummary.styleReferenceSample,
-                  styleReferenceInsight: workspace.projectSummary.styleReferenceInsight,
-                  writingMode: workspace.projectSummary.writingMode as never,
-                  writingModeLabel: workspace.projectSummary.writingModeLabel,
-                  styleTemplate: workspace.projectSummary.styleTemplate as never,
-                  styleTemplateLabel: workspace.projectSummary.styleTemplateLabel,
-                  copyLength: workspace.projectSummary.copyLength as never,
-                  copyLengthLabel: workspace.projectSummary.copyLengthLabel,
-                  usageScenario: workspace.projectSummary.usageScenario as never,
-                  usageScenarioLabel: workspace.projectSummary.usageScenarioLabel,
-                }
-              : null
-          }
+          project={workspace ? buildProjectContextProject(workspace) : null}
           recentProjects={recentProjects.map((project) => ({ id: project.id, title: project.title, topic_query: project.topic_query, is_pinned: project.is_pinned }))}
           locale={locale}
           density="compact"

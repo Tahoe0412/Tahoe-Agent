@@ -1,5 +1,12 @@
 import { Prisma, type StrategyTaskStatus, type StrategyTaskType } from "@prisma/client";
 import { z } from "zod";
+import {
+  audiencePanelReviewJsonSchema,
+  audiencePanelReviewSchema,
+  buildAudiencePanelPrompt,
+  getChineseMediaCalibrationNotes,
+  normalizeAudiencePanelReview,
+} from "@/lib/copy-review-panel";
 import { getOutputKnowledgePack, reviewOutputArtifact } from "@/lib/output-artifact-guidance";
 import { prisma } from "@/lib/db";
 import { getContentLineMeta, isOutputType } from "@/lib/content-line";
@@ -7,6 +14,7 @@ import { buildAdCreativePrompt, buildPublishCopyPrompt, buildVideoTitlePrompt } 
 import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
 import { canUseModelRoute } from "@/lib/model-routing";
 import { generateStructuredJson } from "@/lib/openai-json";
+import { analyzeStyleReferenceSample, type StyleReferenceInsight } from "@/lib/style-reference";
 import { AppSettingsService } from "@/services/app-settings.service";
 import { MarketingContextService } from "@/services/marketing-context.service";
 import { PromotionalCopyService } from "@/services/promotional-copy.service";
@@ -16,6 +24,7 @@ import {
   type SupportedProjectOutputType,
 } from "@/services/project-output-generator-registry";
 import { StoryboardGeneratorService } from "@/services/storyboard-generator.service";
+import { normalizeStringList } from "@/lib/utils";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
@@ -46,6 +55,43 @@ const adCreativeSchema = z.object({
 });
 
 type ProjectWithArtifacts = NonNullable<Awaited<ReturnType<ProjectOutputGeneratorService["loadProjectForGeneration"]>>>;
+
+async function buildPackagingAudiencePanelReview(params: {
+  settings: Awaited<ReturnType<AppSettingsService["getEffectiveSettings"]>>;
+  topic: string;
+  draftTypeLabel: string;
+  title?: string | null;
+  heroCopy?: string | null;
+  bodyCopy: string;
+  proofPoints?: string[];
+  callToAction?: string | null;
+  styleReferenceInsight?: StyleReferenceInsight | null;
+}) {
+  if (!canUseModelRoute("MARKETING_ANALYSIS", params.settings)) {
+    return null;
+  }
+
+  const prompt = buildAudiencePanelPrompt({
+    topic: params.topic,
+    draftTypeLabel: params.draftTypeLabel,
+    title: params.title,
+    heroCopy: params.heroCopy,
+    bodyCopy: params.bodyCopy,
+    proofPoints: params.proofPoints,
+    callToAction: params.callToAction,
+    styleReferenceInsight: params.styleReferenceInsight,
+  });
+
+  return generateStructuredJson({
+    routeKey: "MARKETING_ANALYSIS",
+    schemaName: "packaging_audience_panel_review",
+    schema: audiencePanelReviewJsonSchema,
+    zodSchema: audiencePanelReviewSchema,
+    temperature: 0.15,
+    systemPrompt: prompt.systemPrompt,
+    userPrompt: prompt.userPrompt,
+  });
+}
 
 export class ProjectOutputGeneratorService {
   private readonly appSettingsService = new AppSettingsService();
@@ -119,6 +165,12 @@ export class ProjectOutputGeneratorService {
     const scriptText = this.resolveProjectSourceText(project);
     const settings = await this.appSettingsService.getEffectiveSettings();
     const guidance = getOutputKnowledgePack("VIDEO_TITLE");
+    const styleReferenceSample = (((project.metadata as Record<string, unknown> | null)?.style_reference_sample as string | undefined) ?? "").trim();
+    const styleReferenceInsight = analyzeStyleReferenceSample(styleReferenceSample);
+    const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
+      styleReferenceInsight,
+      target: "PACKAGING",
+    });
 
     let output = {
       title_options: [
@@ -136,7 +188,7 @@ export class ProjectOutputGeneratorService {
         topicQuery: project.topic_query,
         contentLineLabel: lineLabel,
         scriptText,
-        knowledgeNotes: guidance.knowledgeNotes,
+        knowledgeNotes: [...guidance.knowledgeNotes, ...mediaCalibrationNotes],
         reviewChecklist: guidance.reviewChecklist,
       });
 
@@ -166,7 +218,7 @@ export class ProjectOutputGeneratorService {
         brand_profile_id: project.brand_profile_id,
         task_type: "SCRIPT" as StrategyTaskType,
         task_status: "DONE" as StrategyTaskStatus,
-        task_title: `视频标题包 · ${output.recommended_title}`,
+        task_title: `内容标题包 · ${output.recommended_title}`,
         task_summary: output.recommended_title,
         priority_score: 84,
         task_json: toJson({
@@ -182,6 +234,53 @@ export class ProjectOutputGeneratorService {
       },
     });
 
+    if (canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      void (async () => {
+        try {
+          const audiencePanel = await buildPackagingAudiencePanelReview({
+            settings,
+            topic: project.topic_query,
+            draftTypeLabel: "内容标题包",
+            title: output.recommended_title,
+            heroCopy: output.angle_summary,
+            bodyCopy: [
+              output.recommended_title,
+              ...output.title_options.slice(0, 5),
+            ].join("\n"),
+            proofPoints: output.title_options.slice(0, 3),
+            callToAction: null,
+            styleReferenceInsight,
+          });
+
+          if (!audiencePanel) {
+            return;
+          }
+
+          const current = await prisma.strategyTask.findUnique({
+            where: { id: task.id },
+            select: { task_json: true },
+          });
+
+          if (!current) {
+            return;
+          }
+
+          const existingJson = (current.task_json as Record<string, unknown>) ?? {};
+          await prisma.strategyTask.update({
+            where: { id: task.id },
+            data: {
+              task_json: toJson({
+                ...existingJson,
+                audience_panel_review: normalizeAudiencePanelReview(audiencePanel),
+              }),
+            },
+          });
+        } catch {
+          // Audience review enrichment is non-fatal.
+        }
+      })();
+    }
+
     return {
       outputType: "VIDEO_TITLE",
       artifactKind: "strategy_task",
@@ -195,6 +294,12 @@ export class ProjectOutputGeneratorService {
     const scriptText = this.resolveProjectSourceText(project);
     const settings = await this.appSettingsService.getEffectiveSettings();
     const guidance = getOutputKnowledgePack("PUBLISH_COPY");
+    const styleReferenceSample = (((project.metadata as Record<string, unknown> | null)?.style_reference_sample as string | undefined) ?? "").trim();
+    const styleReferenceInsight = analyzeStyleReferenceSample(styleReferenceSample);
+    const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
+      styleReferenceInsight,
+      target: "PACKAGING",
+    });
     const existingVideoTitles = project.strategy_tasks
       .filter((task) => ((task.task_json as Record<string, unknown> | null)?.output_type as string | undefined) === "VIDEO_TITLE")
       .flatMap((task) => {
@@ -222,7 +327,7 @@ export class ProjectOutputGeneratorService {
         topicQuery: project.topic_query,
         scriptText,
         videoTitles: existingVideoTitles,
-        knowledgeNotes: guidance.knowledgeNotes,
+        knowledgeNotes: [...guidance.knowledgeNotes, ...mediaCalibrationNotes],
         reviewChecklist: guidance.reviewChecklist,
       });
 
@@ -269,6 +374,53 @@ export class ProjectOutputGeneratorService {
         }),
       },
     });
+
+    if (canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      void (async () => {
+        try {
+          const audiencePanel = await buildPackagingAudiencePanelReview({
+            settings,
+            topic: project.topic_query,
+            draftTypeLabel: "发布文案",
+            title: output.primary_title,
+            heroCopy: output.lead_in,
+            bodyCopy: [
+              output.video_description,
+              ...output.highlights.map((item) => `- ${item}`),
+            ].join("\n"),
+            proofPoints: output.highlights,
+            callToAction: output.publish_cta,
+            styleReferenceInsight,
+          });
+
+          if (!audiencePanel) {
+            return;
+          }
+
+          const current = await prisma.strategyTask.findUnique({
+            where: { id: task.id },
+            select: { task_json: true },
+          });
+
+          if (!current) {
+            return;
+          }
+
+          const existingJson = (current.task_json as Record<string, unknown>) ?? {};
+          await prisma.strategyTask.update({
+            where: { id: task.id },
+            data: {
+              task_json: toJson({
+                ...existingJson,
+                audience_panel_review: normalizeAudiencePanelReview(audiencePanel),
+              }),
+            },
+          });
+        } catch {
+          // Audience review enrichment is non-fatal.
+        }
+      })();
+    }
 
     return {
       outputType: "PUBLISH_COPY",

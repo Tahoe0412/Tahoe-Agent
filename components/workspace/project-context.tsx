@@ -23,31 +23,15 @@ import type { WorkspaceMode } from "@/lib/workspace-mode";
 import { getWorkspaceModeMeta } from "@/lib/workspace-mode";
 import { cn } from "@/lib/utils";
 
+import type { ProjectContextProject } from "@/lib/build-project-context";
+
 export function ProjectContext({
   project,
   recentProjects,
   locale,
   density = "compact",
 }: {
-  project: {
-    id: string;
-    title: string;
-    topic_query: string;
-    workspaceMode?: WorkspaceMode;
-    introduction?: string | null;
-    coreIdea?: string | null;
-    originalScript?: string | null;
-    styleReferenceSample?: string | null;
-    styleReferenceInsight?: StyleReferenceInsight | null;
-    writingMode?: WritingMode | null;
-    writingModeLabel?: string | null;
-    styleTemplate?: StyleTemplate | null;
-    styleTemplateLabel?: string | null;
-    copyLength?: CopyLength | null;
-    copyLengthLabel?: string | null;
-    usageScenario?: UsageScenario | null;
-    usageScenarioLabel?: string | null;
-  } | null;
+  project: ProjectContextProject | null;
   recentProjects: Array<{ id: string; title: string; topic_query: string; is_pinned?: boolean }>;
   locale: Locale;
   density?: "compact" | "expanded";
@@ -78,7 +62,7 @@ export function ProjectContext({
         editProject: "Edit project details",
         projectName: "Project Name",
         projectTopic: "Project Topic",
-        sampleHint: "Paste one or more reference drafts here. The system will learn tone, rhythm, and structure without copying the content directly.",
+        sampleHint: "Paste 1-3 high-quality reference drafts here. The system will learn tone, rhythm, and structure from strong Chinese media-style writing without copying the source directly.",
         smartFill: "Auto-fill project brief",
         smartFillHint: "Use the current topic, brand, and writing settings to generate a better title, topic, overview, and style sample.",
         brandProfile: "Brand Profile",
@@ -116,7 +100,7 @@ export function ProjectContext({
         editProject: "编辑项目信息",
         projectName: "项目名称",
         projectTopic: "项目主题",
-        sampleHint: "可粘贴多段你喜欢的文案。系统会学习语气、节奏和结构，不会直接照抄内容。",
+        sampleHint: "优先粘贴 1-3 段你认可的高质量中文媒体/博主样稿。系统会学习语气、节奏和结构，不会直接照抄内容。",
         smartFill: "自动补全项目信息",
         smartFillHint: "基于当前主题、品牌和写作设置，自动生成更像项目 brief 的标题、主题、介绍和参考样稿。",
         brandProfile: "品牌档案",

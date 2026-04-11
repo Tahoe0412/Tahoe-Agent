@@ -5,7 +5,19 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { PanelCard } from "@/components/ui/panel-card";
+import { ScoreBar } from "@/components/ui/score-bar";
+import { apiRequest } from "@/lib/client-api";
+import { reviewImageBrief } from "@/lib/image-brief-review";
 import type { Locale } from "@/lib/locale";
+import {
+  feedbackIssueOptions,
+  getFeedbackIssueLabel,
+  getFeedbackVerdictLabel,
+  getJobFeedback,
+  type RenderJobFeedback,
+  type RenderJobFeedbackIssue,
+  type RenderJobFeedbackVerdict,
+} from "@/lib/render-job-feedback";
 import { renderJobTypeSchema, renderProviderSchema } from "@/schemas/production-control";
 
 type ScenePlannerRow = {
@@ -13,10 +25,16 @@ type ScenePlannerRow = {
   frameId: string | null;
   frameOrder: number;
   frameTitle: string;
+  rewritten: string;
   shotGoal: string;
   visualPrompt: string | null;
   cameraPlan: string | null;
   motionPlan: string | null;
+  compositionNotes: string | null;
+  referenceCount: number;
+  assetReady: boolean;
+  missing: string[];
+  riskFlags: string[];
   references: Array<{
     id: string;
     type: string;
@@ -123,6 +141,10 @@ function getStatusTone(status: string) {
   return "theme-chip";
 }
 
+function getReviewTone(readiness: "READY" | "NEEDS_REVISION") {
+  return readiness === "READY" ? "theme-chip-ok" : "theme-chip-warn";
+}
+
 function buildPrompt(row: ScenePlannerRow) {
   return [row.visualPrompt?.trim(), row.shotGoal?.trim(), row.frameTitle?.trim()].filter(Boolean).join("\n\n");
 }
@@ -177,6 +199,7 @@ function getJobOutput(job: RenderJobRow) {
 
   return job.output_json as Record<string, unknown>;
 }
+
 
 function getLinkedScene(rows: ScenePlannerRow[], job: RenderJobRow) {
   return rows.find((row) => row.id === job.script_scene_id) ?? rows.find((row) => row.frameId && row.frameId === job.storyboard_frame_id) ?? null;
@@ -274,10 +297,32 @@ export function RenderLabWorkbench({
   const [prompt, setPrompt] = useState("");
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
+  const [feedbackPending, setFeedbackPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackVerdict, setFeedbackVerdict] = useState<RenderJobFeedbackVerdict>("RETRY");
+  const [feedbackIssues, setFeedbackIssues] = useState<RenderJobFeedbackIssue[]>([]);
+  const [feedbackNote, setFeedbackNote] = useState("");
 
   const selectedScene = rows.find((row) => row.id === selectedId) ?? rows[0] ?? null;
+  const selectedReview = useMemo(
+    () =>
+      selectedScene
+        ? reviewImageBrief({
+            frameTitle: selectedScene.frameTitle,
+            shotGoal: selectedScene.shotGoal,
+            rewritten: selectedScene.rewritten,
+            visualPrompt: selectedScene.visualPrompt,
+            cameraPlan: selectedScene.cameraPlan,
+            compositionNotes: selectedScene.compositionNotes,
+            referenceCount: selectedScene.referenceCount,
+            assetReady: selectedScene.assetReady,
+            missing: selectedScene.missing,
+            riskFlags: selectedScene.riskFlags,
+          })
+        : null,
+    [selectedScene],
+  );
   const availableProviders = providerConfig[jobType].providers;
   const filteredRows = useMemo(() => {
     const query = sceneSearch.trim().toLowerCase();
@@ -344,6 +389,7 @@ export function RenderLabWorkbench({
     });
   }, [jobScope, jobSearch, jobSort, jobStatusFilter, jobs, rows, selectedScene]);
   const selectedJob = filteredJobs.find((job) => job.id === selectedJobId) ?? jobs.find((job) => job.id === selectedJobId) ?? filteredJobs[0] ?? jobs[0] ?? null;
+  const selectedJobFeedback = selectedJob ? getJobFeedback(selectedJob) : null;
   const selectedJobThread = useMemo(() => {
     if (!selectedJob) {
       return [];
@@ -377,6 +423,19 @@ export function RenderLabWorkbench({
       setSelectedJobId(filteredJobs[0]?.id ?? jobs[0]?.id ?? "");
     }
   }, [filteredJobs, jobs, selectedJobId]);
+
+  useEffect(() => {
+    if (!selectedJobFeedback) {
+      setFeedbackVerdict("RETRY");
+      setFeedbackIssues([]);
+      setFeedbackNote("");
+      return;
+    }
+
+    setFeedbackVerdict(selectedJobFeedback.verdict);
+    setFeedbackIssues(selectedJobFeedback.issue_tags);
+    setFeedbackNote(selectedJobFeedback.note ?? "");
+  }, [selectedJobId, selectedJobFeedback?.updated_at, selectedJobFeedback?.verdict]);
 
   useEffect(() => {
     if (!selectedScene) {
@@ -432,6 +491,42 @@ export function RenderLabWorkbench({
     loadJobIntoEditor(selectedJob);
     setMessage(locale === "en" ? "The form has been prefilled from the selected job." : "已基于当前任务回填表单，可继续迭代。");
     setError(null);
+  }
+
+  function toggleFeedbackIssue(issue: RenderJobFeedbackIssue) {
+    setFeedbackIssues((current) =>
+      current.includes(issue) ? current.filter((item) => item !== issue) : current.length >= 5 ? current : [...current, issue],
+    );
+  }
+
+  async function saveFeedback() {
+    if (!selectedJob) {
+      return;
+    }
+
+    setFeedbackPending(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      await apiRequest(`/api/projects/${projectId}/render-jobs/${selectedJob.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          verdict: feedbackVerdict,
+          issue_tags: feedbackIssues,
+          note: feedbackNote.trim(),
+        }),
+      });
+      setMessage(locale === "en" ? "Result feedback saved." : "结果反馈已保存。");
+      router.refresh();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : locale === "en" ? "Failed to save result feedback." : "保存结果反馈失败。");
+    } finally {
+      setFeedbackPending(false);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -500,13 +595,13 @@ export function RenderLabWorkbench({
   return (
     <div className="grid gap-6 xl:grid-cols-[0.82fr_1.04fr_0.94fr]">
       <PanelCard
-        title={locale === "en" ? "Find the Right Scene" : "先定位对的场景"}
-        description={locale === "en" ? "Search and filter storyboard rows before turning them into render tasks." : "先筛出真正要开工的镜头，再把它转成渲染任务。"}
+        title={locale === "en" ? "Find the Right Image Brief" : "先定位对的配图条目"}
+        description={locale === "en" ? "Search and filter image-brief rows before turning them into image jobs." : "先筛出真正要开工的配图说明，再把它转成图片任务。"}
       >
         <div className="space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_180px]">
             <label className="space-y-2 text-sm text-[var(--text-2)]">
-              <span>{locale === "en" ? "Search scenes" : "搜索场景"}</span>
+              <span>{locale === "en" ? "Search image rows" : "搜索配图条目"}</span>
               <input
                 value={sceneSearch}
                 onChange={(event) => setSceneSearch(event.target.value)}
@@ -521,7 +616,7 @@ export function RenderLabWorkbench({
                 onChange={(event) => setSceneFilter(event.target.value as "ALL" | "REFERENCED" | "PROMPT_READY")}
                 className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
               >
-                <option value="ALL">{locale === "en" ? "All scenes" : "全部场景"}</option>
+                <option value="ALL">{locale === "en" ? "All rows" : "全部条目"}</option>
                 <option value="REFERENCED">{locale === "en" ? "With references" : "只看有参考"}</option>
                 <option value="PROMPT_READY">{locale === "en" ? "Prompt ready" : "只看提示词已就绪"}</option>
               </select>
@@ -529,7 +624,7 @@ export function RenderLabWorkbench({
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs text-[var(--text-2)]">
-            <span className="theme-chip rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${filteredRows.length} visible` : `当前显示 ${filteredRows.length} 个`}</span>
+            <span className="theme-chip rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${filteredRows.length} visible` : `当前显示 ${filteredRows.length} 条`}</span>
             <span className="theme-chip-ok rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.references.length > 0).length} with refs` : `${rows.filter((row) => row.references.length > 0).length} 个有参考`}</span>
             <span className="theme-chip rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.visualPrompt?.trim()).length} prompt-ready` : `${rows.filter((row) => row.visualPrompt?.trim()).length} 个提示词已就绪`}</span>
           </div>
@@ -538,6 +633,18 @@ export function RenderLabWorkbench({
             {filteredRows.length ? (
               filteredRows.map((row) => {
                 const selected = row.id === selectedScene.id;
+                const review = reviewImageBrief({
+                  frameTitle: row.frameTitle,
+                  shotGoal: row.shotGoal,
+                  rewritten: row.rewritten,
+                  visualPrompt: row.visualPrompt,
+                  cameraPlan: row.cameraPlan,
+                  compositionNotes: row.compositionNotes,
+                  referenceCount: row.referenceCount,
+                  assetReady: row.assetReady,
+                  missing: row.missing,
+                  riskFlags: row.riskFlags,
+                });
 
                 return (
                   <button
@@ -561,6 +668,9 @@ export function RenderLabWorkbench({
                         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${row.visualPrompt?.trim() ? "theme-chip-ok" : "theme-chip"}`}>
                           {row.visualPrompt?.trim() ? (locale === "en" ? "prompt ready" : "提示词就绪") : locale === "en" ? "prompt pending" : "待补提示词"}
                         </span>
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
+                          {review.readiness === "READY" ? (locale === "en" ? `ready ${review.score}` : `可开工 ${review.score}`) : locale === "en" ? `revise ${review.score}` : `待补强 ${review.score}`}
+                        </span>
                       </div>
                     </div>
                     <p className={`mt-3 text-sm leading-6 ${selected ? "text-white/76" : "text-[var(--text-2)]"}`}>{row.shotGoal}</p>
@@ -575,7 +685,7 @@ export function RenderLabWorkbench({
               })
             ) : (
               <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-6 text-[var(--text-2)]">
-                {locale === "en" ? "No scenes match the current search. Try a different keyword or filter." : "当前搜索条件下没有匹配场景，换个关键词或筛选条件试试。"}
+                {locale === "en" ? "No image rows match the current search. Try a different keyword or filter." : "当前搜索条件下没有匹配配图条目，换个关键词或筛选条件试试。"}
               </div>
             )}
           </div>
@@ -583,8 +693,8 @@ export function RenderLabWorkbench({
       </PanelCard>
 
       <PanelCard
-        title={locale === "en" ? "Editor Workspace" : "编辑工作区"}
-        description={locale === "en" ? "Switch between drafting a fresh job from the scene and reusing a previous run." : "在基于场景新建任务、或基于上一条任务复用迭代之间切换。"}
+        title={locale === "en" ? "Image Job Editor" : "图片任务编辑区"}
+        description={locale === "en" ? "Switch between drafting a fresh image job from the selected row and reusing a previous run." : "在基于当前条目新建图片任务、或基于上一条任务复用迭代之间切换。"}
       >
         <div className="space-y-5">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -601,10 +711,10 @@ export function RenderLabWorkbench({
               }`}
             >
               <div className={`text-sm font-semibold ${editorMode === "CREATE" ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
-                {locale === "en" ? "Create From Scene" : "基于场景新建"}
+                {locale === "en" ? "Create From Row" : "基于条目新建"}
               </div>
               <div className={`mt-2 text-sm leading-6 ${editorMode === "CREATE" ? "text-white/72" : "text-[var(--text-2)]"}`}>
-                {locale === "en" ? "Use the currently selected storyboard row as the source of truth." : "直接以当前选中的分镜行为起点，快速起一个新任务。"}
+                {locale === "en" ? "Use the currently selected image-brief row as the source of truth." : "直接以当前选中的配图条目为起点，快速起一个新任务。"}
               </div>
             </button>
             <button
@@ -633,7 +743,7 @@ export function RenderLabWorkbench({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="theme-panel-muted rounded-[22px] p-4">
               <div className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
-                {editorMode === "CREATE" ? (locale === "en" ? "Current Scene" : "当前场景") : locale === "en" ? "Reuse Source" : "复用来源"}
+                {editorMode === "CREATE" ? (locale === "en" ? "Current Row" : "当前条目") : locale === "en" ? "Reuse Source" : "复用来源"}
               </div>
               <p className="mt-2 text-sm font-medium text-[var(--text-1)]">
                 {editorMode === "CREATE"
@@ -662,8 +772,8 @@ export function RenderLabWorkbench({
               <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">
                 {editorMode === "CREATE"
                   ? locale === "en"
-                    ? "Best when you want the scene plan to drive the first render."
-                    : "适合让场景规划直接驱动第一轮生成。"
+                    ? "Best when you want the image brief to drive the first image pass."
+                    : "适合让配图说明直接驱动第一轮出图。"
                   : locale === "en"
                     ? "Best when you want to keep the same route and refine prompt details."
                     : "适合沿用上一条任务的路由配置，只微调提示词细节。"}
@@ -672,6 +782,27 @@ export function RenderLabWorkbench({
           </div>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            {selectedReview ? (
+              <div className="rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Image Brief Review" : "图片 brief 复核"}</div>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
+                    {selectedReview.readiness === "READY" ? (locale === "en" ? "Ready to run" : "可直接开工") : locale === "en" ? "Revise first" : "建议先补强"}
+                  </span>
+                </div>
+                <div className="mt-3">
+                  <ScoreBar label={locale === "en" ? "readiness" : "开工分"} value={selectedReview.score} />
+                </div>
+                <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">{selectedReview.summary}</div>
+                {selectedReview.issues.length ? (
+                  <div className="mt-3 rounded-[18px] border border-[rgba(255,196,128,0.2)] bg-[rgba(255,196,128,0.08)] px-3 py-3 text-sm leading-6 text-[color:rgba(110,70,24,0.95)]">
+                    {selectedReview.issues[0]}
+                    {selectedReview.nextSteps[0] ? ` ${selectedReview.nextSteps[0]}` : ""}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="grid gap-4 md:grid-cols-3">
               <label className="space-y-2 text-sm text-[var(--text-2)]">
                 <span>{locale === "en" ? "Job Type" : "任务类型"}</span>
@@ -746,13 +877,13 @@ export function RenderLabWorkbench({
                 {editorMode === "CREATE"
                   ? locale === "en"
                     ? "The selected scene will be linked to this new job."
-                    : "提交后会把当前场景与这条新任务关联起来。"
+                    : "提交后会把当前配图条目与这条新任务关联起来。"
                   : locale === "en"
                     ? "This creates a new iteration based on the selected job, not an in-place overwrite."
                     : "这会基于所选任务再创建一条新迭代，不会覆盖旧任务。"}
               </div>
               <Button disabled={pending || !prompt.trim()} type="submit">
-                {pending ? (locale === "en" ? "Creating..." : "创建中...") : editorMode === "CREATE" ? (locale === "en" ? "Create Render Job" : "创建渲染任务") : locale === "en" ? "Create Iteration" : "创建迭代任务"}
+                {pending ? (locale === "en" ? "Creating..." : "创建中...") : editorMode === "CREATE" ? (locale === "en" ? "Create Image Job" : "创建图片任务") : locale === "en" ? "Create Iteration" : "创建迭代任务"}
               </Button>
             </div>
           </form>
@@ -761,8 +892,8 @@ export function RenderLabWorkbench({
 
       <div className="space-y-6">
         <PanelCard
-          title={locale === "en" ? "Task History" : "任务历史"}
-          description={locale === "en" ? "Keep the right rail focused on previous runs so the center stays dedicated to editing." : "把历史任务固定在右侧，让中间区域始终专注在编辑与复用。"}
+          title={locale === "en" ? "Job History" : "图片任务历史"}
+          description={locale === "en" ? "Keep the right rail focused on previous image runs so the center stays dedicated to editing." : "把历史图片任务固定在右侧，让中间区域始终专注在编辑与复用。"}
         >
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-1">
@@ -862,6 +993,11 @@ export function RenderLabWorkbench({
                           {job.job_type} · {job.provider}
                           {job.provider_model ? ` / ${job.provider_model}` : ""}
                         </div>
+                        {getJobFeedback(job) ? (
+                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
+                            {locale === "en" ? "Feedback saved" : "已记录结果反馈"}
+                          </div>
+                        ) : null}
                         {linkedScene ? (
                           <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? "Scene" : "场景"} #{linkedScene.frameOrder}
@@ -886,15 +1022,15 @@ export function RenderLabWorkbench({
                       ? "No jobs match the current filters. Try widening the scope or clearing the search."
                       : "当前筛选条件下没有匹配任务，试试放宽范围或清空搜索。"
                     : locale === "en"
-                      ? "No render jobs yet. Create the first image or video task from the selected scene."
-                      : "还没有渲染任务。先从当前场景创建第一个图片或视频任务。"}
+                      ? "No jobs yet. Create the first image task from the selected row."
+                      : "还没有图片任务。先从当前条目创建第一个图片任务。"}
                 </div>
               )}
             </div>
           </div>
         </PanelCard>
 
-        <DetailPanel title={locale === "en" ? "Job Details" : "任务详情"} className="xl:sticky xl:top-6 xl:self-start">
+        <DetailPanel title={locale === "en" ? "Job Details" : "图片任务详情"} className="xl:sticky xl:top-6 xl:self-start">
           {selectedJob ? (
             (() => {
               const input = getJobInput(selectedJob);
@@ -986,9 +1122,65 @@ export function RenderLabWorkbench({
                             : "这条任务已成功，但当前还没有挂接输出素材。"
                           : locale === "en"
                             ? "No output assets yet. Once generation finishes, results should appear here."
-                            : "当前还没有输出素材，任务完成后结果会优先出现在这里。"}
+                          : "当前还没有输出素材，任务完成后结果会优先出现在这里。"}
                       </div>
                     )}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Result Feedback" : "结果反馈"}</div>
+                    <div className="mt-3 space-y-4 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+                      <label className="space-y-2 text-sm text-white/78">
+                        <span>{locale === "en" ? "Verdict" : "结论"}</span>
+                        <select
+                          value={feedbackVerdict}
+                          onChange={(event) => setFeedbackVerdict(event.target.value as RenderJobFeedbackVerdict)}
+                          className="w-full rounded-[18px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm text-[var(--text-inverse)] outline-none"
+                        >
+                          <option value="KEEP">{getFeedbackVerdictLabel("KEEP", locale)}</option>
+                          <option value="RETRY">{getFeedbackVerdictLabel("RETRY", locale)}</option>
+                          <option value="REWRITE_BRIEF">{getFeedbackVerdictLabel("REWRITE_BRIEF", locale)}</option>
+                        </select>
+                      </label>
+                      <div className="space-y-2">
+                        <div className="text-sm text-white/78">{locale === "en" ? "Issue tags" : "主要问题标签"}</div>
+                        <div className="flex flex-wrap gap-2">
+                          {feedbackIssueOptions.map((issue) => {
+                            const selected = feedbackIssues.includes(issue);
+                            return (
+                              <button
+                                key={issue}
+                                type="button"
+                                onClick={() => toggleFeedbackIssue(issue)}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                                  selected
+                                    ? "theme-chip-warn border-transparent"
+                                    : "border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.03)] text-white/72"
+                                }`}
+                              >
+                                {getFeedbackIssueLabel(issue, locale)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <label className="space-y-2 text-sm text-white/78">
+                        <span>{locale === "en" ? "Short note" : "补充说明"}</span>
+                        <textarea
+                          value={feedbackNote}
+                          onChange={(event) => setFeedbackNote(event.target.value)}
+                          className="min-h-28 w-full rounded-[18px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm leading-6 text-[var(--text-inverse)] outline-none"
+                          placeholder={locale === "en" ? "What failed or worked in this run?" : "这一轮到底差在哪里，或者哪一点是能保留的？"}
+                        />
+                      </label>
+                      {selectedJobFeedback ? (
+                        <div className="text-xs text-white/58">
+                          {locale === "en" ? "Latest saved verdict:" : "最近一次保存："} {getFeedbackVerdictLabel(selectedJobFeedback.verdict, locale)}
+                        </div>
+                      ) : null}
+                      <Button type="button" variant="secondary" onClick={() => void saveFeedback()} disabled={feedbackPending}>
+                        {feedbackPending ? (locale === "en" ? "Saving..." : "保存中...") : locale === "en" ? "Save Feedback" : "保存结果反馈"}
+                      </Button>
+                    </div>
                   </div>
                   {previousThreadJob ? (
                     <div>

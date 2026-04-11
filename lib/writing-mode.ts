@@ -6,7 +6,7 @@ export function getWritingMode(input: unknown): WritingMode {
   return writingModeList.includes(input as WritingMode) ? (input as WritingMode) : "PRODUCT_PROMO";
 }
 
-export function getWritingModeMeta(mode: WritingMode, locale: "zh" | "en" = "zh") {
+export function getWritingModeMeta(mode: string, locale: "zh" | "en" = "zh") {
   const zh = {
     BRAND_INTRO: {
       label: "品牌介绍稿",
@@ -45,5 +45,5 @@ export function getWritingModeMeta(mode: WritingMode, locale: "zh" | "en" = "zh"
     },
   } as const;
 
-  return (locale === "en" ? en : zh)[mode];
+  return (locale === "en" ? en : zh)[mode as WritingMode] ?? (locale === "en" ? en : zh).PRODUCT_PROMO;
 }

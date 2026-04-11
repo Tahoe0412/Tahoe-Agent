@@ -14,6 +14,7 @@ import { getContentLineMeta, getOutputTypeMeta } from "@/lib/content-line";
 import { copy, getLocale } from "@/lib/locale";
 import { buildDashboardCreateHref, coerceOutputType, resolveContentLine } from "@/lib/project-intent";
 import { getDashboardNextStep } from "@/lib/workflow-navigator";
+import { buildProjectContextProject } from "@/lib/build-project-context";
 import { WorkspaceQueryService } from "@/services/workspace-query.service";
 import { ArrowUpRight, Heart, Newspaper, Sparkles, WalletCards } from "lucide-react";
 
@@ -100,23 +101,7 @@ function StrategyNote({
   );
 }
 
-function QuickStep({
-  index,
-  title,
-  description,
-}: {
-  index: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] p-5 shadow-sm">
-      <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{index}</div>
-      <div className="mt-3 text-base font-semibold tracking-tight text-[var(--text-1)]">{title}</div>
-      <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{description}</div>
-    </div>
-  );
-}
+
 
 export default async function Home({
   searchParams,
@@ -199,13 +184,6 @@ export default async function Home({
           startTitle: "Start here",
           startDesc: "Choose the path that matches what you want to produce right now.",
           quickStartTitle: "What to do first",
-          quickStartDesc: "You only need one direction, one concrete topic, and some raw material.",
-          quickStep1Title: "Pick a direction",
-          quickStep1Desc: "Choose owned media or commercial work. If needed, click a preset.",
-          quickStep2Title: "Name the current topic",
-          quickStep2Desc: "Write the exact question or judgment for this piece.",
-          quickStep3Title: "Paste raw material and create",
-          quickStep3Desc: "Add notes, facts, or links if you have them. Then create the project shell.",
           startTodayTitle: "Find today's topics",
           startTodayDesc: "Trends and source material",
           startMarsTitle: "Build owned-media content",
@@ -261,13 +239,6 @@ export default async function Home({
           startTitle: "先从这里开始",
           startDesc: "按你现在想产出的内容来选路径，不用先理解整个系统。",
           quickStartTitle: "现在先做这三步",
-          quickStartDesc: "你只需要先定方向、写题目、贴素材，不用先理解整套系统。",
-          quickStep1Title: "先选方向",
-          quickStep1Desc: "选内容矩阵或商业服务；需要时再点 preset。",
-          quickStep2Title: "写本期题目",
-          quickStep2Desc: "把这篇内容真正要讨论的问题写具体。",
-          quickStep3Title: "贴素材后创建项目",
-          quickStep3Desc: "有事实、笔记、链接摘要就贴进去，然后直接创建项目。",
           startTodayTitle: "今日选题",
           startTodayDesc: "热点与素材",
           startMarsTitle: "内容矩阵",
@@ -324,25 +295,7 @@ export default async function Home({
 
         {workspace ? (
           <ProjectContext
-            project={{
-              id: workspace.project.id,
-              title: workspace.project.title,
-              topic_query: workspace.project.topic_query,
-              workspaceMode: workspace.workspaceMode,
-              introduction: workspace.projectSummary.introduction,
-              coreIdea: workspace.projectSummary.coreIdea,
-              originalScript: workspace.projectSummary.originalScript,
-              styleReferenceSample: workspace.projectSummary.styleReferenceSample,
-              styleReferenceInsight: workspace.projectSummary.styleReferenceInsight,
-              writingMode: workspace.projectSummary.writingMode as never,
-              writingModeLabel: workspace.projectSummary.writingModeLabel,
-              styleTemplate: workspace.projectSummary.styleTemplate as never,
-              styleTemplateLabel: workspace.projectSummary.styleTemplateLabel,
-              copyLength: workspace.projectSummary.copyLength as never,
-              copyLengthLabel: workspace.projectSummary.copyLengthLabel,
-              usageScenario: workspace.projectSummary.usageScenario as never,
-              usageScenarioLabel: workspace.projectSummary.usageScenarioLabel,
-            }}
+            project={buildProjectContextProject(workspace)}
             recentProjects={recentProjects.map((project) => ({
               id: project.id,
               title: project.title,
@@ -512,13 +465,14 @@ export default async function Home({
           />
         ) : (
           <div className="space-y-6">
-            <PanelCard title={ui.quickStartTitle} description={ui.quickStartDesc}>
-              <div className="grid gap-4 md:grid-cols-3">
-                <QuickStep index={locale === "en" ? "Step 1" : "第 1 步"} title={ui.quickStep1Title} description={ui.quickStep1Desc} />
-                <QuickStep index={locale === "en" ? "Step 2" : "第 2 步"} title={ui.quickStep2Title} description={ui.quickStep2Desc} />
-                <QuickStep index={locale === "en" ? "Step 3" : "第 3 步"} title={ui.quickStep3Title} description={ui.quickStep3Desc} />
+            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-6 py-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.quickStartTitle}</div>
+              <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
+                {locale === "en"
+                  ? "① Pick a direction — ② Name the topic — ③ Paste raw material and create."
+                  : "① 选方向 — ② 写题目 — ③ 贴素材，创建项目。"}
               </div>
-            </PanelCard>
+            </div>
 
             <div id="new-project">
               <ProjectForm

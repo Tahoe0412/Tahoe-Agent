@@ -8,7 +8,10 @@ import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ScoreBar } from "@/components/ui/score-bar";
+import { Tag } from "@/components/ui/tag";
 import { apiRequest } from "@/lib/client-api";
+import { reviewImageBrief } from "@/lib/image-brief-review";
+import { getFeedbackIssueLabel, summarizeRowFeedback } from "@/lib/render-job-feedback";
 
 type ScenePlannerRow = {
   id: string;
@@ -50,6 +53,14 @@ type ScenePlannerRow = {
   }>;
 };
 
+type RenderJobFeedbackRow = {
+  id: string;
+  script_scene_id?: string | null;
+  storyboard_frame_id?: string | null;
+  output_json?: unknown;
+  created_at?: string | Date;
+};
+
 const assetTypeOptions = [
   "CHARACTER_BASE",
   "SCENE_BASE",
@@ -57,25 +68,6 @@ const assetTypeOptions = [
   "VOICE",
   "REFERENCE_IMAGE",
 ] as const;
-
-function Tag({
-  children,
-  tone = "default",
-}: {
-  children: ReactNode;
-  tone?: "default" | "danger" | "success" | "warning";
-}) {
-  const className =
-    tone === "danger"
-      ? "theme-chip-danger"
-      : tone === "success"
-        ? "theme-chip-ok"
-        : tone === "warning"
-          ? "theme-chip-warn"
-          : "theme-chip";
-
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>{children}</span>;
-}
 
 function PlannerStat({
   label,
@@ -95,14 +87,20 @@ function PlannerStat({
   );
 }
 
+function getReviewTone(readiness: "READY" | "NEEDS_REVISION") {
+  return readiness === "READY" ? "theme-chip-ok" : "theme-chip-warn";
+}
+
 export function ScenePlannerWorkbench({
   projectId,
   rows,
+  jobs,
   showLocalStorageNotice = false,
   uploadStorageMode = "local",
 }: {
   projectId: string;
   rows: ScenePlannerRow[];
+  jobs: RenderJobFeedbackRow[];
   showLocalStorageNotice?: boolean;
   uploadStorageMode?: "local" | "tencent_cos";
 }) {
@@ -123,6 +121,35 @@ export function ScenePlannerWorkbench({
   const [editAvoid, setEditAvoid] = useState("");
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
+  const selectedReview = useMemo(
+    () =>
+      selectedScene
+        ? reviewImageBrief({
+            frameTitle: selectedScene.frameTitle,
+            shotGoal: selectedScene.shotGoal,
+            rewritten: selectedScene.rewritten,
+            visualPrompt: selectedScene.visualPrompt,
+            cameraPlan: selectedScene.cameraPlan,
+            compositionNotes: selectedScene.compositionNotes,
+            referenceCount: selectedScene.referenceCount,
+            assetReady: selectedScene.assetReady,
+            missing: selectedScene.missing,
+            riskFlags: selectedScene.riskFlags,
+          })
+        : null,
+    [selectedScene],
+  );
+  const selectedFeedbackSummary = useMemo(
+    () =>
+      selectedScene
+        ? summarizeRowFeedback({
+            jobs,
+            scriptSceneId: selectedScene.id,
+            frameId: selectedScene.frameId,
+          })
+        : null,
+    [jobs, selectedScene],
+  );
   const storyboardVersion = rows[0]?.storyboardVersion ?? null;
   const readyFrames = rows.filter((row) => row.frameStatus === "READY" || row.frameStatus === "LOCKED").length;
   const totalReferences = rows.reduce((sum, row) => sum + row.referenceCount, 0);
@@ -264,17 +291,34 @@ export function ScenePlannerWorkbench({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <PlannerStat label="分镜版本" value={storyboardVersion ? `v${storyboardVersion}` : "草稿"} caption="当前启用的分镜版本" />
-        <PlannerStat label="就绪分镜" value={`${readyFrames}/${rows.length}`} caption="进入 ready 或 locked 的 frame 数" />
-        <PlannerStat label="素材缺口" value={String(rows.filter((row) => !row.assetReady).length)} caption="仍缺关键素材的镜头" />
-        <PlannerStat label="参考图" value={String(totalReferences)} caption="已挂载到 storyboard frame 的参考图数" />
+        <PlannerStat label="说明版本" value={storyboardVersion ? `v${storyboardVersion}` : "草稿"} caption="当前启用的配图说明版本" />
+        <PlannerStat label="可开工条目" value={`${readyFrames}/${rows.length}`} caption="进入 ready 或 locked 的视觉条目数" />
+        <PlannerStat label="素材缺口" value={String(rows.filter((row) => !row.assetReady).length)} caption="仍缺关键参考或素材的条目" />
+        <PlannerStat label="参考图" value={String(totalReferences)} caption="已挂到当前视觉条目的参考图数" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <PanelCard title="快速分镜面板" description="先判断这个镜头能不能开工，再补素材。详细分镜信息先收进高级区。">
+        <PanelCard title="快速配图面板" description="先判断这张图能不能开工，再补提示词和参考。详细信息先收进高级区。">
           <div className="space-y-4">
             {rows.map((row) => {
               const selected = row.id === selectedScene.id;
+              const review = reviewImageBrief({
+                frameTitle: row.frameTitle,
+                shotGoal: row.shotGoal,
+                rewritten: row.rewritten,
+                visualPrompt: row.visualPrompt,
+                cameraPlan: row.cameraPlan,
+                compositionNotes: row.compositionNotes,
+                referenceCount: row.referenceCount,
+                assetReady: row.assetReady,
+                missing: row.missing,
+                riskFlags: row.riskFlags,
+              });
+              const feedbackSummary = summarizeRowFeedback({
+                jobs,
+                scriptSceneId: row.id,
+                frameId: row.frameId,
+              });
 
               return (
                 <button
@@ -306,6 +350,14 @@ export function ScenePlannerWorkbench({
                       <Tag>{row.productionClass}</Tag>
                       <Tag>{row.durationSec}s</Tag>
                       <Tag tone={row.referenceCount > 0 ? "success" : "warning"}>{row.referenceCount} refs</Tag>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
+                        {review.readiness === "READY" ? `可开工 ${review.score}` : `待补强 ${review.score}`}
+                      </span>
+                      {feedbackSummary ? (
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${feedbackSummary.rewriteCount > 0 ? "theme-chip-danger" : "theme-chip-warn"}`}>
+                          {feedbackSummary.rewriteCount > 0 ? `最近退回 ${feedbackSummary.rewriteCount}` : `已有反馈 ${feedbackSummary.totalFeedbacks}`}
+                        </span>
+                      ) : null}
                       {row.requiredAssets.slice(0, 2).map((asset) => (
                         <Tag key={asset}>{asset}</Tag>
                       ))}
@@ -328,9 +380,9 @@ export function ScenePlannerWorkbench({
           </div>
         </PanelCard>
 
-        <DetailPanel title={`分镜 ${selectedScene.frameOrder} 执行面板`}>
+        <DetailPanel title={`配图条目 ${selectedScene.frameOrder} 执行面板`}>
           <div>
-            <div className="text-sm font-medium text-[var(--text-inverse)]">当前分镜</div>
+            <div className="text-sm font-medium text-[var(--text-inverse)]">当前配图条目</div>
             <div className="mt-3 space-y-3 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
               <div className="text-xl font-semibold text-[var(--text-inverse)]">{selectedScene.frameTitle}</div>
               <div className="flex flex-wrap gap-2">
@@ -342,11 +394,92 @@ export function ScenePlannerWorkbench({
             </div>
           </div>
 
+          {selectedReview ? (
+            <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-sm font-medium text-[var(--text-inverse)]">图片 brief 复核</div>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
+                  {selectedReview.readiness === "READY" ? "可开工" : "待补强"}
+                </span>
+              </div>
+              <ScoreBar label="readiness" value={selectedReview.score} />
+              <div className="text-sm leading-6 text-white/82">{selectedReview.summary}</div>
+              {selectedReview.issues.length ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">主要问题</div>
+                    <div className="mt-2 space-y-2">
+                      {selectedReview.issues.slice(0, 3).map((item) => (
+                        <div key={item} className="rounded-2xl border border-[rgba(255,196,128,0.18)] bg-[rgba(255,196,128,0.08)] px-3 py-2 text-sm leading-6 text-[color:rgba(255,236,214,0.92)]">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">下一步</div>
+                    <div className="mt-2 space-y-2">
+                      {selectedReview.nextSteps.slice(0, 3).map((item) => (
+                        <div key={item} className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm leading-6 text-white/84">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {selectedFeedbackSummary ? (
+            <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-sm font-medium text-[var(--text-inverse)]">最近出图反馈</div>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  selectedFeedbackSummary.latestVerdict === "KEEP"
+                    ? "theme-chip-ok"
+                    : selectedFeedbackSummary.latestVerdict === "REWRITE_BRIEF"
+                      ? "theme-chip-danger"
+                      : "theme-chip-warn"
+                }`}
+                >
+                  {selectedFeedbackSummary.latestVerdict === "KEEP"
+                    ? "最近一版可保留"
+                    : selectedFeedbackSummary.latestVerdict === "REWRITE_BRIEF"
+                      ? "最近一版退回改 brief"
+                      : "最近一版建议重试"}
+                </span>
+              </div>
+              <div className="text-sm leading-6 text-white/82">{selectedFeedbackSummary.summary}</div>
+              <div className="flex flex-wrap gap-2">
+                <Tag>{selectedFeedbackSummary.totalFeedbacks} 条反馈</Tag>
+                {selectedFeedbackSummary.retryCount > 0 ? <Tag tone="warning">重试 {selectedFeedbackSummary.retryCount}</Tag> : null}
+                {selectedFeedbackSummary.rewriteCount > 0 ? <Tag tone="danger">退回 {selectedFeedbackSummary.rewriteCount}</Tag> : null}
+                {selectedFeedbackSummary.keepCount > 0 ? <Tag tone="success">保留 {selectedFeedbackSummary.keepCount}</Tag> : null}
+              </div>
+              {selectedFeedbackSummary.topIssues.length ? (
+                <div>
+                  <div className="text-xs uppercase tracking-[0.16em] text-white/58">高频问题</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedFeedbackSummary.topIssues.map((issue) => (
+                      <Tag key={issue} tone="warning">{getFeedbackIssueLabel(issue, "zh")}</Tag>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {selectedFeedbackSummary.latestNote ? (
+                <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-3 text-sm leading-6 text-white/84">
+                  {selectedFeedbackSummary.latestNote}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {/* ── Scene text editing (merged from Script Lab) ── */}
           <div className="space-y-3">
-            <div className="text-sm font-medium text-[var(--text-inverse)]">镜头文本编辑</div>
+            <div className="text-sm font-medium text-[var(--text-inverse)]">配图说明编辑</div>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">镜头目标</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">画面目标</span>
               <input
                 value={editShotGoal}
                 onChange={(e) => setEditShotGoal(e.target.value)}
@@ -354,7 +487,7 @@ export function ScenePlannerWorkbench({
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">AI 重构文本</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-white/58">配图说明</span>
               <textarea
                 value={editRewritten}
                 onChange={(e) => setEditRewritten(e.target.value)}
@@ -399,19 +532,19 @@ export function ScenePlannerWorkbench({
             {selectedScene.missing.length > 0 ? (
               <div className="mt-3 text-[var(--danger-text)]">{selectedScene.missing.join("；")}</div>
             ) : (
-              <div className="mt-3 text-[var(--ok-text)]">当前镜头素材判断为齐备。</div>
+              <div className="mt-3 text-[var(--ok-text)]">当前条目的参考与素材已基本齐备。</div>
             )}
           </div>
 
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => void saveScene()} disabled={pending !== null}>
-              {pending === "save" ? "保存中..." : "保存镜头"}
+              {pending === "save" ? "保存中..." : "保存配图说明"}
             </Button>
             <Button variant="secondary" onClick={() => void rerunClassification()} disabled={pending !== null}>
-              {pending === "classify" ? "重跑中..." : "重跑分类"}
+              {pending === "classify" ? "重跑中..." : "重跑条目分类"}
             </Button>
             <Button variant="secondary" onClick={() => void rerunAssets()} disabled={pending !== null}>
-              {pending === "assets" ? "分析中..." : "重跑素材分析"}
+              {pending === "assets" ? "分析中..." : "重跑素材判断"}
             </Button>
             <Button variant="ghost" onClick={() => setShowAdvanced((value) => !value)}>
               {showAdvanced ? "收起高级信息" : "展开高级信息"}
@@ -419,7 +552,7 @@ export function ScenePlannerWorkbench({
           </div>
 
           <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-            <div className="text-sm font-medium text-[var(--text-inverse)]">上传真实素材</div>
+            <div className="text-sm font-medium text-[var(--text-inverse)]">上传参考素材</div>
             {showLocalStorageNotice ? (
               <div className="rounded-2xl border border-[rgba(255,196,128,0.28)] bg-[rgba(255,196,128,0.12)] px-4 py-3 text-xs leading-6 text-[color:rgba(255,236,214,0.92)]">
                 当前环境仍使用本地 `public/uploads` 作为素材存储。它适合当前自托管开发与轻量生产，但如果后续要扩大共享或做长期可靠存储，建议切到 S3、R2 或对象存储服务。
@@ -449,11 +582,11 @@ export function ScenePlannerWorkbench({
               {selectedFile ? <div className="text-xs text-white/58">{selectedFile.name}</div> : null}
             </label>
             <div className="text-xs text-white/58">
-              文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前镜头的素材分析。
+              文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前条目的素材分析。
               {uploadStorageMode === "tencent_cos" ? " 当前已启用腾讯云对象存储，可用于后续跨实例共享与更稳定的素材沉淀。" : " 当前使用服务端上传和本地存储，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
             <Button onClick={() => void saveAssetMetadata()} disabled={pending !== null || !selectedFile}>
-              {pending === "upload" ? "上传中..." : "上传并更新素材状态"}
+              {pending === "upload" ? "上传中..." : "上传并更新参考状态"}
             </Button>
           </div>
 
@@ -479,7 +612,7 @@ export function ScenePlannerWorkbench({
                   </div>
                 ))
               ) : (
-                <div>尚未登记素材。</div>
+                <div>尚未登记参考素材。</div>
               )}
             </div>
           </div>
@@ -487,7 +620,7 @@ export function ScenePlannerWorkbench({
           {showAdvanced ? (
             <>
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">镜头计划</div>
+                <div className="text-sm font-medium text-[var(--text-inverse)]">画面计划</div>
                 <div className="mt-3 grid gap-3">
                   <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
                     <div className="text-xs uppercase tracking-[0.16em] text-white/58">Composition</div>
@@ -527,7 +660,7 @@ export function ScenePlannerWorkbench({
               </div>
 
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">风险标记</div>
+                <div className="text-sm font-medium text-[var(--text-inverse)]">风险提示</div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedScene.riskFlags.length ? selectedScene.riskFlags.map((flag) => <Tag key={flag} tone="danger">{flag}</Tag>) : <Tag tone="success">暂无明显风险</Tag>}
                 </div>

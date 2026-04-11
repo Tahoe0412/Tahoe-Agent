@@ -11,8 +11,8 @@ export function buildVideoTitlePrompt(params: {
 
   return {
     systemPrompt: zh
-      ? "你是一名资深短视频发行编辑。你的任务不是总结，而是写真正可发布、可点击、可传播的视频标题。输出必须是合法 JSON。"
-      : "You are a senior short-video publishing editor. Write clickable, publishable video titles, not summaries. Output valid JSON only.",
+      ? "你是一名资深内容发行编辑。你的任务不是总结，而是写真正可发布、可点击、可传播的内容标题。输出必须是合法 JSON。"
+      : "You are a senior content publishing editor. Write clickable, publishable content titles, not summaries. Output valid JSON only.",
     userPrompt: [
       zh ? `项目：${params.title}` : `Project: ${params.title}`,
       zh ? `业务线：${params.contentLineLabel}` : `Business line: ${params.contentLineLabel}`,
@@ -28,8 +28,8 @@ export function buildVideoTitlePrompt(params: {
       params.scriptText,
       "",
       zh
-        ? "请生成 5 条视频标题，要求：有传播钩子、有区分度、避免空泛总结句，其中至少 2 条带反差或问题感。"
-        : "Generate 5 candidate video titles. They should have a hook, feel distinctive, and avoid generic summary wording. At least 2 should use contrast or a question angle.",
+        ? "请生成 5 条内容标题，要求：有传播钩子、有区分度、避免空泛总结句，其中至少 2 条带反差或问题感。"
+        : "Generate 5 candidate content titles. They should have a hook, feel distinctive, and avoid generic summary wording. At least 2 should use contrast or a question angle.",
     ].join("\n"),
   };
 }
@@ -47,8 +47,8 @@ export function buildPublishCopyPrompt(params: {
 
   return {
     systemPrompt: zh
-      ? "你是一名多平台发布编辑。请把现有脚本整理成真正要发布时会用到的标题、简介、亮点总结和轻 CTA。输出必须是合法 JSON。"
-      : "You are a multi-platform publishing editor. Turn the existing script into release-ready titles, descriptions, highlights, and a light CTA. Output valid JSON only.",
+      ? "你是一名多平台发布编辑。请把现有脚本整理成真正要发布时会用到的标题、导语、亮点总结和 CTA。输出必须是合法 JSON。"
+      : "You are a multi-platform publishing editor. Turn the existing script into release-ready titles, lead-ins, highlights, and a CTA. Output valid JSON only.",
     userPrompt: [
       zh ? `项目：${params.title}` : `Project: ${params.title}`,
       zh ? `主题：${params.topicQuery}` : `Topic: ${params.topicQuery}`,
@@ -66,8 +66,8 @@ export function buildPublishCopyPrompt(params: {
       params.scriptText,
       "",
       zh
-        ? "请输出：主标题、视频简介、3 条发布亮点、1 条发布 CTA，以及适合抖音/小红书的简短导语。"
-        : "Output: primary title, video description, 3 release highlights, 1 release CTA, and a short lead-in suitable for Douyin/Xiaohongshu.",
+        ? "请输出：主标题、发布正文、3 条发布亮点、1 条发布 CTA，以及适合头条号 / 小红书等内容平台的简短导语。"
+        : "Output: primary title, release body copy, 3 release highlights, 1 release CTA, and a short lead-in suitable for article-first publishing platforms.",
     ].filter(Boolean).join("\n"),
   };
 }

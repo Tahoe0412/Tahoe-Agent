@@ -1,5 +1,12 @@
 import { Prisma, type PlatformSurface, type StrategyTaskStatus, type StrategyTaskType } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  audiencePanelReviewJsonSchema,
+  audiencePanelReviewSchema,
+  buildAudiencePanelPrompt,
+  getChineseMediaCalibrationNotes,
+  normalizeAudiencePanelReview,
+} from "@/lib/copy-review-panel";
 import { canUseModelRoute } from "@/lib/model-routing";
 import { buildOutputTypeCopyInstruction } from "@/lib/output-type-copy-prompt";
 import { resolveProjectIntentFromMetadata } from "@/lib/project-intent";
@@ -222,7 +229,145 @@ function normalizePromotionalCopyOutput(value: unknown, fallbackSurfaces: Platfo
     recommended_next_steps: normalizeStringList(source.recommended_next_steps),
     platform_adaptations: normalizePlatformAdaptations(source.platform_adaptations, fallbackSurfaces),
     quality_diagnosis: normalizeDiagnosis(source.quality_diagnosis),
+    audience_panel_review: normalizeAudiencePanelReview(source.audience_panel_review),
   };
+}
+
+async function buildAudiencePanelReview(params: {
+  settings: Awaited<ReturnType<AppSettingsService["getEffectiveSettings"]>>;
+  topic: string;
+  draftTypeLabel: string;
+  title?: string | null;
+  heroCopy?: string | null;
+  bodyCopy: string;
+  proofPoints?: string[];
+  callToAction?: string | null;
+  styleReferenceInsight?: import("@/lib/style-reference").StyleReferenceInsight | null;
+}) {
+  if (!canUseModelRoute("MARKETING_ANALYSIS", params.settings)) {
+    return null;
+  }
+
+  const prompt = buildAudiencePanelPrompt({
+    topic: params.topic,
+    draftTypeLabel: params.draftTypeLabel,
+    title: params.title,
+    heroCopy: params.heroCopy,
+    bodyCopy: params.bodyCopy,
+    proofPoints: params.proofPoints,
+    callToAction: params.callToAction,
+    styleReferenceInsight: params.styleReferenceInsight,
+  });
+
+  return generateStructuredJson({
+    routeKey: "MARKETING_ANALYSIS",
+    schemaName: "copy_audience_panel_review",
+    schema: audiencePanelReviewJsonSchema,
+    zodSchema: audiencePanelReviewSchema,
+    temperature: 0.15,
+    systemPrompt: prompt.systemPrompt,
+    userPrompt: prompt.userPrompt,
+  });
+}
+
+async function patchTaskReviewSignals(params: {
+  taskId: string;
+  settings: Awaited<ReturnType<AppSettingsService["getEffectiveSettings"]>>;
+  topic: string;
+  draftTypeLabel: string;
+  title?: string | null;
+  heroCopy?: string | null;
+  bodyCopy: string;
+  proofPoints?: string[];
+  callToAction?: string | null;
+  styleReferenceInsight?: import("@/lib/style-reference").StyleReferenceInsight | null;
+  diagnosisInput?: {
+    master_angle: string;
+    hero_copy: string;
+    long_form_copy: string;
+    proof_points: string[];
+    call_to_action: string;
+  } | null;
+}) {
+  const updates: Record<string, unknown> = {};
+
+  if (
+    params.diagnosisInput &&
+    canUseModelRoute("MARKETING_ANALYSIS", params.settings)
+  ) {
+    const diagnosisResult = await generateStructuredJson({
+      routeKey: "MARKETING_ANALYSIS",
+      schemaName: "promotional_copy_diagnosis",
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
+        properties: {
+          overall_score: { type: "number" },
+          strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+          issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
+          rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
+          summary: { type: "string" },
+        },
+      } as const,
+      zodSchema: promotionalCopyDiagnosisSchema,
+      temperature: 0.15,
+      systemPrompt: [
+        "你是文案质量审核员，只做诊断评分，不重写。",
+        "评估标准：可发布感、传播攻击力、结构完整度、证明点具体度、CTA 清晰度。",
+        "输出必须是合法 JSON。",
+      ].join(" "),
+      userPrompt: [
+        "请对以下宣传主稿做质量诊断，给出评分和问题列表。",
+        "",
+        `主宣传角度：${params.diagnosisInput.master_angle}`,
+        `开场摘要：${params.diagnosisInput.hero_copy}`,
+        `完整主稿：\n${params.diagnosisInput.long_form_copy}`,
+        `证明点：\n${params.diagnosisInput.proof_points.map((p) => `- ${p}`).join("\n")}`,
+        `CTA：${params.diagnosisInput.call_to_action}`,
+        "",
+        `项目主题：${params.topic}`,
+      ].join("\n"),
+    });
+    updates.quality_diagnosis = normalizeDiagnosis(diagnosisResult);
+  }
+
+  const audiencePanel = await buildAudiencePanelReview({
+    settings: params.settings,
+    topic: params.topic,
+    draftTypeLabel: params.draftTypeLabel,
+    title: params.title,
+    heroCopy: params.heroCopy,
+    bodyCopy: params.bodyCopy,
+    proofPoints: params.proofPoints,
+    callToAction: params.callToAction,
+    styleReferenceInsight: params.styleReferenceInsight,
+  });
+
+  if (audiencePanel) {
+    updates.audience_panel_review = normalizeAudiencePanelReview(audiencePanel);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return;
+  }
+
+  const current = await prisma.strategyTask.findUnique({
+    where: { id: params.taskId },
+    select: { task_json: true },
+  });
+
+  if (!current) {
+    return;
+  }
+
+  const existingJson = (current.task_json as Record<string, unknown>) ?? {};
+  await prisma.strategyTask.update({
+    where: { id: params.taskId },
+    data: {
+      task_json: toJson({ ...existingJson, ...updates }),
+    },
+  });
 }
 
 function buildCreativeBrief(params: {
@@ -496,6 +641,10 @@ export class PromotionalCopyService {
       latestBrief,
       trendSummaries,
     });
+    const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
+      styleReferenceInsight: context?.styleReferenceInsight,
+      target: "MASTER_COPY",
+    });
 
     let output;
     const route = settings.llmRouting.PROMOTIONAL_COPY;
@@ -536,6 +685,8 @@ export class PromotionalCopyService {
           "",
           "【写作规则】",
           buildQualityRules(),
+          "中文高质量内容校准：",
+          ...mediaCalibrationNotes.map((item) => `- ${item}`),
           context?.styleReferenceSample
             ? "风格参照规则：充分学习参考样稿的语气、节奏和结构，但不复写其中的事实或独有表达。"
             : "",
@@ -618,59 +769,34 @@ export class PromotionalCopyService {
       },
     });
 
-    // Fire-and-forget: run diagnosis asynchronously and patch the saved task when done
-    if (!validated.quality_diagnosis && canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+    // Fire-and-forget: enrich the saved task with review signals once the main draft exists.
+    if (!validated.quality_diagnosis || canUseModelRoute("MARKETING_ANALYSIS", settings)) {
       const taskId = strategyTask.id;
       void (async () => {
         try {
-          const diagnosisResult = await generateStructuredJson({
-            routeKey: "MARKETING_ANALYSIS",
-            schemaName: "promotional_copy_diagnosis",
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              required: ["overall_score", "strengths", "issues", "rewrite_focus", "summary"],
-              properties: {
-                overall_score: { type: "number" },
-                strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-                issues: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
-                rewrite_focus: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
-                summary: { type: "string" },
-              },
-            } as const,
-            zodSchema: promotionalCopyDiagnosisSchema,
-            temperature: 0.15,
-            systemPrompt: [
-              "你是文案质量审核员，只做诊断评分，不重写。",
-              "评估标准：可发布感、传播攻击力、结构完整度、证明点具体度、CTA 清晰度。",
-              "输出必须是合法 JSON。",
-            ].join(" "),
-            userPrompt: [
-              "请对以下宣传主稿做质量诊断，给出评分和问题列表。",
-              "",
-              `主宣传角度：${validated.master_angle}`,
-              `开场摘要：${validated.hero_copy}`,
-              `完整主稿：\n${validated.long_form_copy}`,
-              `证明点：\n${validated.proof_points.map((p) => `- ${p}`).join("\n")}`,
-              `CTA：${validated.call_to_action}`,
-              "",
-              `项目主题：${project.topic_query}`,
-            ].join("\n"),
+          await patchTaskReviewSignals({
+            taskId,
+            settings,
+            topic: project.topic_query,
+            draftTypeLabel: "宣传主稿",
+            title: validated.headline_options[0] ?? project.title,
+            heroCopy: validated.hero_copy,
+            bodyCopy: validated.long_form_copy,
+            proofPoints: validated.proof_points,
+            callToAction: validated.call_to_action,
+            styleReferenceInsight: context?.styleReferenceInsight,
+            diagnosisInput: validated.quality_diagnosis
+              ? null
+              : {
+                  master_angle: validated.master_angle,
+                  hero_copy: validated.hero_copy,
+                  long_form_copy: validated.long_form_copy,
+                  proof_points: validated.proof_points,
+                  call_to_action: validated.call_to_action,
+                },
           });
-
-          // Merge diagnosis into the saved task_json
-          const current = await prisma.strategyTask.findUnique({ where: { id: taskId }, select: { task_json: true } });
-          if (current) {
-            const existingJson = (current.task_json as Record<string, unknown>) ?? {};
-            await prisma.strategyTask.update({
-              where: { id: taskId },
-              data: {
-                task_json: toJson({ ...existingJson, quality_diagnosis: normalizeDiagnosis(diagnosisResult) }),
-              },
-            });
-          }
         } catch {
-          // Diagnosis failure is non-fatal; main copy is already saved
+          // Review enrichment failure is non-fatal; main copy is already saved.
         }
       })();
     }
@@ -763,6 +889,40 @@ export class PromotionalCopyService {
       },
     });
 
+    try {
+      const settings = await this.appSettingsService.getEffectiveSettings();
+      const context = await this.marketingContextService.getProjectContext(projectId);
+      if (canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+        void (async () => {
+          try {
+            await patchTaskReviewSignals({
+              taskId: created.id,
+              settings,
+              topic: context?.topicQuery ?? payload.master_angle,
+              draftTypeLabel: "宣传主稿",
+              title: payload.headline_options[0] ?? input.title ?? null,
+              heroCopy: payload.hero_copy,
+              bodyCopy: payload.long_form_copy,
+              proofPoints: payload.proof_points,
+              callToAction: payload.call_to_action,
+              styleReferenceInsight: context?.styleReferenceInsight,
+              diagnosisInput: {
+                master_angle: payload.master_angle,
+                hero_copy: payload.hero_copy,
+                long_form_copy: payload.long_form_copy,
+                proof_points: payload.proof_points,
+                call_to_action: payload.call_to_action,
+              },
+            });
+          } catch {
+            // Review enrichment failure is non-fatal.
+          }
+        })();
+      }
+    } catch {
+      // Context fetch failure is non-fatal for manual saves.
+    }
+
     return created;
   }
 
@@ -825,6 +985,10 @@ export class PromotionalCopyService {
       trendSummaries: project.trend_topics.map(
         (topic) => `${topic.topic_label}（总分 ${topic.momentum_score}，阶段 ${topic.trend_stage}）`,
       ),
+    });
+    const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
+      styleReferenceInsight: context?.styleReferenceInsight,
+      target: "MASTER_COPY",
     });
 
     const currentDraft = promotionalCopyOutputSchema
@@ -977,6 +1141,9 @@ export class PromotionalCopyService {
           "改写规则：",
           buildEnhancementRules(),
           "",
+          "中文高质量内容校准：",
+          ...mediaCalibrationNotes.map((item) => `- ${item}`),
+          "",
           context?.styleReferenceInsight
             ? [
                 "风格参照：",
@@ -1068,6 +1235,28 @@ export class PromotionalCopyService {
         }),
       },
     });
+
+    if (canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      void (async () => {
+        try {
+          await patchTaskReviewSignals({
+            taskId: created.id,
+            settings,
+            topic: project.topic_query,
+            draftTypeLabel: "宣传主稿",
+            title: validated.headline_options[0] ?? project.title,
+            heroCopy: validated.hero_copy,
+            bodyCopy: validated.long_form_copy,
+            proofPoints: validated.proof_points,
+            callToAction: validated.call_to_action,
+            styleReferenceInsight: context?.styleReferenceInsight,
+            diagnosisInput: null,
+          });
+        } catch {
+          // Review enrichment failure is non-fatal.
+        }
+      })();
+    }
 
     return created;
   }

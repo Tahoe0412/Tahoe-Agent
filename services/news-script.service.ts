@@ -1,9 +1,17 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { canUseModelRoute } from "@/lib/model-routing";
 import { generateStructuredJson } from "@/lib/openai-json";
 import { type NewsItemForPrompt, type TrendItemForPrompt } from "@/lib/news-script-prompt";
 import { buildMarsCitizenNarrativePrompt } from "@/lib/mars-citizen-prompt";
 import { buildAdScriptPrompt } from "@/lib/ad-script-prompt";
+import {
+  audiencePanelReviewJsonSchema,
+  audiencePanelReviewSchema,
+  buildAudiencePanelPrompt,
+  normalizeAudiencePanelReview,
+} from "@/lib/copy-review-panel";
+import { analyzeStyleReferenceSample } from "@/lib/style-reference";
 import { resolveProjectIntent } from "@/lib/project-intent";
 import type { Prisma } from "@prisma/client";
 import {
@@ -13,9 +21,28 @@ import {
   type NarrativeNewsScriptGenerationInput,
   type NewsScriptGeneratorRegistry,
 } from "@/services/news-script-generator-registry";
+import { AppSettingsService } from "@/services/app-settings.service";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
+}
+
+async function mergeScriptStructuredOutput(
+  scriptId: string,
+  patch: Record<string, unknown>,
+) {
+  const script = await prisma.script.findUnique({ where: { id: scriptId } });
+  if (!script) {
+    return;
+  }
+
+  const existing = (script.structured_output as Record<string, unknown>) ?? {};
+  await prisma.script.update({
+    where: { id: scriptId },
+    data: {
+      structured_output: toJson({ ...existing, ...patch }),
+    },
+  });
 }
 
 /** Zod schema for the narrative LLM output (Mars Citizen / legacy) */
@@ -54,6 +81,8 @@ export interface NewsItemInput {
 }
 
 export class NewsScriptService {
+  private readonly appSettingsService = new AppSettingsService();
+
   /**
    * Generate a script from selected news/content items.
    * The entry point is chosen by `outputType`, while `contentLine`
@@ -235,6 +264,18 @@ export class NewsScriptService {
       },
     });
 
+    void this.enrichNarrativeScriptReview({
+      scriptId: script.id,
+      topic: searchQuery,
+      title: generatedScript.title,
+      opening: generatedScript.opening,
+      body: generatedScript.body,
+      closing: generatedScript.closing,
+      proofPoints: newsItems.slice(0, 5).map((item) => `${item.source}：${item.title}`),
+    }).catch((error) => {
+      console.warn("[news-script] Failed to enrich narrative audience review:", error);
+    });
+
     return { projectId: project.id, scriptId: script.id, title: generatedScript.title };
   }
 
@@ -346,5 +387,51 @@ export class NewsScriptService {
     });
 
     return { projectId: project.id, scriptId: script.id, title: generatedScript.title };
+  }
+
+  private async enrichNarrativeScriptReview(params: {
+    scriptId: string;
+    topic: string;
+    title: string;
+    opening: string;
+    body: string;
+    closing: string;
+    proofPoints: string[];
+    styleReferenceSample?: string | null;
+  }) {
+    const settings = await this.appSettingsService.getEffectiveSettings();
+    if (!canUseModelRoute("MARKETING_ANALYSIS", settings)) {
+      return;
+    }
+
+    const styleReferenceInsight = analyzeStyleReferenceSample(params.styleReferenceSample ?? "");
+    const prompt = buildAudiencePanelPrompt({
+      topic: params.topic,
+      draftTypeLabel: "主稿 / 长文",
+      title: params.title,
+      heroCopy: params.opening,
+      bodyCopy: [params.body, params.closing].filter(Boolean).join("\n\n"),
+      proofPoints: params.proofPoints,
+      styleReferenceInsight,
+    });
+
+    const review = await generateStructuredJson({
+      routeKey: "MARKETING_ANALYSIS",
+      schemaName: "owned_media_main_draft_audience_panel_review",
+      schema: audiencePanelReviewJsonSchema,
+      zodSchema: audiencePanelReviewSchema,
+      temperature: 0.15,
+      systemPrompt: prompt.systemPrompt,
+      userPrompt: prompt.userPrompt,
+    });
+
+    const normalizedReview = normalizeAudiencePanelReview(review);
+    if (!normalizedReview) {
+      return;
+    }
+
+    await mergeScriptStructuredOutput(params.scriptId, {
+      audience_panel_review: normalizedReview,
+    });
   }
 }

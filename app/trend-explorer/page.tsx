@@ -9,6 +9,7 @@ import { ScoreBar } from "@/components/ui/score-bar";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { EmptyPanel, ErrorPanel } from "@/components/ui/state-panel";
 import { ProjectContext } from "@/components/workspace/project-context";
+import { buildProjectContextProject } from "@/lib/build-project-context";
 import { PageStateView } from "@/components/workspace/page-state";
 import { NextStepLink } from "@/components/workspace/next-step-link";
 import { WorkspaceLayout } from "@/components/workspace/layout";
@@ -154,29 +155,7 @@ export default async function TrendExplorerPage({
           action={projectId ? <NextStepLink href={nextStep.href} label={nextStep.label} /> : null}
         />
         <ProjectContext
-          project={
-            workspace
-              ? {
-                  id: workspace.project.id,
-                  title: workspace.project.title,
-                  topic_query: workspace.project.topic_query,
-                  workspaceMode: workspace.workspaceMode,
-                  introduction: workspace.projectSummary.introduction,
-                  coreIdea: workspace.projectSummary.coreIdea,
-                  originalScript: workspace.projectSummary.originalScript,
-                  styleReferenceSample: workspace.projectSummary.styleReferenceSample,
-                  styleReferenceInsight: workspace.projectSummary.styleReferenceInsight,
-                  writingMode: workspace.projectSummary.writingMode as never,
-                  writingModeLabel: workspace.projectSummary.writingModeLabel,
-                  styleTemplate: workspace.projectSummary.styleTemplate as never,
-                  styleTemplateLabel: workspace.projectSummary.styleTemplateLabel,
-                  copyLength: workspace.projectSummary.copyLength as never,
-                  copyLengthLabel: workspace.projectSummary.copyLengthLabel,
-                  usageScenario: workspace.projectSummary.usageScenario as never,
-                  usageScenarioLabel: workspace.projectSummary.usageScenarioLabel,
-                }
-              : null
-          }
+          project={workspace ? buildProjectContextProject(workspace) : null}
           recentProjects={recentProjects.map((project) => ({ id: project.id, title: project.title, topic_query: project.topic_query, is_pinned: project.is_pinned }))}
           locale={locale}
           density="compact"

@@ -91,7 +91,7 @@ export function reviewOutputArtifact(outputType: Extract<OutputType, "VIDEO_TITL
       return summarizeAlerts({
         alerts,
         okSummary: "标题包已经具备基本传播钩子和备选比较空间，可以继续用于包装与发布测试。",
-        warnSummary: "标题包还有明显短板，建议先补强钩子和区分度，再拿去做发布包装。",
+        warnSummary: "标题包还有明显短板，建议先补强钩子和区分度，再拿去做内容发布包装。",
         nextSteps: [
           "先把推荐标题改成更强的钩子句，再保留 3-5 条差异化备选。",
           "优先补“问题感 / 反差感 / 结果感”，不要只写主题总结。",

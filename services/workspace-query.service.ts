@@ -254,6 +254,16 @@ export class WorkspaceQueryService {
     }
 
     const latestScript = project.scripts[0] ?? null;
+    const latestPreviewableScript =
+      project.scripts.find((script) => {
+        const structured = (script.structured_output as Record<string, unknown> | null) ?? {};
+        return (
+          typeof structured.title === "string" ||
+          typeof structured.opening === "string" ||
+          typeof structured.body === "string" ||
+          typeof structured.closing === "string"
+        );
+      }) ?? latestScript;
     const scenes = latestScript?.script_scenes ?? [];
     const readyScenes = scenes.filter((scene) => scene.required_assets[0]?.is_asset_ready);
     const difficultyScores = scenes.map((scene) => scene.scene_classifications[0]?.difficulty_score ?? 0).filter(Boolean);
@@ -447,13 +457,13 @@ export class WorkspaceQueryService {
         styleReferenceSample,
         styleReferenceInsight,
         writingMode: ((project.metadata as Record<string, unknown> | null)?.writing_mode as string | undefined) ?? "PRODUCT_PROMO",
-        writingModeLabel: getWritingModeMeta((((project.metadata as Record<string, unknown> | null)?.writing_mode as string | undefined) ?? "PRODUCT_PROMO") as never, "zh").label,
+        writingModeLabel: getWritingModeMeta(((project.metadata as Record<string, unknown> | null)?.writing_mode as string | undefined) ?? "PRODUCT_PROMO", "zh").label,
         styleTemplate: ((project.metadata as Record<string, unknown> | null)?.style_template as string | undefined) ?? "RATIONAL_PRO",
-        styleTemplateLabel: getStyleTemplateMeta((((project.metadata as Record<string, unknown> | null)?.style_template as string | undefined) ?? "RATIONAL_PRO") as never, "zh").label,
+        styleTemplateLabel: getStyleTemplateMeta(((project.metadata as Record<string, unknown> | null)?.style_template as string | undefined) ?? "RATIONAL_PRO", "zh").label,
         copyLength: ((project.metadata as Record<string, unknown> | null)?.copy_length as string | undefined) ?? "STANDARD",
-        copyLengthLabel: getCopyLengthMeta((((project.metadata as Record<string, unknown> | null)?.copy_length as string | undefined) ?? "STANDARD") as never, "zh").label,
+        copyLengthLabel: getCopyLengthMeta(((project.metadata as Record<string, unknown> | null)?.copy_length as string | undefined) ?? "STANDARD", "zh").label,
         usageScenario: ((project.metadata as Record<string, unknown> | null)?.usage_scenario as string | undefined) ?? "XIAOHONGSHU_POST",
-        usageScenarioLabel: getUsageScenarioMeta((((project.metadata as Record<string, unknown> | null)?.usage_scenario as string | undefined) ?? "XIAOHONGSHU_POST") as never, "zh").label,
+        usageScenarioLabel: getUsageScenarioMeta(((project.metadata as Record<string, unknown> | null)?.usage_scenario as string | undefined) ?? "XIAOHONGSHU_POST", "zh").label,
       },
       marketingOverview: {
         brandProfile: project.brand_profile
@@ -617,16 +627,17 @@ export class WorkspaceQueryService {
       scenePlannerRows,
       priorities,
       latestReport: project.research_reports[0] ?? null,
-      latestScriptPreview: latestScript
+      latestScriptPreview: latestPreviewableScript
         ? {
-            id: latestScript.id,
-            title: latestScript.title,
-            originalText: latestScript.original_text,
-            structuredOutput: latestScript.structured_output,
-            rawPayload: latestScript.raw_payload,
-            modelName: latestScript.model_name,
-            sourceType: latestScript.source_type,
-            createdAt: latestScript.created_at,
+            id: latestPreviewableScript.id,
+            title: latestPreviewableScript.title,
+            originalText: latestPreviewableScript.original_text,
+            structuredOutput: latestPreviewableScript.structured_output,
+            rawPayload: latestPreviewableScript.raw_payload,
+            modelName: latestPreviewableScript.model_name,
+            sourceType: latestPreviewableScript.source_type,
+            createdAt: latestPreviewableScript.created_at,
+            versionNumber: latestPreviewableScript.version_number,
           }
         : null,
     });

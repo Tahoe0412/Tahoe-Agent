@@ -92,7 +92,7 @@ export class ResearchOrchestratorService {
         top_topic_key: trendTopics[0]?.topic_key ?? input.topic.toLowerCase().replace(/\s+/g, "_"),
       },
       script_summary: {
-        version_number: hasSourceScript ? 1 : 0,
+        version_number: 1,
         story_structure: "PROBLEM_SOLUTION",
         shot_count: 0,
       },

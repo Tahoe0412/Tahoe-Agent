@@ -101,12 +101,21 @@ export function explainClientError(error: unknown, locale: Locale = "zh") {
 
   if (error instanceof ApiClientError) {
     const detail = detailToText(error.detail);
+    const detailText = detail ?? "";
+    const hasPlatformLimitError =
+      detailText.includes("\"platforms\"") && detailText.includes("Array must contain at most 3 element(s)");
+    const hasScriptSummaryError =
+      detailText.includes("\"script_summary\"") && detailText.includes("Number must be greater than or equal to 1");
     const suggestion =
       locale === "en"
         ? error.code === "INVALID_JSON"
           ? "Check whether the submitted content is valid JSON."
           : error.code === "VALIDATION_ERROR"
-            ? "Review the required fields and input format, then submit again."
+            ? hasPlatformLimitError
+              ? "The project hit a default platform-limit mismatch. Retry after refreshing the page; this is not caused by your writing input."
+              : hasScriptSummaryError
+                ? "The project shell hit a default summary mismatch. Retry after refreshing the page; this is not caused by your writing input."
+              : "Review the required fields and input format, then submit again."
             : error.code === "DB_NOT_READY"
               ? "Database initialization looks incomplete. Run the latest Prisma steps first."
               : error.code === "TIMEOUT"
@@ -117,7 +126,11 @@ export function explainClientError(error: unknown, locale: Locale = "zh") {
         : error.code === "INVALID_JSON"
           ? "请检查提交内容是不是合法 JSON。"
           : error.code === "VALIDATION_ERROR"
-            ? "请检查必填项、字段格式和输入长度后再试一次。"
+            ? hasPlatformLimitError
+              ? "这次失败不是你文案填错，而是系统默认平台设置超了上限。刷新后重试即可。"
+              : hasScriptSummaryError
+                ? "这次失败不是你文案填错，而是系统默认摘要设置不合法。刷新后重试即可。"
+              : "请检查必填项、字段格式和输入长度后再试一次。"
             : error.code === "DB_NOT_READY"
               ? "数据库初始化可能还不完整，请先执行最新 Prisma 步骤。"
               : error.code === "TIMEOUT"
@@ -156,3 +169,72 @@ export function explainClientError(error: unknown, locale: Locale = "zh") {
     status: undefined,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Convenience wrappers (replaces the former lib/api-client.ts)
+// ---------------------------------------------------------------------------
+
+/** Alias to keep `catch (err instanceof ApiError)` working after the merge. */
+export const ApiError = ApiClientError;
+
+interface ApiClientOptions {
+  signal?: AbortSignal;
+  timeout?: number;
+}
+
+/**
+ * Object-style API client with `.post()` and `.get()` for callers
+ * that previously used the now-deleted `lib/api-client.ts`.
+ */
+export const apiClient = {
+  async post<T>(url: string, data: unknown, options?: ApiClientOptions): Promise<T> {
+    const controller = new AbortController();
+    const timeoutMs = options?.timeout ?? 15_000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    if (options?.signal) {
+      options.signal.addEventListener("abort", () => controller.abort());
+    }
+
+    try {
+      return await apiRequest<T>(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new ApiClientError({ message: "Request timed out", status: 408, code: "TIMEOUT" });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  },
+
+  async get<T>(url: string, options?: ApiClientOptions): Promise<T> {
+    const controller = new AbortController();
+    const timeoutMs = options?.timeout ?? 15_000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    if (options?.signal) {
+      options.signal.addEventListener("abort", () => controller.abort());
+    }
+
+    try {
+      return await apiRequest<T>(url, {
+        method: "GET",
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new ApiClientError({ message: "Request timed out", status: 408, code: "TIMEOUT" });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  },
+};
+

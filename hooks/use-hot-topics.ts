@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { apiClient, ApiError } from "@/lib/api-client";
+import { apiClient, ApiError } from "@/lib/client-api";
 import { getCached, setCache, makeCacheKey } from "@/lib/search-cache";
 import { toTopicRankingItems } from "@/types/trend-discovery";
 import type { HotTopicsSearchResult, TopicRankingItem } from "@/types/trend-discovery";

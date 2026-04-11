@@ -144,3 +144,137 @@
   - when default routing changes, update visible model names, setup docs, and schema defaults in the same task
   - avoid leaving “current recommended” UI copy on one version while persistence defaults still point at an older generation
 - **Files**: `components/settings/settings-form.tsx`, `app/settings/page.tsx`, `prisma/schema.prisma`, `README.md`
+
+## D-019 Near-Term Product Focus Is Toutiao-First Article/Image Publishing, Not Video-First Production
+- **Date**: 2026-04-10
+- **Reason**: The current business objective is to use AI tools and agentic workflows to build an owned-media matrix and monetize through both content/ad revenue and service/technical revenue. At the current platform maturity, article + static-image workflows are more controllable, more publishable, and more aligned with the immediate launch channel than video-first production.
+- **Impact**:
+  - the near-term launch channel is **头条号 / Toutiao**
+  - the owned-media line should be framed as article/image-first
+  - video generation remains available in the system but is temporarily de-prioritized
+  - the first three editorial directions are:
+    - AI增长官
+    - 金钱不眠
+    - 东方元气
+- **Rule**:
+  - do not begin by renaming database enums or internal compatibility types
+  - treat `MARS_CITIZEN` as the current compatibility bucket for the owned-media matrix until a later explicit schema migration is justified
+  - update user-facing copy, project briefs, and planning docs now so the product stops teaching a video-first mental model
+- **Files**: `docs/CONTENT_MATRIX_STRATEGY.md`, `docs/PROJECT_STATE.md`, `app/page.tsx`, `lib/content-line.ts`, `components/dashboard/project-intent-picker.tsx`, `lib/project-brief.ts`
+
+## D-020 Copy Quality Review Should Combine Chinese-Media Calibration With Multi-Audience Scoring
+- **Date**: 2026-04-10
+- **Reason**: A single rubric-style “quality diagnosis” is useful but incomplete. The user explicitly wants Tahoe’s copy quality to move closer to the strongest Chinese media / creator writing patterns, and also wants the system to judge drafts from multiple audience perspectives instead of one generalized score.
+- **Impact**:
+  - Marketing master-copy generation now includes an explicit “Chinese high-quality media calibration” prompt layer
+  - saved master-copy versions can carry an `audience_panel_review` with four simulated reader types:
+    - `feed_scanner`
+    - `skeptical_reader`
+    - `editor`
+    - `sharer`
+  - Marketing Ops now surfaces that second-pass panel directly in the main editor flow
+  - the same audience-panel review pattern now also applies to owned-media packaging outputs (`VIDEO_TITLE`, `PUBLISH_COPY`) in Script Lab
+- **Rule**:
+  - keep the audience panel as a persisted artifact-level review signal, not an ephemeral front-end-only score
+  - calibrate toward high-quality Chinese writing patterns through reusable rules + user-provided reference samples, not by hard-coding one named influencer voice
+  - treat audience-panel review as a complement to `quality_diagnosis`, not a replacement for it
+- **Files**: `lib/copy-review-panel.ts`, `services/promotional-copy.service.ts`, `components/workspace/marketing-ops-workbench.tsx`, `components/workspace/project-context.tsx`, `components/dashboard/project-form.tsx`, `components/settings/project-manager.tsx`
+
+## D-021 Owned-Media Main Draft Review Must Persist On Script Records, Not Only On Packaging Tasks
+- **Date**: 2026-04-10
+- **Reason**: After packaging gained a strong second-pass audience panel, the main owned-media draft was still the weakest gap. If review only exists on title/publish artifacts, Tahoe can mistakenly optimize packaging while the underlying article is still weak. Also, if that review only appears on the transient preview surface, it disappears as soon as scene splitting completes.
+- **Impact**:
+  - `NewsScriptService` now backfills `audience_panel_review` onto `script.structured_output` for owned-media narrative drafts
+  - `WorkspaceQueryService` now keeps the latest previewable structured draft available, instead of only exposing the absolute latest script record
+  - Script Lab now shows a dedicated main-draft review block alongside scene editing, so draft quality survives later workflow transitions
+- **Rule**:
+  - for owned-media long-form outputs, persist review on the draft record itself (`script.structured_output`) instead of treating draft quality as packaging-only metadata
+  - prefer keeping “latest previewable structured draft” available in read models when downstream workflow steps may replace the absolute latest script with more technical rewrite records
+  - packaging review should follow draft quality, not substitute for it
+- **Files**: `services/news-script.service.ts`, `services/workspace-query.service.ts`, `components/workspace/script-preview-panel.tsx`, `components/workspace/script-lab-workbench.tsx`, `app/script-lab/page.tsx`
+
+## D-022 Editorial Direction Presets Should Be Shared Across Project Shell, Brand Profile, and Brief
+- **Date**: 2026-04-11
+- **Reason**: The three owned-media directions (`AI增长官`, `金钱不眠`, `东方元气`) are now part of the operating model, not just copy ideas for one page. Keeping them only inside the create-project form would force users to restate the same baseline when creating brand profiles and briefs, while also making quality drift more likely.
+- **Impact**:
+  - a shared preset source now seeds project creation, Brand Profiles, and Brief Studio
+  - Brand Profile preset application can also create the first default content pillars automatically
+  - Brief Studio now uses the same preset family to prefill objective, tone, audience, platforms, CTA, and key message
+  - brief platform payloads are normalized to the schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`) instead of older UI-only aliases
+- **Rule**:
+  - when the three owned-media directions evolve, update the shared preset source instead of patching each form independently
+  - keep preset cards short in the UI; the richer structure belongs in the hidden preset skeleton, not in longer explanatory card copy
+  - do not add new brief platform labels that the backend schema cannot parse without updating the schema and the shared preset source together
+- **Files**: `lib/editorial-direction-presets.ts`, `components/dashboard/project-form.tsx`, `components/workspace/brand-profile-workbench.tsx`, `components/workspace/brief-studio-workbench.tsx`
+
+## D-023 Image-First UI Language Should Change Before Any Storyboard/Render Schema Migration
+- **Date**: 2026-04-11
+- **Reason**: The near-term product focus is article + static-image publishing, not video production. Waiting for a full schema rename before changing the user-facing language would keep teaching the wrong mental model for too long, while a rushed schema rename would create unnecessary migration risk.
+- **Impact**:
+  - `Scene Planner` now presents itself as `配图说明 / Image Brief`
+  - `Render Lab` now presents itself as `图片生产 / Image Production`
+  - empty states, page headers, button labels, and workbench card titles now guide users toward image tasks first
+  - the underlying `storyboard` / `render` storage and API contracts remain in place for compatibility
+- **Rule**:
+  - prefer changing user-facing language first when business focus changes faster than the internal schema can safely move
+  - keep internal compatibility types until there is a deliberate migration task, not a copy-only cleanup task
+  - do not reintroduce video-first helper text on these pages unless video-first production becomes the active business priority again
+- **Files**: `lib/locale-copy.ts`, `app/scene-planner/page.tsx`, `app/render-lab/page.tsx`, `components/workspace/scene-planner-workbench.tsx`, `components/workspace/render-lab-workbench.tsx`, `components/workspace/generate-storyboard-button.tsx`
+
+## D-024 Image Generation Should Be Gated By Brief Readiness, Not Only By Prompt Presence
+- **Date**: 2026-04-11
+- **Reason**: After Tahoe shifted to image-first publishing, the next failure mode was obvious: users could move from Scene Planner to image generation with a prompt that technically existed but was still too abstract, under-referenced, or missing composition guidance. Waiting for a later model-based reviewer would keep the weakest image briefs flowing straight into generation.
+- **Impact**:
+  - Tahoe now derives a lightweight `image brief review` from the current row data before image generation
+  - Scene Planner shows each row as `可开工` or `待补强` with a compact score and the main next-step guidance
+  - Render Lab shows the same readiness verdict above the image-job form so users see the main gap before creating a new image task
+- **Rule**:
+  - do not treat “prompt exists” as the same thing as “brief is ready”
+  - prefer a lightweight, explainable heuristic gate first; only add heavier model-based image-brief review once real output failure patterns are clear
+  - keep this readiness layer non-blocking for now; it should guide users before generation, not hard-stop them
+- **Files**: `lib/image-brief-review.ts`, `components/workspace/scene-planner-workbench.tsx`, `components/workspace/render-lab-workbench.tsx`
+
+## D-025 Image-Job Outcome Feedback Should Persist On Render Jobs Before Any Heavier Image QA System
+- **Date**: 2026-04-11
+- **Reason**: A pre-generation readiness score is useful, but it is still only a heuristic unless Tahoe can see which real image runs were kept, retried, or sent back for brief rewrites. Building a heavier automated image-QA system before storing even basic human outcome feedback would be premature.
+- **Impact**:
+  - render jobs now support a lightweight feedback record inside `output_json.feedback`
+  - users can mark each image run as:
+    - `KEEP`
+    - `RETRY`
+    - `REWRITE_BRIEF`
+  - users can also attach structured issue tags such as prompt-too-abstract, subject drift, style drift, weak composition, thin detail, text artifacts, and reference-not-used
+  - Render Lab now surfaces that feedback directly in job history and job details
+- **Rule**:
+  - persist image-run outcome feedback on the render job before introducing heavier model-based image scoring
+  - keep the feedback small and structured so it can later be mined to improve brief-review heuristics
+  - do not force users through a large QA form; one verdict, a few issue tags, and a short note are enough for the current phase
+- **Files**: `schemas/production-control.ts`, `services/render-job.service.ts`, `app/api/projects/[id]/render-jobs/[jobId]/route.ts`, `components/workspace/render-lab-workbench.tsx`
+
+## D-026 Scene Planning Should Show Recent Image Failure Patterns, Not Only Static Brief Quality
+- **Date**: 2026-04-11
+- **Reason**: Once Tahoe started saving structured image-run feedback, leaving that information only inside Render Lab would force users to rediscover the same failure pattern one page too late. The planning surface should reflect recent image outcomes for the same row, especially when a brief has already been retried or repeatedly sent back for rewrite.
+- **Impact**:
+  - Scene Planner now summarizes recent image-job feedback for each row using the latest render jobs already available in the workspace read model
+  - rows can now show whether they already carry recent retry / rewrite history
+  - the detail panel now surfaces the latest verdict, high-frequency issue tags, and the latest short note from real image runs
+- **Rule**:
+  - do not treat Scene Planner as a static pre-generation editor once real image outcomes exist
+  - when recent render-job feedback is available for a row, surface it in planning before asking users to try another generation
+  - prefer summarizing the pattern (retry vs rewrite + top issues) instead of dumping every historical feedback record into the planner
+- **Files**: `lib/render-job-feedback.ts`, `components/workspace/scene-planner-workbench.tsx`, `app/scene-planner/page.tsx`, `components/workspace/render-lab-workbench.tsx`
+
+## D-027 Homepage Project Creation Must Not Depend On Hidden Invalid Defaults
+- **Date**: 2026-04-11
+- **Reason**: A first-time user should be able to create a project from the homepage without understanding internal schema limits or hidden metadata fields. Tahoe's shared create form was still posting defaults that violated backend constraints (`platforms > 3`, `script_summary.version_number = 0`) and owned-media presets were also blurring “direction” with “current topic”.
+- **Impact**:
+  - homepage/shared create flow now slices default `platforms` to a schema-safe maximum of 3
+  - empty project-shell research reports now use a valid placeholder `script_summary.version_number`
+  - owned-media presets now fill background context and tone only; they no longer overwrite the user's current topic
+  - the homepage create form now surfaces current topic + writing context before advanced controls
+  - homepage/start cards use more direct labels (`内容矩阵` / `商业服务`, `配图说明`) instead of leaking older internal terms
+- **Rule**:
+  - do not let hidden defaults in the shared create path violate backend schema limits
+  - do not let “direction preset” auto-fill the current topic field for owned-media flows
+  - treat `project introduction` and `core idea` as first-run quality inputs for copy-first users, not as purely advanced controls
+- **Files**: `components/dashboard/project-form.tsx`, `lib/workspace-mode.ts`, `services/research-orchestrator.service.ts`, `lib/client-api.ts`, `components/dashboard/project-intent-picker.tsx`, `lib/content-line.ts`, `app/page.tsx`
