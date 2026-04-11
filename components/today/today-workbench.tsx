@@ -388,15 +388,33 @@ export function TodayWorkbench({
                 {t ? "手动添加关键词" : "Add keywords manually"}
               </span>
             )}
-            <span className="text-xs text-[var(--text-3)] tabular-nums">
-              {keywords.length > 0
-                ? t
-                  ? `已选 ${selectedKeywords.length} / ${keywords.length} 个关键词`
-                  : `${selectedKeywords.length} / ${keywords.length} selected`
-                : t
-                  ? "暂无关键词"
-                  : "No keywords"}
-            </span>
+          <div className="flex items-center gap-2">
+              {keywords.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setKeywords((prev) => prev.map((k) => ({ ...k, selected: true })))}
+                    className="rounded-md px-2 py-0.5 text-[11px] font-medium text-[var(--accent-strong)] hover:bg-[var(--accent-soft)] transition"
+                  >
+                    {t ? "全选" : "All"}
+                  </button>
+                  <span className="text-[var(--border)] select-none">|</span>
+                  <button
+                    type="button"
+                    onClick={() => setKeywords((prev) => prev.map((k) => ({ ...k, selected: false })))}
+                    className="rounded-md px-2 py-0.5 text-[11px] font-medium text-[var(--text-3)] hover:bg-[var(--surface-muted)] transition"
+                  >
+                    {t ? "全不选" : "None"}
+                  </button>
+                  <span className="text-[10px] text-[var(--text-3)] tabular-nums">
+                    {selectedKeywords.length}/{keywords.length}
+                  </span>
+                </>
+              )}
+              {keywords.length === 0 && (
+                <span className="text-xs text-[var(--text-3)]">{t ? "暂无关键词" : "No keywords"}</span>
+              )}
+            </div>
           </div>
 
           {/* Layer 2: Keyword tags + inline add */}
