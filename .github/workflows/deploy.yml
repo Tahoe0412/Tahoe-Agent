@@ -162,6 +162,22 @@ jobs:
               echo "[env] X_BEARER_TOKEN injected into .env.local"
             fi
 
+            # Inject SERPER_API_KEY (Google News / CN news search)
+            SERPER_KEY='${{ secrets.SERPER_API_KEY }}'
+            if [ -n "$SERPER_KEY" ]; then
+              sed -i "/^SERPER_API_KEY=/d" "$APP_DIR/.env.local"
+              echo "SERPER_API_KEY=\"$SERPER_KEY\"" >> "$APP_DIR/.env.local"
+              echo "[env] SERPER_API_KEY injected into .env.local"
+            fi
+
+            # Inject SERPAPI_KEY (Baidu News / domestic CN search)
+            SERPAPI_KEY_VAL='${{ secrets.SERPAPI_KEY }}'
+            if [ -n "$SERPAPI_KEY_VAL" ]; then
+              sed -i "/^SERPAPI_KEY=/d" "$APP_DIR/.env.local"
+              echo "SERPAPI_KEY=\"$SERPAPI_KEY_VAL\"" >> "$APP_DIR/.env.local"
+              echo "[env] SERPAPI_KEY injected into .env.local"
+            fi
+
             # Quick connectivity test
             if curl --max-time 10 -s --proxy http://127.0.0.1:7890 https://www.google.com > /dev/null 2>&1; then
               echo "[proxy] ✓ Proxy works — Google reachable"
