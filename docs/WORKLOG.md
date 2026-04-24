@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-04-24 14:18 — Agent: Codex
+
+### Task: T-014 DeepSeek V4 second AI快讯 article package
+
+**Changes**:
+- Created a new cloud Tahoe project for the next AI快讯 article:
+  - project `cmocijq2u0000v6bgidcs789o`
+  - title `DeepSeek V4发布：真正刺痛大模型市场的，不是参数，而是底价`
+  - script `cmocilcwa0005v6bgjvlg3cg9`
+- Added manual title-pack strategy task `cmocir4uc0007v6bghgr5hsqi`.
+- Added manual publish-copy strategy task `cmocir4vi0009v6bgb2kfsz7s`.
+- Added image-brief storyboard `cmocir4vv000bv6bggqolczgu` with three rows:
+  - cover: open-source AI repricing
+  - body image 1: V4-Pro / V4-Flash split
+  - body image 2: 1M context for real work materials
+
+**Reason**:
+- The user wanted the next article after GPT5.5 to keep the same or higher quality. The chosen angle avoids a generic "domestic model released" summary and frames DeepSeek V4 as a pricing/ecosystem pressure event for the large-model market.
+
+**Verification / Caveats**:
+- Cloud project creation succeeded.
+- Serper news search returned live DeepSeek V4 release coverage.
+- X platform collection failed on cloud because X credentials are missing (`CONFIG_MISSING`); the article package currently relies on live news evidence, not X social evidence.
+- Before real publication, perform one more official-source check against DeepSeek / Hugging Face / API docs because the current event is very fresh and model details may still change.
+
+---
+
 ## 2026-04-24 13:55 — Agent: Codex
 
 ### Task: T-014 AI快讯 long-form article quality correction
