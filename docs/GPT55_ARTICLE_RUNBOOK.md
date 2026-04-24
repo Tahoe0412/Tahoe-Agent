@@ -5,10 +5,13 @@
 ## Final Inspection Entry
 
 - **Final project ID**: `cmocc5cfq0034s0v59k0ot713`
+- **Cloud inspection project ID**: `cmocgo05k0000v6w47xyxcr39`
 - **Local article workspace**: `http://localhost:3000/script-lab?projectId=cmocc5cfq0034s0v59k0ot713`
 - **Local image brief workspace**: `http://localhost:3000/scene-planner?projectId=cmocc5cfq0034s0v59k0ot713`
 - **Local image task workspace**: `http://localhost:3000/render-lab?projectId=cmocc5cfq0034s0v59k0ot713`
-- **Cloud article workspace after deploy**: `http://111.229.24.208/script-lab?projectId=cmocc5cfq0034s0v59k0ot713`
+- **Cloud article workspace after deploy**: `http://111.229.24.208/script-lab?projectId=cmocgo05k0000v6w47xyxcr39`
+- **Cloud image brief workspace after deploy**: `http://111.229.24.208/scene-planner?projectId=cmocgo05k0000v6w47xyxcr39`
+- **Cloud image task workspace after deploy**: `http://111.229.24.208/render-lab?projectId=cmocgo05k0000v6w47xyxcr39`
 
 ## Final Article Package
 
@@ -18,6 +21,7 @@
 - **Publish lead**: OpenAI 凌晨悄悄更新，GPT-5.5 来了。除了程序员狂喜，我们普通人最直接的感受是什么？
 - **Final merged script version**: version `2` copied into project `cmocc5cfq0034s0v59k0ot713`
 - **Merged-from project**: `cmocd8dug004rs0v5dn16snhu`
+- **Cloud reconstruction note**: the cloud server uses a separate database, so the same package was rebuilt there through Tahoe APIs under project `cmocgo05k0000v6w47xyxcr39`.
 
 ## Tahoe Production Process Used
 
@@ -88,6 +92,10 @@ Cleanup policy: archive, do not hard delete.
 Kept final project:
 
 - `cmocc5cfq0034s0v59k0ot713`
+
+Cloud inspection copy:
+
+- `cmocgo05k0000v6w47xyxcr39`
 
 Archived duplicate dry-run projects:
 

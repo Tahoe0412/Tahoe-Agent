@@ -49,7 +49,7 @@
   - packaging audience review is now source-packet-grounded for breaking topics: title and publish-copy reviews receive extracted bullets from the latest script payload instead of evaluating only title strings / highlight strings
   - image-brief review now recognizes strong prompt-embedded camera/composition direction and no longer over-penalizes asset-ready infographic / concept-image rows just because no explicit reference image exists yet
   - AI快讯 master-draft prompting now explicitly forces each change point to land on a reader-perceivable consequence instead of stopping at generic model-upgrade phrasing
-  - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
+  - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final local project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, a cloud inspection copy was rebuilt as `cmocgo05k0000v6w47xyxcr39`, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
   - project lists now expose and display `updated_at`; Daily Run and Settings show "最后修改 / Updated", ordinary read models default-hide archived projects, and Settings remains the recovery surface for archived work
   - the `/daily-run` runtime screenshot was checked against a clean `.next` reset and fresh dev server; `/daily-run` returned `200`, so the observed webpack `call` error is treated as stale dev/HMR cache unless it reappears after clean restart
 - **Next**:
@@ -166,7 +166,7 @@
 
 ### T-016 GPT5.5 Final Package Cleanup and Daily Run Bug Sweep ✅
 - **Completed**: 2026-04-24
-- **Result**: Fixed the Tahoe lint blockers, excluded unrelated analysis/econometrics folders from product lint, exposed `updated_at` in project read models, hid archived projects by default, added visible last-modified timestamps to Daily Run and Settings, merged the best GPT5.5 draft into final project `cmocc5cfq0034s0v59k0ot713`, archived duplicate dry-run projects, and documented the full GPT5.5 article production process in `docs/GPT55_ARTICLE_RUNBOOK.md`.
+- **Result**: Fixed the Tahoe lint blockers, excluded unrelated analysis/econometrics folders from product lint, exposed `updated_at` in project read models, hid archived projects by default, added visible last-modified timestamps to Daily Run and Settings, merged the best GPT5.5 draft into final local project `cmocc5cfq0034s0v59k0ot713`, rebuilt a cloud inspection copy as `cmocgo05k0000v6w47xyxcr39`, archived duplicate dry-run projects, and documented the full GPT5.5 article production process in `docs/GPT55_ARTICLE_RUNBOOK.md`.
 
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16

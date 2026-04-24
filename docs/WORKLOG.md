@@ -1782,6 +1782,7 @@
 - Copied the best draft from `cmocd8dug004rs0v5dn16snhu` into the final project as script version `2`.
 - Marked the final project `COMPLETED`.
 - Archived 10 duplicate GPT5.5 dry-run projects with `cleanup_reason = gpt55_dry_run_duplicate`.
+- Rebuilt a cloud inspection copy through public Tahoe APIs as `cmocgo05k0000v6w47xyxcr39`, including one script record, title pack, publish copy, three image briefs, three image jobs, and saved image-job feedback.
 
 **Validation**:
 - `npm run lint` passed with warnings only.
