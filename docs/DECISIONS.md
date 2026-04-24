@@ -402,3 +402,18 @@
   - prefer one final inspection project per article package, with duplicate attempts archived and linked back through metadata
   - expose last-modified time wherever users choose what to open next
 - **Files**: `services/workspace-query.service.ts`, `app/api/projects/route.ts`, `app/daily-run/page.tsx`, `components/settings/project-manager.tsx`, `docs/GPT55_ARTICLE_RUNBOOK.md`
+
+## D-036 AI快讯 Main Drafts Should Default To Long-Form Toutiao Articles, Not Short Summaries
+- **Date**: 2026-04-24
+- **Reason**: The first cloud GPT5.5 inspection article proved that the pipeline could collect signals and create artifacts, but the main draft was too short and read like a compressed update. The target product is a publishable Toutiao image/text article comparable to strong Chinese tech commentary: hook, facts, explanation, judgment, and a memorable closing. A short summary can be useful as a packaging artifact, but it should not be the default main draft for owned-media publishing.
+- **Impact**:
+  - `NARRATIVE_SCRIPT` copy now describes a Toutiao-first long-form article draft instead of a voiceover-style tech script
+  - AI快讯 prompting asks for 1800-2600 Chinese characters when source material is sufficient, with a minimum long-form floor instead of a 90-second draft
+  - the prompt requires a hook, source grounding, 3-5 change points, reader-facing consequences, clear judgment lines, and a final takeaway
+  - audience-review calibration now explicitly penalizes owned-media main drafts that read like short summaries rather than complete articles
+  - the cloud GPT5.5 inspection project `cmocgo05k0000v6w47xyxcr39` now has a v2 long-form script and updated project background
+- **Rule**:
+  - do not optimize AI快讯 main drafts for brevity unless the user explicitly chooses a short-update mode
+  - title packs, publish copy, and image briefs can stay compact; the main article should carry the full argument
+  - if source material is thin, write the uncertainty and observation boundary into a longer explanatory article instead of falling back to a tiny summary
+- **Files**: `lib/mars-citizen-prompt.ts`, `lib/output-type-copy-prompt.ts`, `lib/copy-review-panel.ts`, `docs/GPT55_ARTICLE_RUNBOOK.md`

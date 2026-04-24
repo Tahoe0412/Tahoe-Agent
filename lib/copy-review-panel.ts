@@ -83,6 +83,15 @@ export function getChineseMediaCalibrationNotes(params?: {
     "收尾要么收束判断，要么给明确动作，不要在结尾泄气。",
   ];
 
+  if (params?.target === "MASTER_COPY") {
+    baseNotes.splice(
+      1,
+      0,
+      "头条号图文主稿不能像短摘要。除非任务明确要求短版，否则要展开成有起承转合的长文：钩子、事实、解释、判断、影响、收束都要完整。",
+      "判断句要服务理解，不要只给情绪；好的判断通常写成“真正重要的不是 X，而是 Y”。",
+    );
+  }
+
   if (params?.target === "PACKAGING") {
     baseNotes.splice(
       1,

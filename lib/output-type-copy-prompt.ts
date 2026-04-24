@@ -6,7 +6,7 @@ export function buildOutputTypeCopyInstruction(
   locale: "zh" | "en" = "zh",
 ) {
   const zh = {
-    NARRATIVE_SCRIPT: "目标产物：科技叙事脚本。语言要适合口播，信息密度高，但句子仍要有节奏和镜头感。",
+    NARRATIVE_SCRIPT: "目标产物：头条号长图文主稿。需要有鲜明判断、事实支撑、普通读者能理解的解释，以及适合手机阅读的短段落节奏。",
     STORYBOARD_SCRIPT: "目标产物：分镜脚本。语言要天然适合拆成镜头、画面和动作，不要写成大段散文。",
     VIDEO_TITLE: "目标产物：视频标题。优先写传播钩子、反差感和科技感，不要写成普通摘要句。",
     VIDEO_DESCRIPTION: "目标产物：视频简介。要兼顾信息交代、发布说明和轻 CTA。",
@@ -18,7 +18,7 @@ export function buildOutputTypeCopyInstruction(
   } as const;
 
   const en = {
-    NARRATIVE_SCRIPT: "Target output: narrative science script. Keep it voiceover-ready, information-dense, and naturally cinematic.",
+    NARRATIVE_SCRIPT: "Target output: Toutiao-first long-form article draft. It needs a clear judgment, factual grounding, reader-facing interpretation, and short mobile-friendly paragraphs.",
     STORYBOARD_SCRIPT: "Target output: storyboard script. Language should split naturally into shots, visuals, and actions.",
     VIDEO_TITLE: "Target output: video title. Favor hook, contrast, and science intrigue over generic summary wording.",
     VIDEO_DESCRIPTION: "Target output: video description. Balance context, publish framing, and a light CTA.",
@@ -31,4 +31,3 @@ export function buildOutputTypeCopyInstruction(
 
   return (locale === "en" ? en : zh)[outputType];
 }
-

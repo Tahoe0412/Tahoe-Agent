@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-04-24 13:55 — Agent: Codex
+
+### Task: T-014 AI快讯 long-form article quality correction
+
+**Changes**:
+- Modified `lib/mars-citizen-prompt.ts` — changed AI快讯 / owned-media narrative generation from a short technology update prompt into a Toutiao-first long-form article prompt. The prompt now asks for a hook, source-grounded explanation, 3-5 change points, explicit judgment lines, mobile-readable short paragraphs, and roughly 1800-2600 Chinese characters when materials support it.
+- Modified `lib/output-type-copy-prompt.ts` — renamed `NARRATIVE_SCRIPT` guidance from a narrative science script to a Toutiao-first long-form article draft.
+- Modified `lib/copy-review-panel.ts` — added review calibration that penalizes owned-media main drafts that read like short summaries instead of full articles.
+- Updated cloud inspection project `cmocgo05k0000v6w47xyxcr39` through Tahoe API: added long-form script version `cmochr99s0001v6eixxzgpkhh`, changed the project title to `GPT-5.5来了，真正该看的不是更强，而是更省 — AI快讯`, and updated project background/core idea/style reference to the long-form angle.
+- Updated `docs/GPT55_ARTICLE_RUNBOOK.md`, `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- The cloud GPT5.5 inspection draft was technically present but too short. It read like a compressed news explanation, while the desired target is closer to high-quality Chinese tech commentary: a stronger first screen, fuller argument, concrete reader impact, and a memorable closing.
+
+**Verification**:
+- `npm run lint` passed with 0 errors and 16 existing warnings.
+- `npm run build` passed.
+- Cloud API accepted the new script version and project metadata update.
+
+---
+
 ## 2026-04-24 10:35 — Agent: Codex
 
 ### Task: T-014 GPT-5.5 owned-media dry run + breaking-news review calibration

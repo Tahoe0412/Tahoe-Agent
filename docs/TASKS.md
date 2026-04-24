@@ -49,6 +49,7 @@
   - packaging audience review is now source-packet-grounded for breaking topics: title and publish-copy reviews receive extracted bullets from the latest script payload instead of evaluating only title strings / highlight strings
   - image-brief review now recognizes strong prompt-embedded camera/composition direction and no longer over-penalizes asset-ready infographic / concept-image rows just because no explicit reference image exists yet
   - AI快讯 master-draft prompting now explicitly forces each change point to land on a reader-perceivable consequence instead of stopping at generic model-upgrade phrasing
+  - AI快讯 master-draft prompting has now been upgraded from short-summary generation to Toutiao-first long-form article generation. The prompt now asks for a hook, complete argument arc, source-grounded explanation, 3-5 change points, clear judgment lines, and roughly 1800-2600 Chinese characters when materials support it.
   - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final local project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, a cloud inspection copy was rebuilt as `cmocgo05k0000v6w47xyxcr39`, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
   - project lists now expose and display `updated_at`; Daily Run and Settings show "最后修改 / Updated", ordinary read models default-hide archived projects, and Settings remains the recovery surface for archived work
   - the `/daily-run` runtime screenshot was checked against a clean `.next` reset and fresh dev server; `/daily-run` returned `200`, so the observed webpack `call` error is treated as stale dev/HMR cache unless it reappears after clean restart
@@ -56,7 +57,7 @@
   - promote the current session-only signal panel into a persisted topic-triage queue, so `Daily Run` can remember which signals were kept, dismissed, drafted, or routed across reloads and machines
   - upgrade the current inferred queue from artifact-count heuristics to a real item-level daily-run status model
   - merge image-brief readiness and recent image-job outcomes into one tighter score, so repeated real failures can directly drag down “可开工”判断
-  - close the remaining main-draft quality gap on ultra-fresh AI launches: the GPT-5.5 dry run shows the pipeline now works, but the owned-media draft review still wants more reader-visible examples before it consistently crosses the publish threshold
+  - add an explicit "article length / depth" control to Daily Run and Script Lab so users can choose short update, standard article, or deep commentary without changing the prompt manually
   - continue sweeping remaining 分镜 references in lower-traffic secondary pages (help-center, workflow-actions, marketing-ops, approval-board)
   - refine each owned-media line's final brand/persona package, especially `消费时尚`, which still needs a tighter runway/brand-analysis voice before the preset should be treated as final
 

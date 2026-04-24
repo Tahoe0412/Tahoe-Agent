@@ -114,6 +114,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - Packaging audience review now receives extracted source-packet bullets from the latest script payload instead of judging only title strings or highlight strings. This is important for just-published topics such as GPT-5.5.
 - Image-brief review is now more tolerant of editorial infographic / concept-image rows when the prompt itself already carries strong camera/composition direction and the row is asset-ready, even if no explicit reference image has been attached yet.
 - AI快讯 main-draft prompting has been tightened so each change point must land on a user-perceivable consequence instead of stopping at generic industry-summary phrasing.
+- AI快讯 main-draft prompting now targets Toutiao-first long-form article drafts by default rather than short news summaries. The expected output is a complete mobile-readable article with a strong hook, factual grounding, explanation, clear judgment, and roughly 1800-2600 Chinese characters when source material is sufficient.
 - Homepage and project-intent cards are now intentionally shorter. Use cards to signal direction, not to explain the full workflow inside every card body.
 - Brief Studio platform values are now normalized to the backend schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`). Do not reintroduce ad-hoc UI-only values such as `XIAOHONGSHU` or `BRAND_PAGE` into brief payloads unless the schema is explicitly expanded first.
 - These are **future roadmap items**, not the current sprint scope. Current work should stay focused on content quality, prompt quality, artifact-first UX, and clearer user flow.
@@ -123,7 +124,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 1. CI/CD runs sometimes fail if server `node_modules` gets corrupted — manual `npm ci` fixes it
 2. Some local environments may still carry stale `app_settings` records with mock/news provider values from earlier phases. This is a persisted local-state issue, not a current code crash, but it can make first-run verification look “mock-first” unless the settings are updated.
 3. The local quality-first model route can still inherit older persisted provider/model settings from `app_settings`, so end-to-end verification may run on mixed current/legacy model choices unless the settings record is normalized.
-4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end, but the main-draft audience panel is still stricter than the packaging panel on ultra-fresh launches. The remaining gap is draft concreteness, not pipeline breakage.
+4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end. A later quality pass replaced the too-short cloud inspection draft with a long-form v2 and upgraded AI快讯 prompting, but future runs still need factual source quality checks before real publication.
 5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
 
 ## Constraints — DO NOT VIOLATE

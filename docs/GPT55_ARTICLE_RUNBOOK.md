@@ -17,11 +17,13 @@
 
 - **Account**: AI快讯
 - **Topic**: GPT5.5发布后，普通用户最能直接感知到什么
-- **Primary title candidate**: GPT-5.5 没急着秀肌肉，而是先把账单打下来了。
-- **Publish lead**: OpenAI 凌晨悄悄更新，GPT-5.5 来了。除了程序员狂喜，我们普通人最直接的感受是什么？
+- **Current cloud main title**: GPT-5.5来了，真正该看的不是更强，而是更省
+- **Previous title-pack candidate**: GPT-5.5 没急着秀肌肉，而是先把账单打下来了。
+- **Publish lead**: GPT-5.5 的重点不只是更聪明，而是AI开始从“能不能干活”进入“能不能便宜、稳定、持续地干活”。
 - **Final merged script version**: version `2` copied into project `cmocc5cfq0034s0v59k0ot713`
 - **Merged-from project**: `cmocd8dug004rs0v5dn16snhu`
 - **Cloud reconstruction note**: the cloud server uses a separate database, so the same package was rebuilt there through Tahoe APIs under project `cmocgo05k0000v6w47xyxcr39`.
+- **Cloud long-form correction**: after inspection, the cloud article was too short. A new long-form script version `cmochr99s0001v6eixxzgpkhh` was added to the cloud project, and the cloud project title/background were updated to the long-form angle.
 
 ## Tahoe Production Process Used
 
@@ -39,6 +41,7 @@
    - Used Script Lab's persisted `audience_panel_review`.
    - The best draft was the one focused on user-visible changes: lower cost / faster response, stronger code and math ability, and more concise answers.
    - The final project now carries that best draft as its latest script version.
+   - The later quality correction established that AI快讯 main drafts should not default to short summaries. The target article shape is now hook -> fact -> explanation -> reader impact -> industry judgment -> takeaway.
 
 4. **Packaging**
    - Generated multiple title-pack versions and publish-copy versions in Script Lab.
@@ -121,6 +124,7 @@ Each archived project is marked with:
 - Lint was blocked by unrelated non-Tahoe analysis/econometrics files. ESLint now ignores those directories and still reports Tahoe code warnings.
 - The project list was too noisy after dry-run experiments. Default read models now hide archived projects, while Settings can still include and restore archived records.
 - The final script and final image-task records originally lived in separate projects. The best script is now merged back into the full-chain project so there is one inspection entry.
+- The first cloud inspection draft was too short for the desired Toutiao article style. The fix was not just to paste more words: AI快讯 prompting now targets a complete long-form article by default, and the cloud project has a v2 long-form article for inspection.
 
 ## Next Improvements
 
