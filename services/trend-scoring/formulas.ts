@@ -1,3 +1,4 @@
+import { parsePublishedAt } from "@/lib/published-at";
 import type { ContentItem, ProductionClass, SupportedPlatform } from "@/types/platform-data";
 
 export interface TrendScoreBreakdown {
@@ -29,6 +30,9 @@ export const defaultTrendScoringWeights: TrendScoringWeights = {
 };
 
 function clampScore(value: number) {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
@@ -46,7 +50,7 @@ function calcEngagementRate(item: ContentItem) {
 }
 
 function hoursSincePublished(item: ContentItem) {
-  const publishedAt = new Date(item.published_at).getTime();
+  const publishedAt = parsePublishedAt(item.published_at).getTime();
   const now = Date.now();
   return Math.max((now - publishedAt) / (1000 * 60 * 60), 1);
 }

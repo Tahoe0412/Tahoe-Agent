@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { parsePublishedAt } from "@/lib/published-at";
 import { searchLatestNews } from "@/services/news-search";
 import { TrendScoringEngine } from "@/services/trend-scoring";
 import { getPlatformConnector } from "@/services/platform-connectors";
@@ -133,7 +134,7 @@ export class ResearchJobService {
               title: item.title,
               normalized_title: item.normalized_title,
               url: item.url,
-              published_at: new Date(item.published_at),
+              published_at: parsePublishedAt(item.published_at),
               duration_seconds: item.duration_seconds,
               view_count: item.view_count,
               like_count: item.like_count,
@@ -150,7 +151,7 @@ export class ResearchJobService {
               title: item.title,
               normalized_title: item.normalized_title,
               url: item.url,
-              published_at: new Date(item.published_at),
+              published_at: parsePublishedAt(item.published_at),
               duration_seconds: item.duration_seconds,
               view_count: item.view_count,
               like_count: item.like_count,
@@ -208,7 +209,7 @@ export class ResearchJobService {
               evidence_label: evidence.title,
               signal_value: evidence.view_count,
               source_url: evidence.url,
-              published_at: new Date(evidence.published_at),
+              published_at: parsePublishedAt(evidence.published_at),
               raw_payload: toJson(evidence),
             })),
             ...newsResult.items
@@ -222,7 +223,7 @@ export class ResearchJobService {
                 evidence_label: item.title,
                 signal_value: Math.round(item.score * 100),
                 source_url: item.url,
-                published_at: new Date(item.published_at),
+                published_at: parsePublishedAt(item.published_at),
                 raw_payload: toJson(item),
               }))
               .map((row) => {
@@ -256,7 +257,7 @@ export class ResearchJobService {
                 evidence_label: item.title,
                 signal_value: Math.round(item.score * 100),
                 source_url: item.url,
-                published_at: new Date(item.published_at),
+                published_at: parsePublishedAt(item.published_at),
                 raw_payload: toJson(item),
               })),
             });

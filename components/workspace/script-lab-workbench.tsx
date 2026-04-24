@@ -703,7 +703,7 @@ export function ScriptLabWorkbench({
             </div>
           ) : (
             <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
-              还没有生成发布文案。回到总览页点一下"发布文案"就能补上。
+              还没有生成发布文案。回到总览页点一下&quot;发布文案&quot;就能补上。
             </div>
           )}
         </PanelCard>

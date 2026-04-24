@@ -112,14 +112,21 @@ export default async function Home({
     title?: string;
     contentLine?: string;
     outputType?: string;
+    ownedMediaPreset?: string;
   }>;
 }) {
   const locale = await getLocale();
   const text = copy[locale];
-  const { projectId, topic, title, contentLine, outputType } = await searchParams;
+  const { projectId, topic, title, contentLine, outputType, ownedMediaPreset } = await searchParams;
   const initialContentLine = resolveContentLine({ contentLine });
   const initialOutputType = coerceOutputType(initialContentLine, outputType);
-  const projectFormKey = [initialContentLine, initialOutputType, topic ?? "", title ?? ""].join(":");
+  const normalizedOwnedMediaPreset =
+    ownedMediaPreset === "AI_GROWTH" ||
+    ownedMediaPreset === "MONEY_NEVER_SLEEPS" ||
+    ownedMediaPreset === "EASTERN_VITALITY"
+      ? ownedMediaPreset
+      : null;
+  const projectFormKey = [initialContentLine, initialOutputType, topic ?? "", title ?? "", normalizedOwnedMediaPreset ?? ""].join(":");
   const [recentProjectsResult, workspaceResult] = await Promise.allSettled([
     workspaceQueryService.listRecentProjects(),
     projectId ? workspaceQueryService.getProjectWorkspace(projectId) : Promise.resolve(null),
@@ -203,9 +210,9 @@ export default async function Home({
           strategyRevenueValue: "Content / advertising + service / technical delivery",
           strategyFocusLabel: "Current focus",
           strategyFocusValue: "Article quality, packaging quality, and refined static images",
-          strategyTrackAi: "AI增长官 · 大模型 / Agent / AI 商业应用",
-          strategyTrackMoney: "金钱不眠 · 金融 / 股市 / 资本 / 财经人物",
-          strategyTrackLife: "东方元气 · 食养 / 疗愈 / 心理健康",
+          strategyTrackAi: "AI Briefing · models / agents / product launches",
+          strategyTrackMoney: "Global Markets · US / HK / CN equities / macro",
+          strategyTrackLife: "Consumer Style · brands / beauty / fashion / trends",
           startTodayFooter: "Research / topic / material",
           startMarsFooter: "Draft / image / publish",
           startMarketingFooter: "Copy / creative / image",
@@ -258,9 +265,9 @@ export default async function Home({
           strategyRevenueValue: "内容广告收入 + 服务技术收入",
           strategyFocusLabel: "当前重点",
           strategyFocusValue: "文章质量、包装质量、精细静态配图",
-          strategyTrackAi: "AI增长官 · 大模型 / Agent / AI 商业应用",
-          strategyTrackMoney: "金钱不眠 · 金融 / 股市 / 资本 / 财经动态",
-          strategyTrackLife: "东方元气 · 食养 / 疗愈 / 心理健康",
+          strategyTrackAi: "AI快讯 · 模型 / Agent / AI 产品动态",
+          strategyTrackMoney: "全球股市 · 美股 / 港股 / A股 / 宏观资金",
+          strategyTrackLife: "消费时尚 · 品牌 / 美妆 / 服饰 / 趋势",
           startTodayFooter: "研究 / 定题 / 素材",
           startMarsFooter: "主稿 / 配图 / 发布",
           startMarketingFooter: "文案 / 创意 / 配图",
@@ -482,6 +489,7 @@ export default async function Home({
                 initialOutputType={initialOutputType}
                 initialTopic={topic ?? ""}
                 initialTitle={title ?? ""}
+                initialOwnedMediaPreset={normalizedOwnedMediaPreset}
               />
             </div>
 

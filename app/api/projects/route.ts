@@ -8,10 +8,12 @@ import { ResearchOrchestratorService } from "@/services/research-orchestrator.se
 
 const orchestrator = new ResearchOrchestratorService();
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const includeArchived = new URL(request.url).searchParams.get("includeArchived") === "1";
     const projects = await prisma.project.findMany({
-      orderBy: { created_at: "desc" },
+      where: includeArchived ? undefined : { status: { not: "ARCHIVED" } },
+      orderBy: { updated_at: "desc" },
       take: 24,
       select: {
         id: true,
@@ -19,6 +21,7 @@ export async function GET() {
         topic_query: true,
         status: true,
         created_at: true,
+        updated_at: true,
         metadata: true,
         trend_topics: {
           select: { id: true },
@@ -51,6 +54,7 @@ export async function GET() {
           topic_query: project.topic_query,
           status: project.status,
           created_at: project.created_at,
+          updated_at: project.updated_at,
           workspace_mode: intent.workspaceMode,
           content_line: intent.contentLine,
           output_type: intent.outputType,

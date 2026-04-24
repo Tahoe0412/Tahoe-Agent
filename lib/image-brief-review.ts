@@ -32,6 +32,48 @@ const ABSTRACT_PHRASES = [
   "氛围",
 ];
 
+const EMBEDDED_CAMERA_TERMS = [
+  "close-up",
+  "close up",
+  "medium shot",
+  "medium close-up",
+  "medium close up",
+  "wide shot",
+  "eye-level",
+  "eye level",
+  "over the shoulder",
+  "bird's-eye",
+  "high-angle",
+  "low-angle",
+  "pushes through",
+  "pushes in",
+  "slowly pushes in",
+  "pulls back",
+  "zoom out",
+  "dolly",
+  "orbital",
+  "framed as",
+];
+
+const EMBEDDED_COMPOSITION_TERMS = [
+  "foreground",
+  "background",
+  "left",
+  "right",
+  "center",
+  "split-screen",
+  "split screen",
+  "on the left",
+  "on the right",
+  "materializes in the center",
+  "reveals",
+  "overlay",
+  "banner",
+  "graph",
+  "infographic",
+  "ui interface",
+];
+
 function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
@@ -51,6 +93,11 @@ function isPromptTooAbstract(prompt: string) {
   return abstractHitCount >= 2 && prompt.length < 90 && punctuationCount < 3;
 }
 
+function hasEmbeddedDirection(prompt: string, terms: string[]) {
+  const normalized = prompt.toLowerCase();
+  return terms.some((term) => normalized.includes(term));
+}
+
 export function reviewImageBrief(input: ImageBriefReviewInput): ImageBriefReview {
   const shotGoal = normalizedText(input.shotGoal);
   const rewritten = normalizedText(input.rewritten);
@@ -62,6 +109,9 @@ export function reviewImageBrief(input: ImageBriefReviewInput): ImageBriefReview
   const strengths: string[] = [];
   const issues: string[] = [];
   const nextSteps: string[] = [];
+  const promptHasCameraDirection = hasEmbeddedDirection(visualPrompt, EMBEDDED_CAMERA_TERMS);
+  const promptHasCompositionDirection = hasEmbeddedDirection(visualPrompt, EMBEDDED_COMPOSITION_TERMS);
+  const promptCarriesExecutionDirection = promptHasCameraDirection || promptHasCompositionDirection;
 
   let score = 88;
 
@@ -106,9 +156,15 @@ export function reviewImageBrief(input: ImageBriefReviewInput): ImageBriefReview
     issues.push("只有 1 份参考素材，风格或主体仍可能漂。");
     nextSteps.push("再补 1 张关键参考，最好分别覆盖主体和场景。");
   } else {
-    score -= 15;
-    issues.push("当前没有参考素材，第一轮出图会更依赖模型猜测。");
-    nextSteps.push("至少补 1 张主体或场景参考，再开始出图。");
+    if (input.assetReady && hasUsefulLength(visualPrompt, 120) && promptCarriesExecutionDirection) {
+      score -= 4;
+      strengths.push("当前更像信息图/概念图型 brief，虽然没有参考图，但 prompt 已给出足够执行方向。");
+      nextSteps.push("如果第一轮出图出现风格漂移，再补 1 张界面或信息图参考。");
+    } else {
+      score -= 15;
+      issues.push("当前没有参考素材，第一轮出图会更依赖模型猜测。");
+      nextSteps.push("至少补 1 张主体或场景参考，再开始出图。");
+    }
   }
 
   if (input.assetReady) {
@@ -125,6 +181,10 @@ export function reviewImageBrief(input: ImageBriefReviewInput): ImageBriefReview
 
   if (cameraPlan || compositionNotes) {
     strengths.push("已经给了构图或镜头计划，执行时更容易统一。");
+  } else if (promptCarriesExecutionDirection) {
+    score -= 2;
+    strengths.push("虽然没单列镜头字段，但 prompt 已经写出了机位或画面组织。");
+    nextSteps.push("后续若继续复用这条 brief，可把 prompt 里的机位与构图单独拆出来。");
   } else {
     score -= 8;
     issues.push("缺少构图或镜头计划，成图容易只有主题没有画面组织。");

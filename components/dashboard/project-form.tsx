@@ -38,6 +38,7 @@ export function ProjectForm({
   initialOutputType = "NARRATIVE_SCRIPT",
   initialTopic = "",
   initialTitle = "",
+  initialOwnedMediaPreset = null,
 }: {
   locale?: Locale;
   variant?: ProjectFormVariant;
@@ -46,8 +47,14 @@ export function ProjectForm({
   initialOutputType?: OutputType;
   initialTopic?: string;
   initialTitle?: string;
+  initialOwnedMediaPreset?: EditorialDirectionPresetId | null;
 }) {
   const router = useRouter();
+  const ownedMediaPresets = useMemo(() => getEditorialDirectionPresets(locale), [locale]);
+  const initialPreset = useMemo(
+    () => ownedMediaPresets.find((preset) => preset.id === initialOwnedMediaPreset) ?? null,
+    [ownedMediaPresets, initialOwnedMediaPreset],
+  );
   const [contentLine, setContentLine] = useState<ContentLine>(initialContentLine);
   const [outputType, setOutputType] = useState<OutputType>(initialOutputType);
   const [writingMode, setWritingMode] = useState<WritingMode>("PRODUCT_PROMO");
@@ -71,11 +78,11 @@ export function ProjectForm({
   const [titleIsManual, setTitleIsManual] = useState(!!initialTitle);
   const [titleSuggestionIndex, setTitleSuggestionIndex] = useState(0);
   const [topicInput, setTopicInput] = useState(initialTopic);
-  const [projectIntroductionInput, setProjectIntroductionInput] = useState("");
-  const [coreIdeaInput, setCoreIdeaInput] = useState("");
+  const [projectIntroductionInput, setProjectIntroductionInput] = useState(initialPreset?.introduction ?? "");
+  const [coreIdeaInput, setCoreIdeaInput] = useState(initialPreset?.coreIdea ?? "");
   const [sourceScriptInput, setSourceScriptInput] = useState("");
-  const [styleReferenceInput, setStyleReferenceInput] = useState("");
-  const [selectedOwnedMediaPreset, setSelectedOwnedMediaPreset] = useState<EditorialDirectionPresetId | null>(null);
+  const [styleReferenceInput, setStyleReferenceInput] = useState(initialPreset?.styleReferenceSample ?? "");
+  const [selectedOwnedMediaPreset, setSelectedOwnedMediaPreset] = useState<EditorialDirectionPresetId | null>(initialPreset?.id ?? null);
 
   // Auto-generate title from topic unless user has typed their own
   const titleSuggestions = useMemo(
@@ -83,11 +90,20 @@ export function ProjectForm({
     [topicInput, workspaceMode],
   );
   useEffect(() => {
+    setTitleSuggestionIndex(0);
+  }, [topicInput, workspaceMode]);
+
+  useEffect(() => {
     if (!titleIsManual && titleSuggestions.length > 0) {
       const idx = titleSuggestionIndex % titleSuggestions.length;
       setTitleInput(titleSuggestions[idx] ?? "");
+      return;
     }
-  }, [titleSuggestions, titleSuggestionIndex, titleIsManual]);
+
+    if (!titleIsManual && !topicInput.trim()) {
+      setTitleInput("");
+    }
+  }, [titleSuggestions, titleSuggestionIndex, titleIsManual, topicInput]);
 
   const cycleTitleSuggestion = useCallback(() => {
     setTitleIsManual(false);
@@ -194,7 +210,6 @@ export function ProjectForm({
         creating: "创建中...",
         createProject: "创建项目",
       };
-  const ownedMediaPresets = useMemo(() => getEditorialDirectionPresets(locale), [locale]);
   const sourceLabel =
     isOwnedMedia
       ? ui.sourceLabelScience

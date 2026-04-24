@@ -11,9 +11,9 @@
   - start from 头条号
   - support both content/ad revenue and service/technical revenue
 - **Editorial directions**:
-  - AI增长官
-  - 金钱不眠
-  - 东方元气
+  - AI快讯
+  - 全球股市
+  - 消费时尚
 - **Rules for this phase**:
   - de-prioritize video-first product thinking
   - prioritize article quality, publish packaging, and refined image output
@@ -29,16 +29,36 @@
   - Marketing master-copy generation now includes a “Chinese high-quality media calibration” layer plus a persisted multi-audience review panel
   - owned-media packaging (`VIDEO_TITLE`, `PUBLISH_COPY`) now also carries the same persisted multi-audience review panel in Script Lab, including manually saved versions
   - owned-media main drafts now also backfill a persisted `audience_panel_review` onto `script.structured_output`, and Script Lab keeps showing the latest structured draft + its audience verdict even after scene rows exist
-  - the shared project-creation form now includes quick owned-media presets for `AI增长官`, `金钱不眠`, and `东方元气`, so users can prefill the brief without manually rewriting the whole context block
+  - the shared project-creation form now includes quick owned-media presets for `AI快讯`, `全球股市`, and `消费时尚`, so users can prefill the brief without manually rewriting the whole context block
   - the same three editorial directions now also exist as shared preset skeletons for Brand Profiles and Brief Studio, so owned-media projects can carry a reusable brand/brief baseline instead of only a one-off create-form prefill
   - Brief Studio now submits schema-safe platform values (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`) instead of the older mixed UI-only labels, so presets and manual brief creation no longer risk invalid platform payloads
   - Scene Planner and Render Lab now speak in image-first language on the user-facing surface (`配图说明` / `图片生产`) while still keeping the internal `storyboard` / `render` compatibility model unchanged
   - Scene Planner and Render Lab now carry a lightweight `image brief review` layer that scores each row for readiness before image generation, surfaces the main gap, and nudges users to fix prompt/reference/composition issues before opening a new image job
   - Image Production now also supports structured per-job result feedback (`保留这一版 / 继续重试 / 先改 brief` + issue tags + short note), so real image failures can start feeding back into the planning loop instead of living only in transient chat comments
   - Scene Planner now also reads back recent image-job feedback for the same row, so users can see whether a brief has already been retried or repeatedly sent back for rewrite, plus the current high-frequency failure tags
+  - the first-run create path has been hardened again: blank topics no longer generate fake auto-titles, topic changes reset title suggestions cleanly, relative/Chinese `published_at` strings are normalized before persistence, and settings upserts no longer post the removed `serpapi_key` field
+  - local end-to-end verification now reaches `health -> create project -> homepage/script-lab/scene-planner` successfully against the local Postgres setup
+  - trend scoring now clamps invalid time-derived values to stop `NaN` scores from breaking nested `trend_topics.create()` during project creation
+  - full local owned-media chain now runs through `create project -> script rewrite -> image brief -> image task -> image feedback -> title pack -> publish copy`
+  - the shared owned-media preset family has now been switched to `AI快讯`, `全球股市`, and `消费时尚`, so the product baseline matches the current three-account plan without changing internal compatibility IDs
+  - the near-term operating flow, dual-engine revenue model, strategic edge, account-role split, and 30-day priorities are now written down in `docs/BUSINESS_MODEL.md`, so future product decisions can be tested against one explicit business baseline instead of scattered chat history
+  - the near-term product plan for the daily article pipeline is now written down in `docs/DAILY_RUN_PLAN.md`, including the `Daily Run / 每日运行台` proposal, the stage model (`signal -> topic -> draft -> review -> image -> package`), and the recommended next-action logic
+  - the first `Daily Run / 每日运行台` shell now exists at `/daily-run`, with a sidebar entry, three account-lane cards, inferred project-stage counts, one computed next action per recent project, and a manual signal panel that lets users search today's topics, mark them `保留 / 忽略`, and start a lane-bound owned-media draft directly from the selected signal before entering `Script Lab`
+  - Tahoe has now been dry-run against a real GPT-5.5 topic using only the platform itself: Daily Run signal intake, direct draft start, title-pack generation, publish-copy generation, storyboard/image-brief generation, render-job creation, and render-job feedback all completed against real Serper-backed sources
+  - `/api/research/hot-topics` has been fixed to return the API envelope expected by `useHotTopics`, removing the Daily Run `response.data.news` crash
+  - packaging audience review is now source-packet-grounded for breaking topics: title and publish-copy reviews receive extracted bullets from the latest script payload instead of evaluating only title strings / highlight strings
+  - image-brief review now recognizes strong prompt-embedded camera/composition direction and no longer over-penalizes asset-ready infographic / concept-image rows just because no explicit reference image exists yet
+  - AI快讯 master-draft prompting now explicitly forces each change point to land on a reader-perceivable consequence instead of stopping at generic model-upgrade phrasing
+  - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
+  - project lists now expose and display `updated_at`; Daily Run and Settings show "最后修改 / Updated", ordinary read models default-hide archived projects, and Settings remains the recovery surface for archived work
+  - the `/daily-run` runtime screenshot was checked against a clean `.next` reset and fresh dev server; `/daily-run` returned `200`, so the observed webpack `call` error is treated as stale dev/HMR cache unless it reappears after clean restart
 - **Next**:
+  - promote the current session-only signal panel into a persisted topic-triage queue, so `Daily Run` can remember which signals were kept, dismissed, drafted, or routed across reloads and machines
+  - upgrade the current inferred queue from artifact-count heuristics to a real item-level daily-run status model
   - merge image-brief readiness and recent image-job outcomes into one tighter score, so repeated real failures can directly drag down “可开工”判断
+  - close the remaining main-draft quality gap on ultra-fresh AI launches: the GPT-5.5 dry run shows the pipeline now works, but the owned-media draft review still wants more reader-visible examples before it consistently crosses the publish threshold
   - continue sweeping remaining 分镜 references in lower-traffic secondary pages (help-center, workflow-actions, marketing-ops, approval-board)
+  - refine each owned-media line's final brand/persona package, especially `消费时尚`, which still needs a tighter runway/brand-analysis voice before the preset should be treated as final
 
 > **2026-04-11 (Antigravity)**: swept remaining video-era terminology from homepage, create form, sidebar, Script Lab, and workspace-mode. All first-run-visible surfaces now say 配图说明 / 图片生产 instead of 配图脚本 / 分镜 / 视觉脚本.
 
@@ -139,6 +159,14 @@
 ### T-014 Homepage First-Run Flow Hardening ✅
 - **Completed**: 2026-04-11
 - **Result**: Fixed the homepage new-user create path so it no longer fails on hidden schema-constrained defaults. Owned-media presets no longer overwrite the current topic, the form now exposes topic + writing context earlier, and homepage/start-card language is more direct for copy-first users.
+
+### T-015 Local End-to-End Create Flow Hardening ✅
+- **Completed**: 2026-04-12
+- **Result**: Fixed the remaining local create-flow blockers: empty topics no longer auto-fill misleading project titles, topic changes reset title suggestions, research evidence dates now parse relative Chinese/English strings safely before persistence, settings upsert no longer sends the removed `serpapi_key` field, and trend scoring now sanitizes invalid time-derived values so `trend_topics.create()` no longer fails with a hidden `NaN` score. Local validation now reaches `GET /api/health -> POST /api/projects -> POST /scripts/rewrite -> POST /storyboards/generate -> POST /render-jobs -> PATCH /render-jobs/[jobId] -> POST /generate-output`, with the project pages returning `200`.
+
+### T-016 GPT5.5 Final Package Cleanup and Daily Run Bug Sweep ✅
+- **Completed**: 2026-04-24
+- **Result**: Fixed the Tahoe lint blockers, excluded unrelated analysis/econometrics folders from product lint, exposed `updated_at` in project read models, hid archived projects by default, added visible last-modified timestamps to Daily Run and Settings, merged the best GPT5.5 draft into final project `cmocc5cfq0034s0v59k0ot713`, archived duplicate dry-run projects, and documented the full GPT5.5 article production process in `docs/GPT55_ARTICLE_RUNBOOK.md`.
 
 ### T-007 UI/UX Enhancement (Phase 1–3) ✅
 - **Completed**: 2026-03-16

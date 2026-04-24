@@ -1,15 +1,15 @@
 # Project State
 
-> Last updated: 2026-04-11 by Codex
+> Last updated: 2026-04-24 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
 
 Build **Tahoe** — a shared AI content-production base that currently serves:
 - **Owned media matrix**: Toutiao-first article and image-first publishing across three initial directions:
-  - AI增长官
-  - 金钱不眠
-  - 东方元气
+  - AI快讯
+  - 全球股市
+  - 消费时尚
 - **Commercial services**: client-facing copywriting, ad content, and content-production support
 
 The platform aggregates trend and research signals, then routes users toward the smallest set of actions needed to produce a usable article/image package or a client-facing deliverable.
@@ -48,6 +48,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 |--------|--------|-------|
 | Dashboard (`/`) | ✅ Working | Simplified project creation and one primary next action |
 | Today Workbench (`/today`) | ✅ Working | Hot topics search with real Serper news data |
+| Daily Run (`/daily-run`) | ✅ Working | Operational queue shell with manual signal intake, direct draft start, and lane-aware project handoff |
 | Trend Explorer (`/trend-explorer`) | ✅ Working | Trend research with Serper integration |
 | Script Lab (`/script-lab`) | ✅ Working | Master-draft / article generation |
 | Scene Planner (`/scene-planner`) | ✅ Working | Visual-brief planning, still carrying storyboard-compatible internals |
@@ -68,7 +69,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - Project creation is now intent-first: users select `contentLine + outputType`, while `workspaceMode` is derived automatically.
 - Default project creation is now minimal-first: `topic` is the only required content input, `title` can be left blank and will fall back to the topic, and advanced controls stay collapsed by default.
 - Dashboard and Settings now share the same project-creation component/submit path, so new create-flow changes should be implemented once and reused instead of evolving two parallel forms.
-- The shared project-creation form now also exposes three quick owned-media presets (`AI增长官`, `金钱不眠`, `东方元气`) that prefill the brief context without introducing a separate create flow. The same preset family now also seeds Brand Profiles and Brief Studio so users can carry one editorial direction through project shell, brand constraints, and creative brief setup.
+- The shared project-creation form now also exposes three quick owned-media presets (`AI快讯`, `全球股市`, `消费时尚`) that prefill the brief context without introducing a separate create flow. The same preset family now also seeds Brand Profiles and Brief Studio so users can carry one editorial direction through project shell, brand constraints, and creative brief setup.
 - Scene Planner and Render Lab are now described to users as `配图说明 / 图片生产` surfaces. The current backend still stores these flows as storyboard/render-compatible internals, but the UI should teach image-first work unless a future schema migration explicitly changes that boundary.
 - Scene Planner and Render Lab now also expose a lightweight image-brief review seam. Tahoe uses the existing row data (`shotGoal`, `rewritten`, `visualPrompt`, references, risk flags, asset readiness, composition hints) to tell users whether a row is ready for the first image pass or still needs revision.
 - Render jobs can now also store structured result feedback inside `output_json.feedback`, so users can mark a run as `保留这一版 / 继续重试 / 先改 brief` and capture the main failure tags directly on the image task record.
@@ -76,6 +77,12 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - The homepage/shared create flow has now been hardened for first-run use: owned-media presets no longer overwrite the current topic, the form brings `project introduction` + `core idea` up into the main owned-media path, and shared default payloads no longer post schema-invalid hidden values during project creation.
 - The no-project homepage now leads with a three-step quick-start strip and puts the create form ahead of strategy detail, so first-time users see the immediate action path before the broader editorial-system explanation.
 - The shared create form is also being compressed toward a true first-run shell: headline copy is shorter and the “what improves the first draft” guidance now reads as a compact three-point list instead of another card wall.
+- The shared create form no longer auto-generates a project title when `topic` is blank. Auto-title suggestions reset cleanly when the topic changes, so the form does not signal a fake “ready” state before the user has entered the current piece idea.
+- Research/news project creation now normalizes `published_at` values before persistence. Relative Chinese/English strings such as `3 天前`, `1 个月前`, and `2 days ago`, plus absolute Chinese dates like `2026年1月5日`, are converted into valid timestamps instead of crashing `trendEvidence.createMany()`.
+- `AppSettingsService` no longer tries to persist a removed `serpapi_key` field during settings upsert. The current settings payload is aligned with the Prisma schema (`serper_api_key` only), so startup/settings reads do not fail on a stale field name.
+- Trend scoring now sanitizes invalid time-derived values at the formula layer. If upstream content carries an odd timestamp, Tahoe no longer emits `NaN` velocity/total scores that later break `trend_topics.create()` with a misleading “momentum_score is missing” error.
+- Local end-to-end verification on 2026-04-12 reached a healthy baseline: `/api/health` returned `database: ok`, project creation returned `201`, and the created project rendered successfully on `/`, `/script-lab`, and `/scene-planner`.
+- A fuller local chain has also been exercised on 2026-04-12: `create project -> script rewrite -> image-brief generation -> image job create -> image job feedback update -> title pack generate -> publish-copy generate`, and all corresponding project pages returned `200`.
 - `sourceScript` is optional during project creation; empty input creates a project shell without an initial user script version.
 - Storyboard generation is now also intent-first: if a project has no ready script scenes, Tahoe will derive them from `raw_script_text` or synthesize storyboard seed scenes from topic + domain context before generating storyboard frames.
 - Storyboard-first scenes are automatically pushed through scene classification and asset-dependency analysis, so Scene Planner and Render Lab get production metadata without requiring a separate manual prep pass.
@@ -97,6 +104,16 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
   - stronger review-loop / agentic orchestration over time
   - stronger multimodal brand memory / retrieval over time
 - Near-term editorial direction and business focus are now documented separately in `docs/CONTENT_MATRIX_STRATEGY.md`.
+- The broader operating flow, revenue model, account-role split, and 30-day priorities are now documented in `docs/BUSINESS_MODEL.md`. Use that file when product decisions require a business-model answer instead of a UI-only answer.
+- The near-term execution plan for the daily article pipeline is now documented in `docs/DAILY_RUN_PLAN.md`. Use that file when the question is how Tahoe should run the day-to-day loop across signal intake, topic triage, draft review, image production, and publish packaging.
+- A first `Daily Run / 每日运行台` shell now exists as a read-model orchestration surface. It adds a dedicated sidebar entry, shows the three account lanes, groups recent projects by a lightweight inferred production stage, computes one next action per project, and now also includes a manual signal panel that reuses the Today hot-topics search without violating the "no auto-search on mount" rule. Topic cards can now be marked `保留 / 忽略` in browser session state and can start a lane-bound owned-media draft directly by calling the existing `generate-from-news` flow, patching the new project's lane metadata, and sending the user straight into `Script Lab`.
+- A real GPT-5.5 dry run has now been executed through Tahoe itself: real Serper-backed signal intake, direct draft start from Daily Run/source packet, title-pack + publish-copy generation, image-brief generation, image-job creation, and image feedback recording.
+- The GPT-5.5 dry run has now been cleaned into one final inspection project: `cmocc5cfq0034s0v59k0ot713`. The best draft was merged back into that full-chain project as the latest script version, duplicate dry-run projects were archived instead of deleted, and the production notes are documented in `docs/GPT55_ARTICLE_RUNBOOK.md`.
+- Project read models now expose `updated_at`; ordinary project lists default-hide archived projects, while Settings still includes archived records for recovery. Daily Run and Settings both show a visible "最后修改 / Updated" timestamp so stale test projects are easier to spot.
+- `/api/research/hot-topics` now returns the `ok(...)` envelope expected by `useHotTopics`, so Daily Run search no longer crashes on `response.data.news`.
+- Packaging audience review now receives extracted source-packet bullets from the latest script payload instead of judging only title strings or highlight strings. This is important for just-published topics such as GPT-5.5.
+- Image-brief review is now more tolerant of editorial infographic / concept-image rows when the prompt itself already carries strong camera/composition direction and the row is asset-ready, even if no explicit reference image has been attached yet.
+- AI快讯 main-draft prompting has been tightened so each change point must land on a user-perceivable consequence instead of stopping at generic industry-summary phrasing.
 - Homepage and project-intent cards are now intentionally shorter. Use cards to signal direction, not to explain the full workflow inside every card body.
 - Brief Studio platform values are now normalized to the backend schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`). Do not reintroduce ad-hoc UI-only values such as `XIAOHONGSHU` or `BRAND_PAGE` into brief payloads unless the schema is explicitly expanded first.
 - These are **future roadmap items**, not the current sprint scope. Current work should stay focused on content quality, prompt quality, artifact-first UX, and clearer user flow.
@@ -104,6 +121,10 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 ## Known Issues
 
 1. CI/CD runs sometimes fail if server `node_modules` gets corrupted — manual `npm ci` fixes it
+2. Some local environments may still carry stale `app_settings` records with mock/news provider values from earlier phases. This is a persisted local-state issue, not a current code crash, but it can make first-run verification look “mock-first” unless the settings are updated.
+3. The local quality-first model route can still inherit older persisted provider/model settings from `app_settings`, so end-to-end verification may run on mixed current/legacy model choices unless the settings record is normalized.
+4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end, but the main-draft audience panel is still stricter than the packaging panel on ultra-fresh launches. The remaining gap is draft concreteness, not pipeline breakage.
+5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
 
 ## Constraints — DO NOT VIOLATE
 

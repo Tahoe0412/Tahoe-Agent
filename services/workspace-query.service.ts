@@ -61,15 +61,17 @@ export class WorkspaceQueryService {
     });
   }
 
-  async listRecentProjects(limit = 12) {
+  async listRecentProjects(limit = 12, options: { includeArchived?: boolean } = {}) {
     const projects = await prisma.project.findMany({
+      where: options.includeArchived ? undefined : { status: { not: "ARCHIVED" } },
       take: Math.max(limit * 4, 36),
-      orderBy: { created_at: "desc" },
+      orderBy: { updated_at: "desc" },
       select: {
         id: true,
         title: true,
         topic_query: true,
         created_at: true,
+        updated_at: true,
         status: true,
         metadata: true,
       },
@@ -91,7 +93,7 @@ export class WorkspaceQueryService {
           return bOpened - aOpened;
         }
 
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       })
       .slice(0, limit)
       .map((project) => ({
@@ -99,15 +101,17 @@ export class WorkspaceQueryService {
         title: project.title,
         topic_query: project.topic_query,
         created_at: project.created_at,
+        updated_at: project.updated_at,
         status: project.status,
         is_pinned: ((project.metadata as Record<string, unknown> | null)?.is_pinned as boolean | undefined) ?? false,
       }));
   }
 
-  async listProjects(limit = 24) {
+  async listProjects(limit = 24, options: { includeArchived?: boolean } = {}) {
     const projects = await prisma.project.findMany({
+      where: options.includeArchived ? undefined : { status: { not: "ARCHIVED" } },
       take: limit,
-      orderBy: { created_at: "desc" },
+      orderBy: { updated_at: "desc" },
       include: {
         trend_topics: {
           select: { id: true },
@@ -115,7 +119,13 @@ export class WorkspaceQueryService {
         creative_briefs: {
           select: { id: true },
         },
+        strategy_tasks: {
+          select: { id: true },
+        },
         storyboards: {
+          select: { id: true },
+        },
+        render_jobs: {
           select: { id: true },
         },
         scripts: {
@@ -139,6 +149,7 @@ export class WorkspaceQueryService {
         topic_query: project.topic_query,
         status: project.status,
         created_at: project.created_at,
+        updated_at: project.updated_at,
         workspace_mode: intent.workspaceMode,
         content_line: intent.contentLine,
         output_type: intent.outputType,
@@ -149,7 +160,10 @@ export class WorkspaceQueryService {
         industry_template_id: project.industry_template_id,
         trend_count: project.trend_topics.length,
         brief_count: project.creative_briefs.length,
+        strategy_task_count: project.strategy_tasks.length,
         storyboard_count: project.storyboards.length,
+        render_job_count: project.render_jobs.length,
+        script_count: project.scripts.length,
         scene_count: project.scripts.flatMap((script) => script.script_scenes).length,
       };
     });

@@ -153,9 +153,9 @@
   - the owned-media line should be framed as article/image-first
   - video generation remains available in the system but is temporarily de-prioritized
   - the first three editorial directions are:
-    - AI增长官
-    - 金钱不眠
-    - 东方元气
+    - AI快讯
+    - 全球股市
+    - 消费时尚
 - **Rule**:
   - do not begin by renaming database enums or internal compatibility types
   - treat `MARS_CITIZEN` as the current compatibility bucket for the owned-media matrix until a later explicit schema migration is justified
@@ -195,7 +195,7 @@
 
 ## D-022 Editorial Direction Presets Should Be Shared Across Project Shell, Brand Profile, and Brief
 - **Date**: 2026-04-11
-- **Reason**: The three owned-media directions (`AI增长官`, `金钱不眠`, `东方元气`) are now part of the operating model, not just copy ideas for one page. Keeping them only inside the create-project form would force users to restate the same baseline when creating brand profiles and briefs, while also making quality drift more likely.
+- **Reason**: The three owned-media directions (`AI快讯`, `全球股市`, `消费时尚`) are now part of the operating model, not just copy ideas for one page. Keeping them only inside the create-project form would force users to restate the same baseline when creating brand profiles and briefs, while also making quality drift more likely.
 - **Impact**:
   - a shared preset source now seeds project creation, Brand Profiles, and Brief Studio
   - Brand Profile preset application can also create the first default content pillars automatically
@@ -278,3 +278,127 @@
   - do not let “direction preset” auto-fill the current topic field for owned-media flows
   - treat `project introduction` and `core idea` as first-run quality inputs for copy-first users, not as purely advanced controls
 - **Files**: `components/dashboard/project-form.tsx`, `lib/workspace-mode.ts`, `services/research-orchestrator.service.ts`, `lib/client-api.ts`, `components/dashboard/project-intent-picker.tsx`, `lib/content-line.ts`, `app/page.tsx`
+
+## D-028 First-Run Persistence Paths Must Normalize User-Invisible Derived Values Before Database Writes
+- **Date**: 2026-04-12
+- **Reason**: Local end-to-end verification still exposed system-owned failures that a copy-first user could neither predict nor correct. The create path auto-filled a title before a topic existed, research evidence attempted to insert raw relative date strings such as `3 天前`, and settings upsert still posted a removed `serpapi_key` field. These are derived/default values owned by the system, so they must be normalized before persistence instead of surfacing as user-facing failures.
+- **Impact**:
+  - blank topics no longer generate auto-title suggestions
+  - changing the topic resets title-suggestion state so each new piece starts from the first suggestion candidate
+  - research/news evidence now parses relative Chinese/English timestamps and Chinese absolute dates into valid timestamps before `trendEvidence` inserts
+  - settings upsert now matches the Prisma schema field set and only persists `serper_api_key`
+- **Rule**:
+  - do not auto-fill a “ready-looking” project title when the current topic is still blank
+  - never send raw relative timestamp strings into `new Date(...)` for database writes; normalize them first
+  - when schema fields are renamed or removed, update env-default mappers in the same change so settings upsert cannot drift silently
+- **Files**: `components/dashboard/project-form.tsx`, `lib/project-brief.ts`, `lib/published-at.ts`, `services/research-orchestrator.service.ts`, `services/research-job.service.ts`, `services/app-settings.service.ts`
+
+## D-029 Trend Scoring Must Never Emit NaN Into Persistence Paths
+- **Date**: 2026-04-12
+- **Reason**: During full-chain verification, project creation still failed even after timestamp parsing was fixed because some upstream content carried odd date values that pushed the trend-scoring velocity calculation into `NaN`. That `NaN` later surfaced at the Prisma layer as a misleading nested-create validation error (`momentum_score is missing`). The scoring layer must sanitize invalid numeric inputs before any persistence step.
+- **Impact**:
+  - trend-scoring now parses content timestamps through the shared `parsePublishedAt(...)` helper instead of raw `new Date(...)`
+  - score clamping now converts any non-finite value into `0` before building the final score breakdown
+  - project creation can persist trend topics even when upstream search/content timestamps are noisy or partially malformed
+- **Rule**:
+  - do not allow `NaN`, `Infinity`, or other non-finite score values to leave the scoring layer
+  - when a score depends on external timestamps, normalize the timestamp first and clamp the derived score second
+  - prefer fixing this class of issue at the formula layer, not by adding one-off guards at each database write
+- **Files**: `services/trend-scoring/formulas.ts`
+
+## D-030 Tahoe Should Operate On A Dual-Engine Model: Owned Media For Proof And Reach, Services For Cash Flow
+- **Date**: 2026-04-23
+- **Reason**: Tahoe's current value does not come from being a generic AI tool. Its near-term advantage is the ability to turn one topic into a judged, publishable article-and-image package, then reuse that same workflow for paid delivery. That means the business should be designed around two linked engines: owned-media output that proves the method, and service delivery that monetizes the method sooner.
+- **Impact**:
+  - owned-media work should be treated as both a publishing business and a proof layer for future sales
+  - service delivery should stay in scope as a first-class revenue path, not a side effect
+  - product prioritization should favor the article-package loop (`topic -> draft -> review -> image -> packaging`) over broader but less defensible feature expansion
+  - the three owned-media accounts should have distinct editorial jobs:
+    - `AI快讯` filters AI change
+    - `全球股市` interprets market variables
+    - `消费时尚` judges brand / runway / consumer signals
+- **Rule**:
+  - do not optimize Tahoe primarily as a wide self-serve tool before the article-and-image method is stable
+  - judge roadmap items by whether they strengthen publishable quality, account differentiation, or service reuse
+  - when strategic questions come up, check `docs/BUSINESS_MODEL.md` before expanding scope
+- **Files**: `docs/BUSINESS_MODEL.md`, `docs/CONTENT_MATRIX_STRATEGY.md`, `docs/PROJECT_STATE.md`, `docs/TASKS.md`
+
+## D-031 The Near-Term Operational Center Should Be A Daily Run Surface, Not More Isolated Workbenches
+- **Date**: 2026-04-23
+- **Reason**: Tahoe already has most of the necessary production pieces — signal intake, project creation, master-draft generation, review seams, image-brief review, image jobs, and publish packaging — but they still require too much manual stitching. The immediate bottleneck is not a missing model or another new workbench. It is the lack of one operational surface that makes daily production visible and actionable across the three owned-media accounts.
+- **Impact**:
+  - the next orchestration surface should be `Daily Run / 每日运行台`
+  - that surface should manage one shared stage model:
+    - `signal intake`
+    - `topic triage`
+    - `draft`
+    - `review`
+    - `image`
+    - `publish package`
+  - the daily run should compute one best next action per item instead of forcing users to manually inspect multiple pages
+  - existing pages (`Today`, `Script Lab`, `Scene Planner`, `Render Lab`) remain, but should increasingly behave as specialized deep-work views behind the daily operational queue
+- **Rule**:
+  - do not add more disconnected workflow surfaces before the daily run layer exists
+  - prioritize status clarity and next-action clarity over broader dashboard expansion
+  - treat the daily article package loop as the main production unit, not individual isolated artifacts
+- **Files**: `docs/DAILY_RUN_PLAN.md`, `docs/PROJECT_STATE.md`, `docs/TASKS.md`
+
+## D-032 The First Daily Run Version Should Reuse Existing Project Artifacts Before Introducing A New Queue Table
+- **Date**: 2026-04-23
+- **Reason**: Tahoe already has enough artifact signals to make a first daily operational surface useful: recent projects, script presence, image-brief presence, image-job presence, and packaging-task presence. Adding a new workflow table before proving the page structure would create schema churn without confirming the right operating model.
+- **Impact**:
+  - the first `/daily-run` version reuses `listProjects()` read data
+  - project stage is inferred from current artifacts:
+    - no script -> `待起稿`
+    - script but no image brief -> `待审核`
+    - image brief but no image job -> `待配图`
+    - image job but no package task -> `待包装`
+    - package task exists -> `可发布`
+  - the page computes one next action and routes users back into the existing specialized workbenches
+- **Rule**:
+  - prove the daily-run interaction shape with existing read models first
+  - only add a dedicated `daily_run_item` persistence model after signal intake and account-lane assignment are ready to be promoted into first-class workflow state
+  - keep `Daily Run` as an orchestration layer, not a duplicate editor
+- **Files**: `app/daily-run/page.tsx`, `components/dashboard/sidebar.tsx`, `lib/locale-copy.ts`, `services/workspace-query.service.ts`
+
+## D-033 Daily Run Signal Intake Must Stay Manual Until Triage Persistence Exists
+- **Date**: 2026-04-23
+- **Reason**: Tahoe already has a working Today hot-topics search, but the product explicitly avoids automatic search on mount to control API usage and to keep the user's first action deliberate. Daily Run still needs a way to collect today's signals, so the safest bridge is to reuse the existing hot-topics search manually inside Daily Run before introducing a heavier persisted triage queue.
+- **Impact**:
+  - `Daily Run` now includes a manual signal panel powered by the existing `useHotTopics()` hook
+  - users can search once, inspect recommended topics, mark them `保留 / 忽略` in browser session state, and route them into one of the three owned-media lanes
+  - routing now starts a lane-bound owned-media draft directly by reusing the existing `generate-from-news` flow, patching the new project's lane metadata, and opening `Script Lab`, instead of bouncing through the homepage create form
+- **Rule**:
+  - do not reintroduce auto-search on page mount for `Daily Run`
+  - reuse existing signal infrastructure first; persistence comes later
+  - until queue persistence exists, lightweight triage state may live in browser session storage, but should not be treated as durable workflow state
+- **Files**: `components/daily-run/daily-run-signal-panel.tsx`, `app/daily-run/page.tsx`, `app/page.tsx`, `components/dashboard/project-form.tsx`
+
+## D-034 Breaking-News Review Must Be Grounded On Tahoe's Own Source Packet
+- **Date**: 2026-04-24
+- **Reason**: During the GPT-5.5 dry run, Tahoe could collect real news, generate a draft, generate packaging, and create image jobs, but the review layer still partially behaved as if it were fact-checking against stale model memory instead of the platform's own freshly collected source packet. That made packaging reviews and draft reviews overly punitive on just-published topics and broke the intended "collect -> write -> review" loop.
+- **Impact**:
+  - audience-review prompts now explicitly treat the provided `proofPoints` as the editorial source packet and stop demanding URLs, benchmark names, or exact percentages that were never present in the packet
+  - `VIDEO_TITLE` and `PUBLISH_COPY` reviews now receive extracted source bullets from the latest script payload instead of only title options / highlight strings
+  - AI快讯 / Mars main-draft prompting now pushes each change point toward a reader-perceivable consequence instead of generic industry-summary phrasing
+  - image-brief review now accepts prompt-embedded camera/composition direction for infographic or concept-image rows instead of over-penalizing all zero-reference rows equally
+- **Rule**:
+  - for just-published topics, review should judge fidelity to Tahoe's own collected source packet, not external-memory recall
+  - do not require unsupported percentages or benchmark names if the packet only provides qualitative changes; only penalize concrete specifics when the draft invents them
+  - packaging review must see the same source packet as the main draft, otherwise title/publish review will drift from article reality
+  - image-brief readiness should distinguish between "no references because the row is weak" and "no references because the row is a self-contained infographic/concept prompt"
+- **Files**: `app/api/research/hot-topics/route.ts`, `lib/copy-review-panel.ts`, `lib/mars-citizen-prompt.ts`, `lib/image-brief-review.ts`, `services/project-output-generator.service.ts`, `lib/output-artifact-prompt.ts`
+
+## D-035 Trial Production Projects Should Be Archived, Not Hard Deleted
+- **Date**: 2026-04-24
+- **Reason**: Real production runs can create several project shells while testing source quality, prompt quality, and packaging quality. Hard-deleting those projects would remove useful evidence, generated scripts, image briefs, and render-job feedback. But leaving every trial visible makes Daily Run and Settings noisy.
+- **Impact**:
+  - duplicate GPT5.5 dry-run projects are marked `ARCHIVED` and tagged with cleanup metadata instead of being deleted
+  - ordinary project read models hide archived projects by default
+  - Settings remains the recovery surface and can still include archived projects
+  - project lists now show `updated_at` so recent test noise is easier to identify
+- **Rule**:
+  - do not hard-delete production-trial projects unless the user explicitly asks for permanent deletion
+  - prefer one final inspection project per article package, with duplicate attempts archived and linked back through metadata
+  - expose last-modified time wherever users choose what to open next
+- **Files**: `services/workspace-query.service.ts`, `app/api/projects/route.ts`, `app/daily-run/page.tsx`, `components/settings/project-manager.tsx`, `docs/GPT55_ARTICLE_RUNBOOK.md`

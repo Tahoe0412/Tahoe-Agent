@@ -1,7 +1,9 @@
 # Content Matrix Strategy
 
-> Last updated: 2026-04-10 by Codex
+> Last updated: 2026-04-15 by Codex
 > This document defines the near-term business focus for Tahoe.
+
+For the broader operating flow, revenue model, account-role split, and 30-day priorities, see `docs/BUSINESS_MODEL.md`.
 
 ## Near-Term Goal
 
@@ -47,33 +49,33 @@ Secondary channels can follow later through adaptation and repackaging.
 
 Tahoe should treat the following as the first three owned-media directions:
 
-### 1. AI增长官
+### 1. AI快讯
 
-- persona: 科技方向、技术男人设
+- persona: 科技资讯 / AI 行业观察
 - focus:
-  - 大模型
-  - Agent
-  - AI 产业创新
-  - AI 商业应用
+  - 大模型发布
+  - Agent 动态
+  - AI 产品更新
+  - 行业快讯
 
-### 2. 金钱不眠
+### 2. 全球股市
 
-- persona: 财富方向、海外金融家人设
+- persona: 全球市场观察 / 财经快评
 - focus:
-  - 金融
-  - 股市
-  - 资本
-  - 财经
-  - 大佬动态
+  - 美股
+  - 港股
+  - A股
+  - 宏观资金
+  - 财报与公司动态
 
-### 3. 东方元气
+### 3. 消费时尚
 
-- persona: 食养生活 / 疗愈 / 心理健康
+- persona: 品牌与生活方式观察
 - focus:
-  - 大健康
-  - 二十四节气
-  - 疗愈游学
-  - 心理指导
+  - 品牌动态
+  - 美妆服饰
+  - 消费趋势
+  - 审美与购买判断
 
 ## Product Implications
 

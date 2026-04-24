@@ -28,7 +28,7 @@ export function buildVideoTitlePrompt(params: {
       params.scriptText,
       "",
       zh
-        ? "请生成 5 条内容标题，要求：有传播钩子、有区分度、避免空泛总结句，其中至少 2 条带反差或问题感。"
+        ? "请生成 5 条内容标题，要求：有传播钩子、有区分度、避免空泛总结句，其中至少 2 条带反差或问题感，至少 2 条直接点出一个用户可感知的具体变化（如更省钱、更快、更会写代码、已向付费用户开放）。不要把标题写成‘三点变化 / 最值得关注 / 全面升级’这类泛标题。"
         : "Generate 5 candidate content titles. They should have a hook, feel distinctive, and avoid generic summary wording. At least 2 should use contrast or a question angle.",
     ].join("\n"),
   };

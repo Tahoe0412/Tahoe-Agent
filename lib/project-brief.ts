@@ -83,6 +83,11 @@ export function suggestProjectTitles(params: {
   workspaceMode?: WorkspaceMode;
   date?: Date;
 }): string[] {
+  const rawTopic = compact(params.topicQuery);
+  if (!rawTopic) {
+    return [];
+  }
+
   const topic = normalizeProjectTopic(params.topicQuery ?? "", params.workspaceMode);
   const date = formatZhDate(params.date);
   const isShortVideo = params.workspaceMode === "SHORT_VIDEO";

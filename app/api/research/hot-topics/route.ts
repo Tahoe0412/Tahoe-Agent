@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { ok, fail } from "@/lib/api-response";
 import { getPlatformConnector } from "@/services/platform-connectors";
 import { TrendScoringEngine } from "@/services/trend-scoring";
 import { searchLatestNews, searchCnIndexedEvidence } from "@/services/news-search";
@@ -35,10 +35,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as HotTopicsRequest;
 
     if (!body.query || typeof body.query !== "string" || body.query.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Missing or empty 'query' field." },
-        { status: 400 }
-      );
+      return fail("Missing or empty 'query' field.", 400);
     }
 
     const query = body.query.trim();
@@ -113,13 +110,9 @@ export async function POST(request: Request) {
       fetched_at: new Date().toISOString(),
     };
 
-    return NextResponse.json(response);
+    return ok(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
+    return fail(message, 500);
   }
 }
-

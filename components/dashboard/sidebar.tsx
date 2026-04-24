@@ -18,6 +18,7 @@ import {
   SwatchBook,
   Waypoints,
   GalleryVerticalEnd,
+  Rows3,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
 import type { WorkspaceMode } from "@/lib/workspace-mode";
@@ -101,6 +102,7 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
   const exploreItems: NavItem[] = [
     { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
     { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
+    { href: "/daily-run" as Route, label: text.nav.dailyRun, hint: text.nav.dailyRunHint || "今日选题、状态和下一步", icon: Rows3, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
     { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
     { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
   ];

@@ -56,6 +56,33 @@ const adCreativeSchema = z.object({
 
 type ProjectWithArtifacts = NonNullable<Awaited<ReturnType<ProjectOutputGeneratorService["loadProjectForGeneration"]>>>;
 
+function extractSourcePacketProofPoints(project: ProjectWithArtifacts) {
+  const latestScript = project.scripts[0];
+  const rawPayload = (latestScript?.raw_payload as Record<string, unknown> | null) ?? {};
+  const newsItems = Array.isArray(rawPayload.news_items) ? rawPayload.news_items : [];
+
+  return newsItems
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const source = item as Record<string, unknown>;
+      const sourceLabel = typeof source.source === "string" ? source.source.trim() : "";
+      const title = typeof source.title === "string" ? source.title.trim() : "";
+      const publishedAt = typeof source.published_at === "string" ? source.published_at.trim() : "";
+      const snippet = typeof source.snippet === "string" ? source.snippet.trim() : "";
+
+      const line = [sourceLabel && `【${sourceLabel}】`, title, publishedAt && `时间：${publishedAt}`, snippet && `摘要：${snippet}`]
+        .filter(Boolean)
+        .join(" ");
+
+      return line || null;
+    })
+    .filter((item): item is string => Boolean(item))
+    .slice(0, 5);
+}
+
 async function buildPackagingAudiencePanelReview(params: {
   settings: Awaited<ReturnType<AppSettingsService["getEffectiveSettings"]>>;
   topic: string;
@@ -167,6 +194,7 @@ export class ProjectOutputGeneratorService {
     const guidance = getOutputKnowledgePack("VIDEO_TITLE");
     const styleReferenceSample = (((project.metadata as Record<string, unknown> | null)?.style_reference_sample as string | undefined) ?? "").trim();
     const styleReferenceInsight = analyzeStyleReferenceSample(styleReferenceSample);
+    const sourcePacketProofPoints = extractSourcePacketProofPoints(project);
     const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
       styleReferenceInsight,
       target: "PACKAGING",
@@ -247,7 +275,7 @@ export class ProjectOutputGeneratorService {
               output.recommended_title,
               ...output.title_options.slice(0, 5),
             ].join("\n"),
-            proofPoints: output.title_options.slice(0, 3),
+            proofPoints: [...sourcePacketProofPoints, ...output.title_options.slice(0, 3)].slice(0, 6),
             callToAction: null,
             styleReferenceInsight,
           });
@@ -296,6 +324,7 @@ export class ProjectOutputGeneratorService {
     const guidance = getOutputKnowledgePack("PUBLISH_COPY");
     const styleReferenceSample = (((project.metadata as Record<string, unknown> | null)?.style_reference_sample as string | undefined) ?? "").trim();
     const styleReferenceInsight = analyzeStyleReferenceSample(styleReferenceSample);
+    const sourcePacketProofPoints = extractSourcePacketProofPoints(project);
     const mediaCalibrationNotes = getChineseMediaCalibrationNotes({
       styleReferenceInsight,
       target: "PACKAGING",
@@ -388,7 +417,7 @@ export class ProjectOutputGeneratorService {
               output.video_description,
               ...output.highlights.map((item) => `- ${item}`),
             ].join("\n"),
-            proofPoints: output.highlights,
+            proofPoints: [...sourcePacketProofPoints, ...output.highlights].slice(0, 8),
             callToAction: output.publish_cta,
             styleReferenceInsight,
           });

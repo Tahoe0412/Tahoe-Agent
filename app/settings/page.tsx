@@ -20,7 +20,7 @@ export default async function SettingsPage() {
   const text = copy[locale];
   const settings = await appSettingsService.getEffectiveSettings();
   const [projectsResult, brandProfilesResult, industryTemplatesResult] = await Promise.allSettled([
-    workspaceQueryService.listProjects(),
+    workspaceQueryService.listProjects(24, { includeArchived: true }),
     workspaceQueryService.listBrandProfiles(),
     workspaceQueryService.listIndustryTemplates(),
   ]);

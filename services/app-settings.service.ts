@@ -53,7 +53,6 @@ function envApiKeyDefaults() {
     google_search_api_key: trimOrNull(process.env.GOOGLE_SEARCH_API_KEY),
     google_search_cx: trimOrNull(process.env.GOOGLE_SEARCH_CX),
     serper_api_key: trimOrNull(process.env.SERPER_API_KEY),
-    serpapi_key: trimOrNull(process.env.SERPAPI_KEY),
   };
 }
 

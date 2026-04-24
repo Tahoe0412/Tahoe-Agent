@@ -15,6 +15,7 @@ type ProjectSummary = {
   topic_query: string;
   status: "DRAFT" | "RUNNING" | "COMPLETED" | "FAILED" | "ARCHIVED";
   created_at: Date | string;
+  updated_at: Date | string;
   workspace_mode?: WorkspaceMode;
   project_tags?: string[];
   is_pinned?: boolean;
@@ -35,6 +36,15 @@ type SimpleIndustryTemplate = {
   industry_name: string;
 };
 
+function formatProjectDate(value: Date | string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-CN", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function ProjectManager({
   initialProjects,
   brandProfiles = [],
@@ -53,7 +63,7 @@ export function ProjectManager({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ProjectSummary["status"]>("ALL");
   const [modeFilter, setModeFilter] = useState<"ALL" | WorkspaceMode>("ALL");
-  const [sortBy, setSortBy] = useState<"recent" | "newest" | "title" | "trends" | "scenes">("recent");
+  const [sortBy, setSortBy] = useState<"recent" | "updated" | "newest" | "title" | "trends" | "scenes">("recent");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBrandId, setBulkBrandId] = useState("");
   const [bulkIndustryId, setBulkIndustryId] = useState("");
@@ -113,12 +123,14 @@ export function ProjectManager({
         running: "In progress",
         failed: "Failed",
         archivedStatus: "Archived",
+        lastModified: "Updated",
         allModes: "All modes",
         shortVideo: "Owned Media",
         copywriting: "Copywriting",
         promotion: "Promotion",
         sortRecent: "Pinned and recently opened",
         sortNewest: "Newest first",
+        sortUpdated: "Recently modified",
         sortTitle: "Title",
         sortTrends: "Trend count",
         sortScenes: "Scene count",
@@ -193,12 +205,14 @@ export function ProjectManager({
         running: "进行中",
         failed: "失败",
         archivedStatus: "已归档",
+        lastModified: "最后修改",
         allModes: "全部模式",
         shortVideo: "内容矩阵",
         copywriting: "文案写作",
         promotion: "宣传推广",
         sortRecent: "按置顶与最近打开",
         sortNewest: "按最近创建",
+        sortUpdated: "按最近修改",
         sortTitle: "按名称",
         sortTrends: "按趋势数",
         sortScenes: "按场景数",
@@ -243,16 +257,18 @@ export function ProjectManager({
         const aOpened = a.last_opened_at ? new Date(a.last_opened_at).getTime() : 0;
         const bOpened = b.last_opened_at ? new Date(b.last_opened_at).getTime() : 0;
         if (aOpened !== bOpened) return bOpened - aOpened;
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       }
       if (sortBy === "title") return a.title.localeCompare(b.title, locale === "en" ? "en-US" : "zh-Hans-CN");
       if (sortBy === "trends") return b.trend_count - a.trend_count;
       if (sortBy === "scenes") return b.scene_count - a.scene_count;
+      if (sortBy === "updated") return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [locale, modeFilter, projects, query, sortBy, statusFilter]);
 
   async function refreshProjects() {
-    const response = await fetch("/api/projects");
+    const response = await fetch("/api/projects?includeArchived=1");
     const payload = (await response.json()) as { success: boolean; data?: ProjectSummary[]; error?: { message?: string } };
     if (payload.success && payload.data) {
       setProjects(payload.data);
@@ -362,6 +378,16 @@ export function ProjectManager({
           {ui.refresh}
         </Button>
       </div>
+      {message ? (
+        <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--ok-text)_24%,transparent)] bg-[var(--ok-bg)] px-4 py-3 text-sm text-[var(--ok-text)]">
+          {message}
+        </div>
+      ) : null}
+      {error ? (
+        <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
+          {error}
+        </div>
+      ) : null}
 
       {/* ── Create form: collapsed by default ── */}
       <Disclosure
@@ -392,6 +418,7 @@ export function ProjectManager({
           </select>
           <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
             <option value="recent">{ui.sortRecent}</option>
+            <option value="updated">{ui.sortUpdated}</option>
             <option value="newest">{ui.sortNewest}</option>
             <option value="title">{ui.sortTitle}</option>
             <option value="trends">{ui.sortTrends}</option>
@@ -496,7 +523,7 @@ export function ProjectManager({
                 ))}
               </div>
               <div className="mt-2 text-xs text-[var(--text-3)]">
-                {project.id} · {ui.trends} {project.trend_count} · {ui.scenes} {project.scene_count}
+                {project.id} · {ui.lastModified} {formatProjectDate(project.updated_at, locale)} · {ui.trends} {project.trend_count} · {ui.scenes} {project.scene_count}
               </div>
             </div>
             <div className="flex flex-wrap gap-2">

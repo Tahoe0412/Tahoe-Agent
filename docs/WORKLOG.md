@@ -5,6 +5,203 @@
 
 ---
 
+## 2026-04-24 10:35 — Agent: Codex
+
+### Task: T-014 GPT-5.5 owned-media dry run + breaking-news review calibration
+
+**Changes**:
+- Modified `app/api/research/hot-topics/route.ts` — wrapped hot-topics success responses in the standard `ok(...)` envelope so `useHotTopics()` and `Daily Run` stop crashing on `response.data.news`.
+- Modified `lib/copy-review-panel.ts` — tightened reviewer instructions so breaking-news drafts and packaging are judged against Tahoe's own `proofPoints` / source packet instead of stale world-memory fact checks or invented missing metrics.
+- Modified `services/project-output-generator.service.ts` — title-pack and publish-copy audience reviews now receive extracted source bullets from the latest script payload, not only the generated titles/highlights.
+- Modified `lib/mars-citizen-prompt.ts` — tightened AI快讯 main-draft prompting so each change point must land on an ordinary-reader-visible consequence, not just a model-upgrade summary.
+- Modified `lib/image-brief-review.ts` — zero-reference infographic / concept-image rows now stay viable when the prompt itself already carries strong camera/composition direction and the row is asset-ready.
+- Modified `lib/output-artifact-prompt.ts` — tightened title generation to avoid generic `三点变化 / 最值得关注` style packaging and push titles toward one concrete user-perceivable change.
+
+**Reason**:
+- Tahoe could already execute the article pipeline, but the GPT-5.5 run exposed two weak seams: breaking-news reviews were not grounded enough in Tahoe's own source packet, and image-brief review over-penalized reference-free infographic prompts. Those issues made the pipeline look weaker than it actually was.
+
+**Verification**:
+- Real Tahoe source collection for GPT-5.5 succeeded after switching settings away from mock news
+- Real Tahoe-owned workflow completed against GPT-5.5:
+  - signal search
+  - direct draft start
+  - title-pack generation
+  - publish-copy generation
+  - storyboard/image-brief generation
+  - render-job creation
+  - render-job feedback writeback
+- Key run artifacts:
+  - project `cmocc5cfq0034s0v59k0ot713`
+  - script `cmocc5tij0036s0v5r5b4g6p4`
+  - title-pack candidate `cmocd06tc004qs0v5adc0hhg9`
+  - publish-copy `cmocc80ju003js0v58wk4zt9z`
+
+---
+
+## 2026-04-23 10:20 — Agent: Codex
+
+### Task: T-014 Business model and operating-flow baseline
+
+**Changes**:
+- Added `docs/BUSINESS_MODEL.md` — wrote down Tahoe's core operating flow, dual-engine revenue model, strategic edge, account-role split, and 30-day priorities.
+- Updated `docs/CONTENT_MATRIX_STRATEGY.md` — linked the new business-model baseline so editorial strategy and operating strategy no longer live only in chat history.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md` — recorded that Tahoe should be judged against the article-and-image loop plus the owned-media/service dual-engine model.
+
+**Reason**:
+- The project needed a durable answer to three recurring questions: what the end-to-end flow is, how Tahoe makes money, and what strategic edge it should build. Those answers were implicit across recent discussions but not yet written into one operational baseline.
+
+**Verification**:
+- docs-only change; build not run
+
+---
+
+## 2026-04-23 10:45 — Agent: Codex
+
+### Task: T-014 Daily Run product-plan baseline
+
+**Changes**:
+- Added `docs/DAILY_RUN_PLAN.md` — defined the near-term daily article pipeline, the proposed `Daily Run / 每日运行台`, the stage model (`signal -> topic -> draft -> review -> image -> package`), the item-status model, and the next-action logic.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md` — recorded that the next orchestration layer should be a daily operational surface instead of more disconnected workbenches.
+
+**Reason**:
+- The immediate bottleneck is not missing generation capability. It is that daily production still requires manual stitching across multiple pages. The project needed a written product baseline for how daily signal collection, triage, drafting, review, image production, and publish packaging should be tied together.
+
+**Verification**:
+- docs-only change; build not run
+
+---
+
+## 2026-04-23 11:20 — Agent: Codex
+
+### Task: T-014 Daily Run shell implementation
+
+**Changes**:
+- Added `app/daily-run/page.tsx` — created the first `Daily Run / 每日运行台` page shell with three account-lane cards, stage counters, a global work queue, and one computed next action per recent project.
+- Modified `components/dashboard/sidebar.tsx` and `lib/locale-copy.ts` — added a dedicated sidebar entry and page/navigation copy for `Daily Run`.
+- Modified `services/workspace-query.service.ts` — extended the project list read model with lightweight artifact counts (`script_count`, `render_job_count`, `strategy_task_count`) so the page can infer current production stage without a new table.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- The product already had most of the necessary workbenches, but no daily operational entry that made status and next action obvious. This first version proves the page shape before a heavier daily-run persistence model is introduced.
+
+**Verification**:
+- `npm run build` pending at this step
+
+---
+
+## 2026-04-23 11:45 — Agent: Codex
+
+### Task: T-014 Daily Run manual signal intake bridge
+
+**Changes**:
+- Added `components/daily-run/daily-run-signal-panel.tsx` — reused the existing `useHotTopics()` manual search hook inside Daily Run, showing recommended topics and fresh source material without auto-search on mount.
+- Modified `app/daily-run/page.tsx` — mounted the new signal panel above the queue so Daily Run now covers both signal intake and project status.
+- Modified `app/page.tsx` and `components/dashboard/project-form.tsx` — added support for passing an owned-media preset through the homepage create form, so a topic selected in Daily Run can open the project shell with the correct lane context already attached.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- Daily Run needed to stop being only a read-only queue. The most useful next step was to bridge today's signal search directly into lane-specific project creation, while still preserving the no-auto-search rule and avoiding a premature queue table.
+
+**Verification**:
+- `npm run build` pending at this step
+
+---
+
+## 2026-04-23 12:55 — Agent: Codex
+
+### Task: T-014 Daily Run direct draft start from signal cards
+
+**Changes**:
+- Modified `components/daily-run/daily-run-signal-panel.tsx` — lane buttons now reuse `/api/scripts/generate-from-news` to start a first draft directly from the selected signal, then patch the created project with lane-specific editorial metadata and trigger background scene splitting before opening `Script Lab`.
+- Modified `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md` — documented that Daily Run now starts a lane-bound owned-media draft directly from the topic card instead of only creating an empty project shell.
+
+**Reason**:
+- Direct project creation still left one manual step too many. The next useful increment was to make Daily Run produce an actual first draft from the selected signal, so the user lands in `Script Lab` with work already underway.
+
+**Verification**:
+- `npm run build` passed
+
+---
+
+## 2026-04-23 12:05 — Agent: Codex
+
+### Task: T-014 Daily Run direct project creation + lightweight triage state
+
+**Changes**:
+- Modified `components/daily-run/daily-run-signal-panel.tsx` — topic cards can now be marked `保留 / 忽略` in browser session storage and can create a lane-bound owned-media project directly into `Script Lab`.
+- Modified `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md` — documented that the current triage state is session-only and that Daily Run no longer needs to bounce through the homepage create form to start work.
+
+**Reason**:
+- The previous bridge still inserted unnecessary friction: after choosing a topic and lane, the user had to go back through the homepage create form. The shortest useful next step was to let Daily Run create the project directly, while still keeping triage state lightweight until a real queue model exists.
+
+**Verification**:
+- `npm run build` pending at this step
+
+---
+
+## 2026-04-15 12:25 — Agent: Codex
+
+### Task: T-014 Owned-media preset switch to the new three-account plan
+
+**Changes**:
+- Modified `lib/editorial-direction-presets.ts` — kept the existing compatibility IDs, but replaced the shared owned-media preset family with the new account plan: `AI快讯`, `全球股市`, and `消费时尚`. Updated each preset's topic, introduction, core idea, style sample, brand baseline, content pillars, and brief skeleton.
+- Modified `app/page.tsx` — replaced the homepage strategy-track labels so the three-account plan is visible on the main no-project surface in both Chinese and English.
+- Updated `docs/CONTENT_MATRIX_STRATEGY.md`, `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md` to make the new three-account plan the active documented baseline.
+
+**Reason**:
+- The owned-media plan changed from the earlier three directions to a new three-account structure. The shared preset source had to move first so project creation, Brand Profiles, Brief Studio, and homepage strategy copy all point to the same current operating model.
+
+**Verification**:
+- `npm run build` pending at this step
+
+---
+
+## 2026-04-12 11:40 — Agent: Codex
+
+### Task: T-015 Local end-to-end create-flow hardening
+
+**Changes**:
+- Modified `lib/project-brief.ts` — `suggestProjectTitles(...)` now returns no candidates when the current topic is blank, preventing the homepage create form from auto-filling a misleading project title before the user has entered the current piece idea.
+- Modified `components/dashboard/project-form.tsx` — reset `titleSuggestionIndex` whenever the topic or workspace mode changes, and clear the auto title when the topic is empty unless the title has been manually overridden.
+- Added `lib/published-at.ts` — centralized parsing for research/news timestamps, including relative Chinese/English strings (`3 天前`, `1 个月前`, `2 days ago`) and Chinese absolute dates (`2026年1月5日`).
+- Modified `services/research-orchestrator.service.ts` and `services/research-job.service.ts` — replaced raw `new Date(item.published_at)` inserts with the shared parser so `trendEvidence.createMany()` no longer crashes on relative timestamps from search/news sources.
+- Modified `services/app-settings.service.ts` — removed the stale `serpapi_key` default from settings upsert payloads so Prisma no longer throws on an unknown field.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- Local end-to-end verification still found system-owned failures in the first-run path. A copy-first user could hit a create failure caused by invisible defaults or external timestamp formats, so the persistence layer had to be normalized before another round of UX polish.
+
+**Verification**:
+- `npm run build` ✅
+- `GET /api/health` returned `database: ok` after local DB alignment
+- `POST /api/projects` returned `201`
+- created-project routes returned `200` on `/`, `/script-lab`, and `/scene-planner`
+
+---
+
+## 2026-04-12 14:59 — Agent: Codex
+
+### Task: T-015 Full owned-media chain verification + trend-score NaN fix
+
+**Changes**:
+- Modified `services/trend-scoring/formulas.ts` — replaced raw `new Date(item.published_at)` usage with `parsePublishedAt(...)` and hardened `clampScore(...)` so non-finite values collapse to `0` instead of leaking `NaN` into `momentum_score`.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- Full local chain verification still found one hidden backend bug after the earlier create-flow fixes. If upstream content carried noisy date values, `velocity_score` and `total_score` could become `NaN`, which later surfaced as a misleading Prisma nested-create error (`momentum_score is missing`) during project creation.
+
+**Verification**:
+- `POST /api/projects` ✅
+- `POST /api/projects/[id]/scripts/rewrite` ✅
+- `POST /api/projects/[id]/storyboards/generate` ✅
+- `POST /api/projects/[id]/render-jobs` ✅
+- `PATCH /api/projects/[id]/render-jobs/[jobId]` ✅
+- `POST /api/projects/[id]/generate-output` for `VIDEO_TITLE` ✅
+- `POST /api/projects/[id]/generate-output` for `PUBLISH_COPY` ✅
+- `GET /`, `GET /script-lab`, `GET /scene-planner`, `GET /render-lab` for the created project all returned `200`
+
+---
+
 ## 2026-04-11 17:35 — Agent: Antigravity
 
 ### Task: T-014 Image-first terminology sweep across user-visible surfaces
@@ -1563,3 +1760,34 @@
 
 **Reason**:
 - Even after the homepage reorder, the create form still asked a first-time user to visually parse too many equally weighted panels. The form now puts more weight on fields and less on explanatory cards.
+
+---
+
+## 2026-04-24 12:55 — Agent: Codex
+
+### Task: T-016 GPT5.5 Final Package Cleanup and Daily Run Bug Sweep
+
+**Changes**:
+- Modified `eslint.config.mjs` — excluded unrelated `analysis/**` and `econometrics_assignment2b_bundle/**` directories from Tahoe product lint, so old presentation/helper files no longer block deployment checks.
+- Modified `components/workspace/script-lab-workbench.tsx` — escaped the remaining JSX quote that produced the Tahoe lint error.
+- Modified `services/workspace-query.service.ts` and `app/api/projects/route.ts` — project lists now return `updated_at`, order by recent modification, and hide `ARCHIVED` projects by default.
+- Modified `app/settings/page.tsx` and `components/settings/project-manager.tsx` — Settings remains the project recovery surface by loading archived projects, and project rows now show "最后修改 / Updated".
+- Modified `app/daily-run/page.tsx` — Daily Run project cards and recent activity rows now show last modified time.
+- Modified `components/daily-run/daily-run-signal-panel.tsx` — replaced undefined danger-border variable usage with an explicit color-mix border.
+- Added `docs/GPT55_ARTICLE_RUNBOOK.md` — records the final GPT5.5 article package, inspection links, image briefs, image-task feedback, cleanup list, and process notes for teammates.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Data changes**:
+- Kept final GPT5.5 project `cmocc5cfq0034s0v59k0ot713`.
+- Copied the best draft from `cmocd8dug004rs0v5dn16snhu` into the final project as script version `2`.
+- Marked the final project `COMPLETED`.
+- Archived 10 duplicate GPT5.5 dry-run projects with `cleanup_reason = gpt55_dry_run_duplicate`.
+
+**Validation**:
+- `npm run lint` passed with warnings only.
+- `npm run build` passed.
+- Cleared `.next`, started a fresh dev server, and verified `/`, `/daily-run`, `/today`, `/settings`, `/script-lab`, `/scene-planner`, and `/render-lab` returned `200`.
+- Verified `/api/health`, `/api/settings`, `/api/projects`, and `/api/research/hot-topics` returned successfully; hot-topics reported `mode = live`, not mock.
+
+**Reason**:
+- The user needed one inspectable GPT5.5 article package, not scattered trial projects. The `/daily-run` runtime screenshot was consistent with a stale webpack/HMR cache; a clean local restart returned `200`, while code fixes addressed the real lint/read-model issues found during the sweep.
