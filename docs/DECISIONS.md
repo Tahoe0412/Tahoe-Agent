@@ -417,3 +417,18 @@
   - title packs, publish copy, and image briefs can stay compact; the main article should carry the full argument
   - if source material is thin, write the uncertainty and observation boundary into a longer explanatory article instead of falling back to a tiny summary
 - **Files**: `lib/mars-citizen-prompt.ts`, `lib/output-type-copy-prompt.ts`, `lib/copy-review-panel.ts`, `docs/GPT55_ARTICLE_RUNBOOK.md`
+
+## D-037 AI快讯 Quality Bar Must Penalize Template-Like AI Tone, Not Just Short Length
+- **Date**: 2026-04-25
+- **Reason**: After the first long-form upgrades, the user identified a second quality gap: drafts could be long enough but still sound like AI-generated summaries. The writing target should be closer to strong Chinese tech media and creator essays: factual density, event tension, plain-language metaphor, author judgment, and memorable closing lines.
+- **Impact**:
+  - AI快讯 prompting now asks for a core metaphor or central tension before expanding facts.
+  - Drafts must include "人话翻译" paragraphs that turn model specs, long context, Agent capability, pricing, or open-source strategy into concrete work scenarios.
+  - The prompt explicitly discourages通稿开头、机械小标题、万能转接词、咨询腔宏大词, and symmetrical AI-style summaries.
+  - Audience review now treats "AI味" as a first-class failure mode and caps style-fit scores for drafts that are accurate but feel like press-release summaries.
+  - The DeepSeek V4 cloud project has a v2 draft that applies this calibration before the next article run.
+- **Rule**:
+  - do not copy named creators or media voices directly; learn reusable structural methods only
+  - a publishable AI快讯 article must have facts plus authorial interpretation; a correct neutral summary is not enough
+  - if the first screen sounds like a press release, the draft should be revised even when the facts are correct
+- **Files**: `lib/mars-citizen-prompt.ts`, `lib/copy-review-panel.ts`, `lib/output-type-copy-prompt.ts`

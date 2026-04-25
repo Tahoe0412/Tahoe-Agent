@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-04-25 11:00 — Agent: Codex
+
+### Task: T-014 AI快讯 anti-AI-tone calibration + DeepSeek V4 v2
+
+**Changes**:
+- Modified `lib/mars-citizen-prompt.ts` so AI快讯 generation no longer optimizes only for length. The prompt now asks for a core metaphor/tension, plain-language translation, author judgment, and non-template paragraph rhythm while only learning structural lessons from strong Chinese tech media/creator references.
+- Modified `lib/copy-review-panel.ts` so audience review explicitly flags AI味: press-release openings, mechanical three-part summaries, universal transition phrases, abstract macro wording, and factual-but-authorless prose.
+- Modified `lib/output-type-copy-prompt.ts` to describe `NARRATIVE_SCRIPT` as a human long-form article draft, not a press-release summary.
+- Updated the cloud DeepSeek V4 project `cmocijq2u0000v6bgidcs789o` with v2 script `cmodr2ie90001v6icxfisey66`, title `DeepSeek V4来了：最该紧张的，不是模型公司，而是价格表`, and refreshed project background/style reference.
+
+**Reason**:
+- The user correctly identified that the previous DeepSeek V4 draft was still too AI-like even though it was long. The quality gap is now treated as a style/structure problem, not a word-count problem.
+
+**Verification / Caveats**:
+- Cloud script create and project patch succeeded.
+- This pass used live web search for reference-style learning and prior Tahoe Serper source material for DeepSeek V4 facts.
+- The DeepSeek V4 event is fresh; before real publication, still perform one final official-source/fact check for model details and availability.
+
+---
+
 ## 2026-04-24 14:18 — Agent: Codex
 
 ### Task: T-014 DeepSeek V4 second AI快讯 article package

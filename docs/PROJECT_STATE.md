@@ -1,6 +1,6 @@
 # Project State
 
-> Last updated: 2026-04-24 by Codex
+> Last updated: 2026-04-25 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
@@ -115,6 +115,8 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - Image-brief review is now more tolerant of editorial infographic / concept-image rows when the prompt itself already carries strong camera/composition direction and the row is asset-ready, even if no explicit reference image has been attached yet.
 - AI快讯 main-draft prompting has been tightened so each change point must land on a user-perceivable consequence instead of stopping at generic industry-summary phrasing.
 - AI快讯 main-draft prompting now targets Toutiao-first long-form article drafts by default rather than short news summaries. The expected output is a complete mobile-readable article with a strong hook, factual grounding, explanation, clear judgment, and roughly 1800-2600 Chinese characters when source material is sufficient.
+- AI快讯 main-draft prompting and audience review now also include an explicit anti-AI-tone calibration. The writing target is no longer only "longer article"; it must have a core metaphor/tension, plain-language translation, author judgment, source-grounded facts, and non-template paragraph rhythm inspired by high-quality Chinese tech media/creator writing patterns. Do not copy a named creator's voice, but do preserve those structural standards.
+- The cloud DeepSeek V4 project `cmocijq2u0000v6bgidcs789o` now has a v2 human-edited draft `cmodr2ie90001v6icxfisey66` with the new title `DeepSeek V4来了：最该紧张的，不是模型公司，而是价格表`.
 - Homepage and project-intent cards are now intentionally shorter. Use cards to signal direction, not to explain the full workflow inside every card body.
 - Brief Studio platform values are now normalized to the backend schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`). Do not reintroduce ad-hoc UI-only values such as `XIAOHONGSHU` or `BRAND_PAGE` into brief payloads unless the schema is explicitly expanded first.
 - These are **future roadmap items**, not the current sprint scope. Current work should stay focused on content quality, prompt quality, artifact-first UX, and clearer user flow.
