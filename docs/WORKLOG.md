@@ -27,6 +27,27 @@
 
 ---
 
+## 2026-04-26 11:25 — Agent: Codex
+
+### Task: T-014 LM Studio local Qwen activation
+
+**Changes**:
+- Opened LM Studio and started the Local Server.
+- Confirmed LM Studio is reachable at `http://127.0.0.1:1234`.
+- Confirmed OpenAI-compatible base URL is `http://127.0.0.1:1234/v1`.
+- Confirmed active local model id: `qwen3.6-35b-a3b-uncensored-hauhaucs-aggressive`.
+- Updated local `.env.local` to set `QWEN_BASE_URL` and route all local LLM steps to that model.
+- Updated the local `app_settings` database record so Tahoe's persisted route settings no longer point at stale Gemini 2.5 routes.
+
+**Verification / Caveats**:
+- `GET http://127.0.0.1:1234/v1/models` returned the loaded Qwen model.
+- A direct `POST /v1/chat/completions` call succeeded.
+- Tahoe local `POST /api/projects/cmocc5cfq0034s0v59k0ot713/generate-output` succeeded through the local model and created title-pack artifact `cmof7h5d7004vs0v5bjn9dvjn`.
+- LM Studio must remain running for local Tahoe generation to work.
+- This is local-only; Tencent Cloud cannot access `127.0.0.1:1234` on the user's computer.
+
+---
+
 ## 2026-04-26 10:15 — Agent: Codex
 
 ### Task: T-014 DeepSeek V4 v2 package completion

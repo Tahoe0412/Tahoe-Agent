@@ -64,7 +64,7 @@
   - merge image-brief readiness and recent image-job outcomes into one tighter score, so repeated real failures can directly drag down “可开工”判断
   - add an explicit "article length / depth" control to Daily Run and Script Lab so users can choose short update, standard article, or deep commentary without changing the prompt manually
   - normalize cloud model settings so packaging generation no longer falls back to the older unsupported `gemini-2.5-pro` setting
-  - fill the actual local `QWEN_BASE_URL` once the qwen3.6-35b HTTP endpoint/port is confirmed, then switch local generation routes that should use the local model
+  - decide which routes should stay on local Qwen long-term versus returning to the quality-first cloud mix; currently all local model routes are pointed at LM Studio Qwen for testing
   - continue sweeping remaining 分镜 references in lower-traffic secondary pages (help-center, workflow-actions, marketing-ops, approval-board)
   - refine each owned-media line's final brand/persona package, especially `消费时尚`, which still needs a tighter runway/brand-analysis voice before the preset should be treated as final
 

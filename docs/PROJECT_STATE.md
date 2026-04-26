@@ -131,7 +131,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end. A later quality pass replaced the too-short cloud inspection draft with a long-form v2 and upgraded AI快讯 prompting, but future runs still need factual source quality checks before real publication.
 5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
 6. Cloud packaging generation can still inherit an older persisted Gemini model setting (`gemini-2.5-pro`) and fail with Google API `User location is not supported for the API use`. Manual packaging can still be saved through the Strategy Task API, but the next model-settings cleanup should normalize the cloud settings record to the current quality-first routing.
-7. Local Qwen support requires the local model process to expose an HTTP endpoint. Common ports (`11434`, `1234`, `8000`) were not reachable during the 2026-04-26 check, so the actual local `QWEN_BASE_URL` still needs to be supplied by the operator before Tahoe can call `qwen3.6-35b`.
+7. Local Qwen support is now verified on the user's machine through LM Studio at `http://127.0.0.1:1234/v1`, using model `qwen3.6-35b-a3b-uncensored-hauhaucs-aggressive`. The local Tahoe settings database and `.env.local` both route all model steps to this Qwen endpoint for local testing. This does not make Tencent Cloud able to call the laptop-local endpoint.
 
 ## Constraints — DO NOT VIOLATE
 
