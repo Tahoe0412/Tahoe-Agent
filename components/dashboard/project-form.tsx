@@ -309,7 +309,7 @@ export function ProjectForm({
       }}
       className={cn(
         "space-y-6",
-        isCompact ? "space-y-5" : "theme-panel rounded-[28px] p-6",
+        isCompact ? "space-y-5" : "theme-panel py-6",
       )}
     >
       {!isCompact ? (
@@ -334,10 +334,10 @@ export function ProjectForm({
       />
 
       {isOwnedMedia ? (
-        <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-5">
+        <div className="border-y border-[var(--border)] py-5">
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.presetTitle}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.presetDesc}</div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="mt-4 grid border-t border-[var(--border)] md:grid-cols-3">
             {ownedMediaPresets.map((preset) => {
               const active = selectedOwnedMediaPreset === preset.id;
               return (
@@ -346,10 +346,10 @@ export function ProjectForm({
                   type="button"
                   onClick={() => applyOwnedMediaPreset(preset)}
                   className={cn(
-                    "rounded-2xl border px-4 py-4 text-left transition",
+                    "border-b border-[var(--border)] px-4 py-4 text-left transition md:border-r md:last:border-r-0",
                     active
-                      ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-sm"
-                      : "border-[var(--border-soft)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-solid)]",
+                      ? "bg-[var(--accent-soft)]"
+                      : "bg-transparent hover:bg-[var(--surface-muted)]",
                   )}
                 >
                   <div className="text-sm font-semibold text-[var(--text-1)]">{preset.label}</div>
@@ -364,43 +364,43 @@ export function ProjectForm({
 
       <div
         className={cn(
-          "border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-4",
-          isCompact ? "rounded-xl" : "rounded-[24px]",
+          "border-y border-[var(--border)] bg-transparent py-4",
+          isCompact ? "px-0" : "px-0",
         )}
       >
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.summaryTitle}</div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className={cn("inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium", intent.contentLine === "MARS_CITIZEN" ? "theme-chip-ok" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]")}>
+          <span className={cn("inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium", intent.contentLine === "MARS_CITIZEN" ? "theme-chip-ok" : "border-[var(--border)] bg-transparent text-[var(--text-2)]")}>
             <contentLineMeta.icon className="mr-1.5 h-3.5 w-3.5" />
             {contentLineMeta.label}
           </span>
-          <span className="rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
+          <span className="rounded-md border border-[var(--border)] bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
             {outputTypeMeta.label}
           </span>
-          <span className="rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
+          <span className="rounded-md border border-[var(--border)] bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
             {modeMeta.label}
           </span>
         </div>
         <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{contentLineMeta.description}</div>
-        <div className="mt-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-solid)] px-4 py-3">
+        <div className="mt-3 border-t border-[var(--border-soft)] pt-3">
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.summaryNoteLabel}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{flowLine}</div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
           {(modeMeta.displayPlatforms || modeMeta.platforms).map((platform) => (
-            <span key={platform} className="rounded-full border border-[var(--border)] px-3 py-1.5">
+            <span key={platform} className="rounded-md border border-[var(--border)] px-3 py-1.5">
               {platform}
             </span>
           ))}
         </div>
       </div>
 
-      <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-5">
+      <div className="border-y border-[var(--border)] py-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.qualityTitle}</div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 divide-y divide-[var(--border-soft)]">
           {qualityChecklist.map((item, index) => (
-            <div key={item} className="flex items-start gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3">
-              <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]">
+            <div key={item} className="flex items-start gap-3 py-3">
+              <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--surface-muted)] text-xs font-semibold text-[var(--accent)]">
                 {index + 1}
               </div>
               <div className="text-sm leading-7 text-[var(--text-1)]">{item}</div>
@@ -415,7 +415,7 @@ export function ProjectForm({
             <span className="text-sm font-medium text-[var(--text-2)]">{ui.projectName}</span>
             <div className="flex items-center gap-2">
               {!titleIsManual && topicInput.trim() ? (
-                <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-strong)]">
+                <span className="rounded-md bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-strong)]">
                   {locale === "en" ? "Auto-generated" : "自动命名"}
                 </span>
               ) : null}
@@ -431,7 +431,7 @@ export function ProjectForm({
                 <button
                   type="button"
                   onClick={cycleTitleSuggestion}
-                  className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-transparent px-2.5 py-1 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
                   title={locale === "en" ? "Try another title" : "换一个"}
                 >
                   <RefreshCw className="size-3" />
@@ -448,7 +448,7 @@ export function ProjectForm({
               setTitleIsManual(true);
             }}
             placeholder={ui.projectNamePlaceholder}
-            className="theme-input w-full rounded-2xl px-4 py-3 text-sm"
+            className="theme-input w-full rounded-md px-4 py-3 text-sm"
           />
         </div>
         <label className="space-y-2">
@@ -458,14 +458,14 @@ export function ProjectForm({
             value={topicInput}
             onChange={(event) => setTopicInput(event.target.value)}
             placeholder={topicPlaceholder}
-            className="theme-input w-full rounded-2xl px-4 py-3 text-sm"
+            className="theme-input w-full rounded-md px-4 py-3 text-sm"
           />
           {topicHint ? <div className="text-sm text-[var(--text-2)]">{topicHint}</div> : null}
         </label>
       </div>
 
       {isOwnedMedia ? (
-        <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-5">
+        <div className="border-y border-[var(--border)] py-5">
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.writingContextTitle}</div>
           <div className="mt-4 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
             <label className="block space-y-2">
@@ -476,7 +476,7 @@ export function ProjectForm({
                 value={projectIntroductionInput}
                 onChange={(event) => setProjectIntroductionInput(event.target.value)}
                 placeholder={ui.projectIntroPlaceholder}
-                className="theme-input w-full rounded-3xl px-4 py-3 text-sm leading-7"
+                className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7"
               />
             </label>
             <label className="block space-y-2">
@@ -487,7 +487,7 @@ export function ProjectForm({
                 value={coreIdeaInput}
                 onChange={(event) => setCoreIdeaInput(event.target.value)}
                 placeholder={ui.coreIdeaPlaceholder}
-                className="theme-input w-full rounded-3xl px-4 py-3 text-sm leading-7"
+                className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7"
               />
             </label>
           </div>
@@ -504,7 +504,7 @@ export function ProjectForm({
           placeholder={sourcePlaceholder}
           className={cn(
             "theme-input w-full px-4 py-3 text-sm leading-7",
-            isCompact ? "rounded-xl" : "rounded-3xl",
+            isCompact ? "rounded-md" : "rounded-md",
           )}
         />
         <div className="text-sm text-[var(--text-2)]">{ui.sourceHint}</div>
@@ -514,8 +514,8 @@ export function ProjectForm({
         title={<span className="text-sm font-medium text-[var(--text-1)]">{advancedTitle}</span>}
         defaultOpen={isMarketing}
         className={cn(
-          "border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-4",
-          isCompact ? "rounded-xl" : "rounded-[24px]",
+          "border-y border-[var(--border)] bg-transparent py-4",
+          isCompact ? "px-0" : "px-0",
         )}
         summaryClassName="text-sm"
         contentClassName="mt-4 space-y-5 border-t border-[var(--border-soft)] pt-4"
@@ -532,7 +532,7 @@ export function ProjectForm({
                 value={projectIntroductionInput}
                 onChange={(event) => setProjectIntroductionInput(event.target.value)}
                 placeholder={ui.projectIntroPlaceholder}
-                className="theme-input w-full rounded-3xl px-4 py-3 text-sm leading-7"
+                className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7"
               />
             </label>
             <label className="block space-y-2">
@@ -543,7 +543,7 @@ export function ProjectForm({
                 value={coreIdeaInput}
                 onChange={(event) => setCoreIdeaInput(event.target.value)}
                 placeholder={ui.coreIdeaPlaceholder}
-                className="theme-input w-full rounded-3xl px-4 py-3 text-sm leading-7"
+                className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7"
               />
             </label>
           </div>
@@ -562,9 +562,9 @@ export function ProjectForm({
                     type="button"
                     onClick={() => setWritingMode(mode)}
                     className={cn(
-                      "rounded-[20px] border p-4 text-left transition",
+                      "rounded-md border p-4 text-left transition",
                       active
-                        ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                         : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
                     )}
                   >
@@ -590,9 +590,9 @@ export function ProjectForm({
                     type="button"
                     onClick={() => setStyleTemplate(style)}
                     className={cn(
-                      "rounded-[20px] border p-4 text-left transition",
+                      "rounded-md border p-4 text-left transition",
                       active
-                        ? "border-[var(--accent)] bg-[var(--accent-soft)] shadow-[0_0_0_1px_var(--accent)]"
+                        ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                         : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]",
                     )}
                   >
@@ -609,7 +609,7 @@ export function ProjectForm({
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
               <span className="text-sm font-medium text-[var(--text-2)]">{ui.copyLength}</span>
-              <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-2xl px-4 py-3 text-sm">
+              <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-md px-4 py-3 text-sm">
                 {copyLengthList.map((item) => (
                   <option key={item} value={item}>
                     {getCopyLengthMeta(item, locale).label}
@@ -620,7 +620,7 @@ export function ProjectForm({
             </label>
             <label className="space-y-2">
               <span className="text-sm font-medium text-[var(--text-2)]">{ui.usageScenario}</span>
-              <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-2xl px-4 py-3 text-sm">
+              <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-md px-4 py-3 text-sm">
                 {usageScenarioList.map((item) => (
                   <option key={item} value={item}>
                     {getUsageScenarioMeta(item, locale).label}
@@ -640,7 +640,7 @@ export function ProjectForm({
             value={styleReferenceInput}
             onChange={(event) => setStyleReferenceInput(event.target.value)}
             placeholder={ui.styleReferencePlaceholder}
-            className="theme-input w-full rounded-3xl px-4 py-3 text-sm leading-7"
+            className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7"
           />
           <div className="text-sm text-[var(--text-2)]">{ui.styleReferenceHint}</div>
         </label>

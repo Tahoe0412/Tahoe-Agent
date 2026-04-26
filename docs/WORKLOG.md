@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-04-26 12:05 — Agent: Codex
+
+### Task: T-014 Frontend anti-card visual rewrite
+
+**Changes**:
+- Used the local `ui-ux-pro-max` and `impeccable` design guidance to set a restrained editorial production-desk direction.
+- Added `.impeccable.md` with Tahoe-specific design context so future UI work keeps the same baseline.
+- Flattened the main frontend language across:
+  - global tokens / typography / light and dark palette
+  - app shell and sidebar
+  - homepage dashboard
+  - Daily Run shell and signal panel
+  - shared project creation form
+  - project intent picker
+  - Output Studio
+  - common buttons, panel cards, state panels, error notices, metric cards, and next-step links
+- Removed or reduced glow-heavy gradients, large rounded cards, decorative orb effects, heavy shadows, and card-grid entry patterns on the main first-run surfaces.
+- Tuned typography toward a modern art museum reference: `Didact Gothic` / `Noto Sans SC` for body and UI text, with `Bodoni Moda` / `Noto Serif SC` for display headings and a tighter exhibition-label rhythm.
+- Kept backend services, API routes, Prisma schema, and generation logic untouched.
+
+**Reason**:
+- The user asked to rewrite the frontend UI, remove redundant design, avoid card-heavy UI, reduce the generic AI-dashboard feel, and then adjust typography toward a modern art museum style while preserving backend functionality.
+
+**Verification / Caveats**:
+- `npm run lint` passed with 14 existing warnings after the typography pass.
+- `npm run build` passed after the typography pass.
+- Restarted the local dev server on `http://localhost:3001/` because port 3000 was already in use.
+- Opened the preview in the Codex in-app browser and visually checked the homepage first-run surface after the font update.
+- This is the first broad visual pass. Lower-traffic workbench internals still contain older rounded card patterns and should be swept in a follow-up if the new direction is approved.
+
+---
+
 ## 2026-04-26 10:55 — Agent: Codex
 
 ### Task: T-014 Local Qwen endpoint support
@@ -1953,3 +1985,23 @@
 
 **Remaining**:
 - After several real article runs, decide whether article-writing routes should use a higher temperature than review / classification routes.
+
+---
+
+## 2026-04-26 14:40 — Agent: Codex
+
+### Task: Simplify Daily Run into a 90-minute three-article workflow
+
+**Changes**:
+- Added `app/api/daily-run/quick-package/route.ts` to create image brief, title pack, and publish copy sequentially after a Daily Run signal has created a draft.
+- Modified `components/daily-run/daily-run-signal-panel.tsx` so one selected topic now creates the draft, patches the account lane metadata, runs the quick-package pass, records partial-package warnings in session storage, and then routes to Script Lab.
+- Modified `app/daily-run/page.tsx` so Daily Run leads with a 90-minute / three-article operating surface, three account rows, simplified counters, and a collapsed deep-work stage view.
+- Modified `components/dashboard/sidebar.tsx` so Daily Run is the primary daily entry; Today, Trend Explorer, and Brief Studio remain available but are moved out of the main daily path.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- The daily business constraint is three publishable account articles in about 90 minutes, not perfect artifact-level production. The default product path now favors one quick package plus one final edit, while keeping deeper pages only for repair.
+
+**Remaining**:
+- After real use, decide whether quick-package failures should show as a visible banner in Script Lab instead of only a session warning.
+- If local Qwen becomes the daily default, keep generation calls sequential and avoid loading multiple local models at the same time.

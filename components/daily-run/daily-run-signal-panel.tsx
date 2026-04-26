@@ -22,6 +22,16 @@ type GenerateFromNewsResult = {
   title: string;
 };
 
+type QuickPackageResult = {
+  completed: number;
+  failed: number;
+  steps: Array<{
+    step: "IMAGE_BRIEF" | "TITLE_PACK" | "PUBLISH_COPY";
+    ok: boolean;
+    message?: string;
+  }>;
+};
+
 type ScriptSourceItem = {
   id: string;
   title: string;
@@ -113,6 +123,7 @@ function buildLanePatch(
     style_template: preset.id === "EASTERN_VITALITY" ? "LIGHT_LUXURY" as const : "RATIONAL_PRO" as const,
     copy_length: "STANDARD" as const,
     usage_scenario: "XIAOHONGSHU_POST" as const,
+    project_tags: [preset.label, preset.id, "daily-run", "今日三篇"],
   };
 }
 
@@ -123,6 +134,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
   const { loading, error, searched, topics, news, search } = useHotTopics();
   const [triage, setTriage] = useState<TriageStore>({});
   const [submittingTopic, setSubmittingTopic] = useState<string | null>(null);
+  const [quickPackagingTopic, setQuickPackagingTopic] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const isEn = locale === "en";
 
@@ -182,17 +194,37 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
         body: JSON.stringify(buildLanePatch(preset, result.title, topic.label)),
       });
 
-      void fetch(`/api/scripts/${result.scriptId}/split-scenes`, {
+      setQuickPackagingTopic(topic.topicKey);
+      const quickPackage = await apiRequest<QuickPackageResult>("/api/daily-run/quick-package", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-      }).catch(() => {});
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: result.projectId,
+          scriptId: result.scriptId,
+        }),
+      });
 
       setTriage((current) => ({ ...current, [topic.topicKey]: "KEPT" }));
+      if (quickPackage.failed > 0) {
+        const failedSteps = quickPackage.steps
+          .filter((step) => !step.ok)
+          .map((step) => step.step)
+          .join(", ");
+        window.sessionStorage.setItem(
+          "daily-run-last-warning",
+          isEn
+            ? `Draft created, but quick package partially failed: ${failedSteps}.`
+            : `主稿已创建，但快速发布包有步骤失败：${failedSteps}。`,
+        );
+      }
       router.push(`/script-lab?projectId=${result.projectId}` as Route);
     } catch (error) {
       setActionError(error instanceof Error ? error.message : isEn ? "Failed to create project." : "创建项目失败。");
     } finally {
       setSubmittingTopic(null);
+      setQuickPackagingTopic(null);
     }
   }
 
@@ -201,7 +233,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
   }
 
   return (
-    <div className="theme-panel rounded-xl p-6">
+    <div id="daily-run-signals" className="theme-panel py-6">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
@@ -209,7 +241,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
               {isEn ? "Today's signals" : "今日信号"}
             </div>
             <div className="mt-2 text-lg font-semibold text-[var(--text-1)]">
-              {isEn ? "Search once, then route the topic into the right account lane." : "先搜今天的信号，再把题目分发到合适账号。"}
+              {isEn ? "Search once. One selected topic becomes draft, image brief, title pack, and publish copy." : "搜一次。选中的题目会直接生成主稿、配图说明、标题包和发布文案。"}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -218,7 +250,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
                 key={preset.id}
                 type="button"
                 onClick={() => setQuery(preset.brand.keywordPool.slice(0, 3).join(" OR "))}
-                className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-1)]"
+                className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
               >
                 {preset.label}
               </button>
@@ -231,21 +263,21 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={isEn ? "For example: OpenAI OR Nvidia OR LVMH" : "例如：OpenAI OR 英伟达 OR LV 大秀"}
-            className="theme-input min-w-0 flex-1 rounded-xl px-4 py-3 text-sm"
+            className="theme-input min-w-0 flex-1 rounded-md px-4 py-3 text-sm"
           />
           <button
             type="button"
             onClick={handleSearch}
             disabled={loading || !query.trim()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-92 disabled:cursor-not-allowed disabled:opacity-55"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-[var(--accent-strong)] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] transition hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-55"
           >
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
             {isEn ? "Search signals" : "搜索信号"}
           </button>
         </div>
 
-        {error ? <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">{error}</div> : null}
-        {actionError ? <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">{actionError}</div> : null}
+        {error ? <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] py-3 text-sm text-[var(--danger-text)]">{error}</div> : null}
+        {actionError ? <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] py-3 text-sm text-[var(--danger-text)]">{actionError}</div> : null}
 
         {searched ? (
           <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
@@ -254,9 +286,9 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
                 <TrendingUp className="size-4 text-[var(--accent)]" />
                 {isEn ? "Recommended topics" : "推荐选题"}
               </div>
-              <div className="grid gap-3">
+              <div className="grid border-t border-[var(--border)]">
                 {topics.slice(0, 6).map((topic) => (
-                  <div key={topic.topicKey} className="theme-panel-muted rounded-xl p-4">
+                  <div key={topic.topicKey} className="border-b border-[var(--border)] py-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-[var(--text-1)]">{topic.label}</div>
@@ -266,23 +298,23 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
                       </div>
                       <div className="flex items-center gap-2">
                         {triage[topic.topicKey] === "KEPT" ? (
-                          <span className="rounded-full bg-[color:color-mix(in_srgb,var(--ok-bg)_80%,transparent)] px-2.5 py-1 text-xs text-[var(--ok-text)]">
+                          <span className="rounded-md bg-[color:color-mix(in_srgb,var(--ok-bg)_80%,transparent)] px-2.5 py-1 text-xs text-[var(--ok-text)]">
                             {isEn ? "Kept" : "已保留"}
                           </span>
                         ) : null}
                         {triage[topic.topicKey] === "DISMISSED" ? (
-                          <span className="rounded-full bg-[color:color-mix(in_srgb,var(--danger-bg)_82%,transparent)] px-2.5 py-1 text-xs text-[var(--danger-text)]">
+                          <span className="rounded-md bg-[color:color-mix(in_srgb,var(--danger-bg)_82%,transparent)] px-2.5 py-1 text-xs text-[var(--danger-text)]">
                             {isEn ? "Ignored" : "已忽略"}
                           </span>
                         ) : null}
-                        <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">{topic.heatLevel}</span>
+                        <span className="rounded-md border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">{topic.heatLevel}</span>
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => markTopic(topic.topicKey, "KEPT")}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-2)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-1)]"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
                       >
                         <Check className="size-3.5" />
                         {isEn ? "Keep" : "保留"}
@@ -290,7 +322,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
                       <button
                         type="button"
                         onClick={() => markTopic(topic.topicKey, "DISMISSED")}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-2)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-1)]"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
                       >
                         <X className="size-3.5" />
                         {isEn ? "Ignore" : "忽略"}
@@ -303,11 +335,17 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
                           type="button"
                           onClick={() => void createLaneProject(topic, preset.id)}
                           disabled={submittingTopic === topic.topicKey}
-                          className="flex items-center justify-between rounded-xl border border-[var(--border)] px-3 py-2 text-left text-sm transition hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="flex items-center justify-between rounded-md border border-[var(--border)] px-3 py-2 text-left text-sm transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <div>
                             <div className="font-medium text-[var(--text-1)]">{preset.label}</div>
-                            <div className="mt-1 text-xs text-[var(--text-3)]">{laneHint(topic, preset.id, locale)}</div>
+                            <div className="mt-1 text-xs text-[var(--text-3)]">
+                              {quickPackagingTopic === topic.topicKey
+                                ? isEn
+                                  ? "Building quick package: image brief, titles, publish copy..."
+                                  : "正在生成快速发布包：配图说明、标题包、发布文案..."
+                                : laneHint(topic, preset.id, locale)}
+                            </div>
                           </div>
                           {submittingTopic === topic.topicKey ? (
                             <Loader2 className="size-4 shrink-0 animate-spin text-[var(--text-3)]" />
@@ -329,12 +367,12 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
               </div>
               <div className="grid gap-3">
                 {topNews.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-[var(--border)] px-4 py-6 text-sm text-[var(--text-2)]">
+                  <div className="border-y border-dashed border-[var(--border)] py-6 text-sm text-[var(--text-2)]">
                     {isEn ? "No source items returned yet. Try a tighter query." : "还没有返回素材，换一个更具体的关键词试试。"}
                   </div>
                 ) : (
                   topNews.map((item) => (
-                    <div key={item.id} className="theme-panel-muted rounded-xl p-4">
+                    <div key={item.id} className="border-t border-[var(--border)] py-4">
                       <div className="text-sm font-semibold text-[var(--text-1)]">{item.title}</div>
                       <div className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--text-2)]">{item.snippet}</div>
                       <div className="mt-3 text-xs text-[var(--text-3)]">{item.source} · {item.published_at}</div>
@@ -345,7 +383,7 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-[var(--border)] px-4 py-8 text-sm leading-6 text-[var(--text-2)]">
+          <div className="border-y border-dashed border-[var(--border)] py-8 text-sm leading-6 text-[var(--text-2)]">
             {isEn
               ? "No auto-search here. Enter a query, click search, then route one topic into the right account lane."
               : "这里不会自动搜索。先输入关键词，点一次搜索，再把题目分到合适账号。"}

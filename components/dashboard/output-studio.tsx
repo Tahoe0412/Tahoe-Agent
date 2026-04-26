@@ -121,22 +121,22 @@ export function OutputStudio({
   }
 
   return (
-    <section className="theme-panel theme-output-studio rounded-[30px] p-6 sm:p-7">
+    <section className="theme-panel theme-output-studio py-6">
       <div className="flex flex-col gap-4 border-b border-[var(--border-soft)] pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <div className="theme-kicker text-[11px] font-semibold text-[var(--accent-strong)]">{ui.eyebrow}</div>
-          <h3 className="theme-font-display mt-2 text-[2rem] leading-[1.02] tracking-tight text-[var(--text-1)] sm:text-[2.2rem]">
+          <h3 className="theme-font-display mt-2 text-[2.25rem] leading-[0.95] text-[var(--text-1)] sm:text-[2.55rem]">
             {ui.title}
           </h3>
           <p className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.description}</p>
         </div>
-        <div className="rounded-2xl border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_76%,transparent)] px-4 py-3 text-sm text-[var(--text-2)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+        <div className="border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[var(--text-2)]">
           <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.current}</span>
           <div className="mt-1 font-medium text-[var(--text-1)]">{getOutputTypeMeta(currentOutputType, locale).label}</div>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid border-t border-[var(--border)] lg:grid-cols-3">
         {items.map((item) => {
           const meta = getOutputTypeMeta(item.outputType, locale);
           const active = item.outputType === currentOutputType;
@@ -147,18 +147,18 @@ export function OutputStudio({
             <article
               key={item.outputType}
               className={cn(
-                "theme-output-card rounded-[26px] border p-5",
+                "theme-output-card border-b border-[var(--border)] p-5 lg:border-r lg:last:border-r-0",
                 active
-                  ? "border-[color:color-mix(in_srgb,var(--accent)_44%,white)] bg-[linear-gradient(160deg,rgba(34,184,207,0.12),rgba(255,255,255,0.72))]"
-                  : "border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,255,255,0.5))]",
+                  ? "bg-[var(--accent-soft)]"
+                  : "bg-transparent",
               )}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="theme-output-icon flex size-11 items-center justify-center rounded-2xl">
+                <div className="theme-output-icon flex size-10 items-center justify-center rounded-md">
                   <Icon className="size-5 text-[var(--accent-strong)]" />
                 </div>
                 <span className={cn(
-                  "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                  "rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
                   active
                     ? "bg-[var(--accent)]/12 text-[var(--accent-strong)]"
                     : "bg-[var(--surface-muted)] text-[var(--text-3)]",
@@ -189,7 +189,7 @@ export function OutputStudio({
       </div>
 
       {lastResult ? (
-        <div className="mt-5 rounded-[24px] border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_78%,transparent)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
+        <div className="mt-5 border-y border-[var(--border)] py-4 text-sm leading-7 text-[var(--text-2)]">
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.latest}</div>
           <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{lastResult.title}</div>
           {lastResult.summary ? <div className="mt-1">{lastResult.summary}</div> : null}

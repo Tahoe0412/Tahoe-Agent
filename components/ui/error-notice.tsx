@@ -34,9 +34,9 @@ export function ErrorNotice({
   }
 
   return (
-    <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--danger-text)_28%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--danger-bg)_90%,var(--surface-solid)),rgba(255,255,255,0.42))] p-4 shadow-[0_16px_40px_rgba(121,55,55,0.08)]">
+    <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_28%,transparent)] bg-[var(--danger-bg)] py-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[rgba(255,255,255,0.56)] text-[var(--danger-text)]">
+        <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] text-[var(--danger-text)]">
           <AlertTriangle className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
@@ -48,7 +48,7 @@ export function ErrorNotice({
             </div>
           ) : null}
           {info.detail ? (
-            <details className="mt-3 rounded-2xl bg-[rgba(255,255,255,0.45)] px-3 py-2 text-sm text-[var(--danger-text)]">
+            <details className="mt-3 border-t border-[color:color-mix(in_srgb,var(--danger-text)_18%,transparent)] pt-3 text-sm text-[var(--danger-text)]">
               <summary className="cursor-pointer list-none font-medium">
                 {locale === "en" ? "Technical details" : "技术细节"}
               </summary>

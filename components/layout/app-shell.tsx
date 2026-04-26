@@ -136,7 +136,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={toggle}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)] px-3 text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_38%,var(--border))] hover:text-[var(--text-1)]"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-transparent px-3 text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
                 aria-label={text.shell.toggleSidebar}
               >
                 {sidebarVisible
@@ -151,9 +151,9 @@ export function AppShell({
 
               <Link
                 href="/"
-                className="group inline-flex min-w-0 items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-solid)_74%,transparent)] px-3 py-2 text-[var(--text-1)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_34%,var(--border-soft))] hover:bg-[color:color-mix(in_srgb,var(--surface-solid)_90%,transparent)] sm:px-3.5"
+                className="group inline-flex min-w-0 items-center gap-3 rounded-md border border-transparent px-2 py-2 text-[var(--text-1)] transition hover:border-[var(--border)] sm:px-3"
               >
-                <span className="inline-flex size-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.72))] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                <span className="inline-flex size-8 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent-strong)]">
                   <GalleryVerticalEnd className="size-4" />
                 </span>
                 <span className="theme-kicker truncate text-sm font-semibold tracking-[0.22em] sm:tracking-[0.28em]">Tahoe</span>
@@ -162,7 +162,7 @@ export function AppShell({
 
             <Link
               href="/settings"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-solid)_78%,transparent)] text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_34%,var(--border-soft))] hover:text-[var(--accent-strong)]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
               aria-label={text.shell.openSettings}
             >
               <Settings className="size-4" />

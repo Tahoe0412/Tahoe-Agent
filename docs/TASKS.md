@@ -59,6 +59,7 @@
   - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final local project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, a cloud inspection copy was rebuilt as `cmocgo05k0000v6w47xyxcr39`, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
   - project lists now expose and display `updated_at`; Daily Run and Settings show "最后修改 / Updated", ordinary read models default-hide archived projects, and Settings remains the recovery surface for archived work
   - the `/daily-run` runtime screenshot was checked against a clean `.next` reset and fresh dev server; `/daily-run` returned `200`, so the observed webpack `call` error is treated as stale dev/HMR cache unless it reappears after clean restart
+  - a first anti-card frontend visual rewrite is now in place: global tokens, app shell, sidebar, dashboard homepage, Daily Run shell, shared project creation, project-intent picker, Output Studio, buttons, state panels, error notices, and metric cards were flattened into a quieter editorial production-desk language without changing backend behavior. Typography now leans toward a modern art museum reference: gallery-label body text and sharper editorial display headings.
 - **Next**:
   - promote the current session-only signal panel into a persisted topic-triage queue, so `Daily Run` can remember which signals were kept, dismissed, drafted, or routed across reloads and machines
   - upgrade the current inferred queue from artifact-count heuristics to a real item-level daily-run status model
@@ -153,6 +154,11 @@
   - No global proxy changes, no scrapers, no Tailwind, no mock-by-default regressions
 
 ## Done
+
+### T-017 Daily Run 90-Minute Quick Package Mode ✅
+- **Completed**: 2026-04-26
+- **Result**: Daily Run now leads with a 90-minute / three-article operating surface for AI快讯、全球股市、消费时尚. Signal selection creates the draft, then runs a sequential quick-package pass for image brief, title pack, and publish copy before sending the user to Script Lab for one final edit. The sidebar now makes Daily Run the primary daily entry and moves Today / Trend Explorer / Brief Studio into the deeper management area.
+- **Files**: `app/daily-run/page.tsx`, `components/daily-run/daily-run-signal-panel.tsx`, `app/api/daily-run/quick-package/route.ts`, `components/dashboard/sidebar.tsx`
 
 ### T-005 Configure X/Twitter API ✅
 - **Completed**: 2026-03-21

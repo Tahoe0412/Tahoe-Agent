@@ -21,7 +21,6 @@ import {
   Rows3,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
-import type { WorkspaceMode } from "@/lib/workspace-mode";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/layout/app-shell";
 
@@ -37,7 +36,7 @@ type NavItem = {
 function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
   if (!show) return null;
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-none transition-opacity group-hover:opacity-100">
       {label}
     </span>
   );
@@ -62,19 +61,18 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3 overflow-hidden rounded-xl border transition-all duration-200",
+        "group relative flex items-center gap-3 rounded-md border transition-colors duration-200",
         collapsed ? "justify-center px-0 py-2" : "px-3 py-3.5",
         active
-          ? "border-white/10 text-[var(--sidebar-item-active-text)] shadow-[0_16px_36px_rgba(0,0,0,0.16)]"
-          : "border-transparent text-[var(--sidebar-text)] hover:-translate-y-0.5 hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
+          ? "border-white/10 text-[var(--sidebar-item-active-text)]"
+          : "border-transparent text-[var(--sidebar-text)] hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
       style={active ? { background: accentBg ?? "var(--sidebar-item-active-bg)" } : undefined}
     >
-      {active ? <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-[var(--accent)]" aria-hidden /> : null}
       <div
         className={cn(
-          "shrink-0 rounded-xl p-2 transition-all duration-200",
-          active ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "bg-white/6 group-hover:bg-white/12"
+          "shrink-0 rounded-md p-2 transition-colors duration-200",
+          active ? "bg-white/14" : "bg-transparent group-hover:bg-white/8"
         )}
         style={accentColor ? { color: accentColor } : undefined}
       >
@@ -98,13 +96,10 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
   const text = copy[locale];
   const { collapsed } = useSidebar();
 
-  /* ── Group 1: 前置探索 (Explore) ── */
+  /* ── Group 1: 默认日更路径 (Explore) ── */
   const exploreItems: NavItem[] = [
-    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
-    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
     { href: "/daily-run" as Route, label: text.nav.dailyRun, hint: text.nav.dailyRunHint || "今日选题、状态和下一步", icon: Rows3, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
-    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
-    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
+    { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
   ];
 
   /* ── Group 2: 生产车间 (Build) ── */
@@ -117,6 +112,9 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
 
   /* ── Group 3: 资产与配置 (Manage) ── */
   const manageItems: NavItem[] = [
+    { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
+    { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
+    { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
     { href: "/project-hub" as Route, label: text.nav.projectHub, hint: text.nav.projectHubHint || "全部项目", icon: FolderKanban },
     { href: "/brand-profiles" as Route, label: text.nav.brandProfiles, hint: text.nav.brandHint || "品牌特征", icon: SwatchBook },
     { href: "/industry-templates" as Route, label: text.nav.industryTemplates, hint: text.nav.industryHint || "行业模板", icon: BriefcaseBusiness },
@@ -134,17 +132,17 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
     <div className="flex h-full flex-col">
       {/* ── Brand Header ── */}
       <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "justify-center" : "px-1")}>
-        <div
+      <div
           className={cn(
             "transition-all",
             collapsed
-              ? "flex size-10 items-center justify-center rounded-xl border border-white/8 bg-white/6"
-              : "rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] px-3 py-3"
+              ? "flex size-10 items-center justify-center rounded-md border border-white/8 bg-transparent"
+              : "border-b border-white/10 px-1 pb-4"
           )}
         >
           {!collapsed ? (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(34,184,207,0.18),rgba(255,255,255,0.06))] text-[var(--sidebar-text-hover)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-white/10 text-[var(--sidebar-text-hover)]">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div>
@@ -174,7 +172,7 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
 
         {/* ── Mode description card ── */}
         {!collapsed && (
-          <div className="mt-auto mb-2 rounded-[20px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.10)]">
+          <div className="mt-auto mb-2 border-t border-white/10 pt-4">
             <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
             <div className="mt-2 text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
             <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)] opacity-95">

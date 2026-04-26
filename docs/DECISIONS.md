@@ -459,3 +459,30 @@
   - if article prose needs more variation later, tune route-specific prompts first, then raise temperature only after JSON reliability is verified
   - do not assume `.env` can change the context window; set that inside LM Studio / vLLM / SGLang
 - **Files**: `lib/openai-json.ts`, `.env.example`, `README.md`
+
+## D-040 Tahoe Frontend Should Prefer Flat Editorial Work Surfaces Over Decorative Card Stacks
+- **Date**: 2026-04-26
+- **Reason**: The user wants Tahoe to feel less like a generic AI-generated dashboard and more like a serious daily content-production desk. The previous visual system relied too much on rounded cards, glows, gradients, icon tiles, and decorative hierarchy, which added visual noise without helping the operator decide the next editorial action.
+- **Impact**:
+  - the visual baseline now favors paper-like backgrounds, fine dividers, row-based selection, compact controls, and restrained typography
+  - common shell components, homepage entry, shared project creation, project intent selection, Output Studio, buttons, state panels, and error notices have been flattened first
+  - this is a frontend-only visual direction; backend services, API contracts, Prisma schema, and model routes remain unchanged
+- **Rule**:
+  - avoid adding new card grids, glow blobs, gradient buttons, large rounded icon tiles, or decorative containers unless a repeated item genuinely needs framing
+  - prefer section dividers, lists, tables, and explicit next-action rows for operational surfaces
+  - keep future UI changes inside Tahoe's existing vanilla CSS / CSS custom property system
+- **Files**: `app/globals.css`, `app/page.tsx`, `.impeccable.md`, `components/layout/app-shell.tsx`, `components/dashboard/sidebar.tsx`, `components/dashboard/project-form.tsx`, `components/dashboard/project-intent-picker.tsx`, `components/dashboard/output-studio.tsx`, `components/dashboard/metric-card.tsx`, `components/ui/page-header.tsx`, `components/ui/panel-card.tsx`, `components/ui/button.tsx`, `components/ui/state-panel.tsx`, `components/ui/error-notice.tsx`, `components/workspace/next-step-link.tsx`
+
+## D-041 Daily Production Should Default To A 90-Minute Quick Package, Not Full Workflow Review
+- **Date**: 2026-04-26
+- **Reason**: The user can spend about 90 minutes per day to publish three account articles. A full artifact-by-artifact review loop makes the product feel too heavy for daily operations and creates more cost than the current business stage needs. The default unit should be one publishable article package, not separate perfect passes for draft, review, image brief, title pack, and publish copy.
+- **Impact**:
+  - Daily Run is now the primary navigation entry for day-to-day publishing.
+  - Selecting a signal from Daily Run creates the article draft and then sequentially generates image brief, title pack, and publish copy as one quick package.
+  - Deep work pages remain available for repair, but they are no longer presented as required daily steps.
+  - The sidebar keeps Today, Trend Explorer, and Brief Studio available as management/deep-research surfaces instead of putting them in the main daily path.
+- **Rule**:
+  - optimize the default workflow for "good enough to publish, then one final edit"
+  - do not add new mandatory review gates unless they remove more work than they add
+  - avoid concurrent local-model generation; local 35B runs should be sequenced to protect memory
+- **Files**: `app/daily-run/page.tsx`, `components/daily-run/daily-run-signal-panel.tsx`, `app/api/daily-run/quick-package/route.ts`, `components/dashboard/sidebar.tsx`

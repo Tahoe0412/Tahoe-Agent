@@ -29,9 +29,9 @@ function getStateText(locale: Locale) {
 export function LoadingPanel({ label, locale = "zh" }: { label?: string; locale?: Locale }) {
   const text = getStateText(locale);
   return (
-    <div className="theme-panel flex min-h-64 items-center justify-center rounded-[32px] p-6">
+    <div className="theme-panel flex min-h-64 items-center justify-center py-6">
       <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.7))] text-[var(--accent-strong)] shadow-[inset_0_1px_0_rgba(255,255,255,0.62)]">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent-strong)]">
           <LoaderCircle className="size-5 animate-spin" />
         </div>
         <div className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-3)]">{text.loadingEyebrow}</div>
@@ -54,9 +54,9 @@ export function EmptyPanel({
 }) {
   const text = getStateText(locale);
   return (
-    <div className="theme-panel flex min-h-72 items-center justify-center rounded-[32px] border-dashed p-6">
+    <div className="theme-panel flex min-h-72 items-center justify-center border-dashed py-6">
       <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,var(--slate-blue-soft),rgba(255,255,255,0.72))] text-[var(--slate-blue)] shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--slate-blue)]">
           <DatabaseZap className="size-6" />
         </div>
         <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{text.emptyEyebrow}</div>
@@ -81,9 +81,9 @@ export function ErrorPanel({
 }) {
   const text = getStateText(locale);
   return (
-    <div className="flex min-h-64 items-center justify-center rounded-[32px] border border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--danger-bg)_88%,var(--surface-solid)),rgba(255,255,255,0.32))] p-6 shadow-[0_18px_42px_rgba(128,54,54,0.08)]">
+    <div className="flex min-h-64 items-center justify-center border-y border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-[var(--danger-bg)] py-6">
       <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-[rgba(255,255,255,0.38)] text-[var(--danger-text)]">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-transparent text-[var(--danger-text)]">
           <AlertTriangle className="size-6" />
         </div>
         <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--danger-text)]">{text.errorEyebrow}</div>

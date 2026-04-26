@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { ArrowRight, CircleDashed, FileText, Image as ImageIcon, PackageCheck, SearchCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, CircleDashed, Clock3, FileText, Image as ImageIcon, PackageCheck, SearchCheck, TimerReset } from "lucide-react";
 import { DailyRunSignalPanel } from "@/components/daily-run/daily-run-signal-panel";
 import { DetailPanel } from "@/components/ui/detail-panel";
 import { PageHeader } from "@/components/ui/page-header";
@@ -18,6 +18,7 @@ export const dynamic = "force-dynamic";
 type DailyProject = Awaited<ReturnType<WorkspaceQueryService["listProjects"]>>[number];
 
 type RunStage = "DRAFT" | "REVIEW" | "IMAGE" | "PACKAGE" | "READY";
+type DailyLaneId = "AI_GROWTH" | "MONEY_NEVER_SLEEPS" | "EASTERN_VITALITY";
 
 function formatRunDate(value: Date | string, locale: "zh" | "en") {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-CN", {
@@ -116,6 +117,32 @@ function stageCount(projects: DailyProject[], stage: RunStage) {
   return projects.filter((project) => inferRunStage(project) === stage).length;
 }
 
+function laneProject(project: DailyProject, laneId: DailyLaneId, laneLabel: string) {
+  const haystack = [
+    project.title,
+    project.topic_query,
+    project.output_type,
+    project.workspace_mode,
+    ...project.project_tags,
+  ].join(" ").toLowerCase();
+
+  if (haystack.includes(laneId.toLowerCase()) || haystack.includes(laneLabel.toLowerCase())) {
+    return true;
+  }
+
+  if (laneId === "AI_GROWTH") {
+    return /ai|openai|gpt|deepseek|qwen|agent|claude|gemini|人工智能|大模型/.test(haystack);
+  }
+  if (laneId === "MONEY_NEVER_SLEEPS") {
+    return /stock|market|fed|nvidia|tesla|nasdaq|股市|美股|资本|金融|财报/.test(haystack);
+  }
+  return /fashion|luxury|brand|lvmh|hermes|runway|时尚|消费|品牌|秀场|奢侈/.test(haystack);
+}
+
+function countActivePackages(projects: DailyProject[]) {
+  return projects.filter((project) => inferRunStage(project) !== "READY").length;
+}
+
 export default async function DailyRunPage() {
   const locale = await getLocale();
   const isEn = locale === "en";
@@ -161,6 +188,19 @@ export default async function DailyRunPage() {
       count: stageCount(projects, "READY"),
     },
   ];
+  const readyCount = stageCount(projects, "READY");
+  const activeCount = countActivePackages(projects);
+  const todayLanes = presets.map((preset) => {
+    const laneProjects = projects.filter((project) => laneProject(project, preset.id, preset.label));
+    const latestProject = laneProjects[0] ?? null;
+    const latestStage = latestProject ? inferRunStage(latestProject) : null;
+    return {
+      preset,
+      latestProject,
+      latestStage,
+      readyCount: laneProjects.filter((project) => inferRunStage(project) === "READY").length,
+    };
+  });
 
   return (
     <WorkspaceLayout locale={locale}>
@@ -170,8 +210,8 @@ export default async function DailyRunPage() {
           title={isEn ? "Daily Run" : "每日运行台"}
           description={
             isEn
-              ? "See which account should move today, what each project is blocked on, and what the next action is."
-              : "先看今天该推哪条线、每个项目卡在哪一步、下一步该做什么。"
+              ? "A 90-minute daily mode for three accounts: pick one topic, generate the package, lightly edit, publish."
+              : "每天 90 分钟跑三个号：选题、一键成包、轻改、发布。"
           }
           locale={locale}
         />
@@ -188,15 +228,123 @@ export default async function DailyRunPage() {
           />
         ) : null}
 
+        <PanelCard
+          title={isEn ? "90-minute three-article mode" : "90 分钟今日三篇"}
+          description={
+            isEn
+              ? "The default workflow is no longer full-process perfection. Each account gets one publishable package and one final pass."
+              : "默认不再追求全流程完美。每个号只要一篇可发图文包，再做一次最终轻审。"
+          }
+        >
+          <div className="grid border-t border-[var(--border)] lg:grid-cols-[0.82fr_1.18fr]">
+            <div className="border-b border-[var(--border)] py-5 pr-0 lg:border-b-0 lg:border-r lg:pr-6">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="border-r border-[var(--border)] pr-3">
+                  <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
+                    <Clock3 className="size-3.5" />
+                    {isEn ? "Time" : "总时长"}
+                  </div>
+                  <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">90m</div>
+                </div>
+                <div className="border-r border-[var(--border)] px-3">
+                  <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
+                    <FileText className="size-3.5" />
+                    {isEn ? "Target" : "目标"}
+                  </div>
+                  <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">3</div>
+                </div>
+                <div className="pl-3">
+                  <div className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
+                    <CheckCircle2 className="size-3.5" />
+                    {isEn ? "Ready" : "可发"}
+                  </div>
+                  <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">{readyCount}</div>
+                </div>
+              </div>
+              <div className="mt-5 border-y border-dashed border-[var(--border)] py-4 text-sm leading-6 text-[var(--text-2)]">
+                {isEn
+                  ? "Quality target: good enough to publish, not perfect. One final check replaces repeated artifact-level reviews."
+                  : "质量目标：能发、比普通 AI 稿好，不追求满分。一轮总审代替每个产物反复审核。"}
+              </div>
+              <div className="mt-4 grid gap-2 text-sm text-[var(--text-2)]">
+                <div>{isEn ? "1. Pick one topic per account." : "1. 每个号只选一个题。"} </div>
+                <div>{isEn ? "2. Generate draft + title + publish copy + image brief together." : "2. 主稿、标题、发布文案、配图说明一起生成。"} </div>
+                <div>{isEn ? "3. Edit only the final package." : "3. 只改最终成品，不逐步完美化。"} </div>
+              </div>
+            </div>
+
+            <div className="divide-y divide-[var(--border)] lg:pl-6">
+              {todayLanes.map(({ preset, latestProject, latestStage, readyCount: laneReadyCount }) => {
+                const latestAction = latestProject ? nextAction(latestProject, locale) : null;
+                const latestMeta = latestStage ? stageMeta(latestStage, locale) : null;
+                return (
+                  <div key={preset.id} className="grid gap-4 py-5 md:grid-cols-[0.65fr_1fr_auto] md:items-center">
+                    <div>
+                      <div className="text-base font-semibold text-[var(--text-1)]">{preset.label}</div>
+                      <div className="mt-1 text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">30 min / article</div>
+                    </div>
+                    <div className="min-w-0">
+                      {latestProject ? (
+                        <>
+                          <div className="truncate text-sm font-medium text-[var(--text-1)]">{latestProject.title}</div>
+                          <div className="mt-1 line-clamp-1 text-sm text-[var(--text-2)]">{latestProject.topic_query}</div>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
+                            {latestMeta ? <span className={`rounded-md px-2 py-1 ${latestMeta.tone}`}>{latestMeta.label}</span> : null}
+                            <span>{isEn ? "Ready packages" : "可发包"} {laneReadyCount}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-sm leading-6 text-[var(--text-2)]">
+                          {isEn ? "No active package detected. Start from the signal search below." : "还没有识别到今日包，从下方信号搜索直接起稿。"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 md:justify-end">
+                      {latestAction ? (
+                        <Link href={latestAction.href} className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-1)] transition hover:border-[var(--accent)]">
+                          {latestStage === "READY" ? (isEn ? "Final check" : "最终检查") : latestAction.label}
+                          <ArrowRight className="size-3.5" />
+                        </Link>
+                      ) : null}
+                      <a href="#daily-run-signals" className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]">
+                        {isEn ? "Pick topic" : "去选题"}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </PanelCard>
+
         <DailyRunSignalPanel locale={locale} />
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {stages.map((stage) => {
+        <div className="grid border-t border-[var(--border)] md:grid-cols-3">
+          {[
+            {
+              key: "active",
+              icon: TimerReset,
+              title: isEn ? "Needs action" : "需要动作",
+              count: activeCount,
+            },
+            {
+              key: "ready",
+              icon: CheckCircle2,
+              title: isEn ? "Ready to publish" : "可发布",
+              count: readyCount,
+            },
+            {
+              key: "draft",
+              icon: SearchCheck,
+              title: isEn ? "No draft yet" : "待起稿",
+              count: stageCount(projects, "DRAFT"),
+            },
+          ].map((stage) => {
             const Icon = stage.icon;
             return (
-              <div key={stage.key} className="theme-panel-muted rounded-xl p-4">
+              <div key={stage.key} className="border-b border-[var(--border)] p-4 md:border-r md:last:border-r-0">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-white/8 text-[var(--text-2)]">
+                  <div className="flex size-9 items-center justify-center rounded-md border border-[var(--border)] text-[var(--text-2)]">
                     <Icon className="size-4" />
                   </div>
                   <div className="text-2xl font-semibold text-[var(--text-1)]">{stage.count}</div>
@@ -207,16 +355,38 @@ export default async function DailyRunPage() {
           })}
         </div>
 
+        <details className="theme-panel px-0 py-0">
+          <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-[var(--text-1)]">
+            {isEn ? "Show full production stages and deep-work entrances" : "展开完整阶段和深水区入口"}
+          </summary>
+          <div className="grid border-t border-[var(--border)] md:grid-cols-2 xl:grid-cols-5">
+          {stages.map((stage) => {
+            const Icon = stage.icon;
+            return (
+              <div key={stage.key} className="border-b border-[var(--border)] p-4 xl:border-r xl:last:border-r-0">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-md border border-[var(--border)] text-[var(--text-2)]">
+                    <Icon className="size-4" />
+                  </div>
+                  <div className="text-2xl font-semibold text-[var(--text-1)]">{stage.count}</div>
+                </div>
+                <div className="mt-4 text-sm font-medium text-[var(--text-1)]">{stage.title}</div>
+              </div>
+            );
+          })}
+          </div>
+        </details>
+
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <PanelCard
-            title={isEn ? "Account lanes" : "账号分栏"}
-            description={isEn ? "Three lanes, three editorial jobs." : "三条线，三种不同的编辑工作。"}
+            title={isEn ? "Deep-work entrances" : "深水区入口"}
+            description={isEn ? "Use these only when the quick package needs manual repair." : "只有快速包需要返修时再进入这些页面。"}
           >
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid border-t border-[var(--border)] md:grid-cols-3">
               {presets.map((preset) => (
-                <div key={preset.id} className="theme-panel-muted rounded-xl p-5">
+                <div key={preset.id} className="border-b border-[var(--border)] p-5 md:border-r md:last:border-r-0">
                   <div className="text-base font-semibold text-[var(--text-1)]">{preset.label}</div>
-                  <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{preset.focus}</div>
+                  <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{isEn ? "Default path: use the quick package first." : "默认路径：先用快速包，不手动拆流程。"}</div>
                   <div className="mt-4 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
                     {isEn ? "Today's editorial job" : "今天的编辑任务"}
                   </div>
@@ -234,11 +404,14 @@ export default async function DailyRunPage() {
                           : "判断品牌或消费信号的意义。"}
                   </div>
                   <div className="mt-5 flex gap-3">
-                    <Link href="/today" className="inline-flex items-center rounded-full border border-white/10 px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-white/18 hover:text-[var(--text-1)]">
-                      {isEn ? "Go to topics" : "去选题"}
+                    <a href="#daily-run-signals" className="inline-flex items-center rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]">
+                      {isEn ? "Pick topic" : "去选题"}
+                    </a>
+                    <Link href="/script-lab" className="inline-flex items-center rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]">
+                      {isEn ? "Repair draft" : "修主稿"}
                     </Link>
-                    <Link href="/" className="inline-flex items-center rounded-full border border-white/10 px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-white/18 hover:text-[var(--text-1)]">
-                      {isEn ? "New project" : "新建项目"}
+                    <Link href="/scene-planner" className="inline-flex items-center rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]">
+                      {isEn ? "Repair image" : "修配图"}
                     </Link>
                   </div>
                 </div>
@@ -253,11 +426,11 @@ export default async function DailyRunPage() {
             </div>
             <div>
               <div className="text-sm font-medium text-[color:rgba(246,240,232,0.88)]">{isEn ? "Current heuristic" : "当前启发式"}</div>
-              <div className="mt-2">{isEn ? "This first version infers stage from existing project artifacts. Topic intake will be merged next." : "第一版先用现有项目产物推断阶段。今日信号与账号分发会在下一步并进来。"}</div>
+              <div className="mt-2">{isEn ? "Daily Run now creates the quick package first. Use deep-work pages only when one part needs repair." : "每日运行台现在先生成快速发布包。只有某个部分明显不行时，再进深水区返修。"}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-[color:rgba(246,240,232,0.88)]">{isEn ? "Main goal" : "当前目标"}</div>
-              <div className="mt-2">{isEn ? "Make daily status and next action obvious before adding more automation." : "先把每天的状态和下一步做清楚，再谈更多自动化。"}</div>
+              <div className="mt-2">{isEn ? "Keep three daily posts achievable within 90 minutes, with one final editorial pass instead of repeated reviews." : "保证 90 分钟内能完成三个号，一次最终编辑审查替代多轮逐项审核。"}</div>
             </div>
           </DetailPanel>
         </div>
@@ -268,7 +441,7 @@ export default async function DailyRunPage() {
         >
           <div className="grid gap-4 xl:grid-cols-2">
             {projects.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-white/10 px-5 py-8 text-sm leading-6 text-[var(--text-2)]">
+              <div className="border-y border-dashed border-[var(--border)] py-8 text-sm leading-6 text-[var(--text-2)]">
                 {isEn ? "No projects yet. Start from Today or create a new project from the dashboard." : "还没有项目。先去今日选题，或者从首页新建项目。"}
               </div>
             ) : (
@@ -277,13 +450,13 @@ export default async function DailyRunPage() {
                 const meta = stageMeta(stage, locale);
                 const action = nextAction(project, locale);
                 return (
-                  <div key={project.id} className="theme-panel-muted rounded-xl p-5">
+                  <div key={project.id} className="border-y border-[var(--border)] py-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-[var(--text-1)]">{project.title}</div>
                         <div className="mt-2 text-sm leading-6 text-[var(--text-2)] line-clamp-2">{project.topic_query}</div>
                       </div>
-                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${meta.tone}`}>{meta.label}</span>
+                      <span className={`inline-flex rounded-md px-3 py-1 text-xs font-medium ${meta.tone}`}>{meta.label}</span>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
                       <span>{isEn ? "Updated" : "最后修改"} {formatRunDate(project.updated_at, locale)}</span>
@@ -293,7 +466,7 @@ export default async function DailyRunPage() {
                       <span>{isEn ? "Packages" : "包装产物"} {project.strategy_task_count}</span>
                     </div>
                     <div className="mt-5 flex items-center justify-between gap-4">
-                      <Link href={action.href} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-[var(--text-1)] transition hover:border-white/20">
+                      <Link href={action.href} className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] px-4 py-2 text-sm text-[var(--text-1)] transition hover:border-[var(--accent)]">
                         {action.label}
                         <ArrowRight className="size-4" />
                       </Link>
@@ -320,7 +493,7 @@ export default async function DailyRunPage() {
                 <Link
                   key={project.id}
                   href={`/?projectId=${project.id}` as Route}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-white/8 px-4 py-3 text-sm transition hover:border-white/14 hover:bg-white/4"
+                  className="flex items-center justify-between gap-4 border-t border-[var(--border)] py-3 text-sm transition hover:bg-[var(--surface-muted)]"
                 >
                   <div className="min-w-0">
                     <div className="truncate font-medium text-[var(--text-1)]">{project.title}</div>
