@@ -236,6 +236,10 @@ GEMINI_API_KEY=""
 DEEPSEEK_API_KEY=""
 QWEN_API_KEY=""
 QWEN_BASE_URL="" # optional, for example: http://127.0.0.1:1234/v1
+QWEN_TEMPERATURE="0.35"
+QWEN_TOP_P="0.85"
+QWEN_MAX_TOKENS="8192"
+QWEN_CONTEXT_WINDOW="131072" # reminder only; set the real context window in LM Studio / the local server
 OPENAI_MODEL="gpt-5.4-mini"
 LLM_PROVIDER="OPENAI"
 LLM_MOCK_MODE="false"
@@ -245,13 +249,17 @@ LLM_MOCK_MODE="false"
 
 ```bash
 QWEN_BASE_URL="http://127.0.0.1:1234/v1"
+QWEN_TEMPERATURE="0.35"
+QWEN_TOP_P="0.85"
+QWEN_MAX_TOKENS="8192"
+QWEN_CONTEXT_WINDOW="131072"
 LLM_ROUTE_SCRIPT_REWRITE_PROVIDER="QWEN"
 LLM_ROUTE_SCRIPT_REWRITE_MODEL="qwen3.6-35b"
 LLM_ROUTE_MARKETING_ANALYSIS_PROVIDER="QWEN"
 LLM_ROUTE_MARKETING_ANALYSIS_MODEL="qwen3.6-35b"
 ```
 
-`QWEN_BASE_URL` 可以填写根地址、`/v1` 地址或完整 `/v1/chat/completions` 地址；Tahoe 会自动补齐 OpenAI-compatible chat completions 路径。云端部署不能访问你电脑上的 `127.0.0.1`，所以这只适合本地开发或同一内网可访问的模型服务。
+`QWEN_BASE_URL` 可以填写根地址、`/v1` 地址或完整 `/v1/chat/completions` 地址；Tahoe 会自动补齐 OpenAI-compatible chat completions 路径。`QWEN_TEMPERATURE`、`QWEN_TOP_P`、`QWEN_MAX_TOKENS` 会作用在本地 Qwen 请求上。`QWEN_CONTEXT_WINDOW` 是配置备忘，真实上下文窗口仍需要在 LM Studio / 本地推理服务里设置。云端部署不能访问你电脑上的 `127.0.0.1`，所以这只适合本地开发或同一内网可访问的模型服务。
 
 推荐的分步骤模型路由：
 

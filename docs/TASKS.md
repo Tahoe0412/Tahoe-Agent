@@ -55,6 +55,7 @@
   - the DeepSeek V4 v2 package has now been completed across packaging and image-prep artifacts: title pack `cmof4q69e0001v6yg2m5s4lb5`, publish copy `cmof4q6cc0003v6ygzctsfkw0`, image-brief set `cmof4rior0005v6ygcahadf3r`, and three queued image jobs with saved feedback.
   - Scene Planner / Render Lab now fall back to storyboard-frame-only rows when a project has manual image briefs but no split script scenes, so article-first packages can display direct image briefs instead of showing an empty state.
   - Qwen provider routing now supports a local OpenAI-compatible model endpoint via `QWEN_BASE_URL` / `LOCAL_QWEN_BASE_URL`, and the Settings UI/README now expose `qwen3.6-35b` / `qwen3.6-35b-a3b` as local Qwen options. This gives local Tahoe a clean path away from unsupported Gemini routes without adding a new Prisma enum.
+  - local Qwen calls now pin conservative production parameters from environment variables: `QWEN_TEMPERATURE=0.35`, `QWEN_TOP_P=0.85`, `QWEN_MAX_TOKENS=8192`; LM Studio's current loaded context window is documented as `QWEN_CONTEXT_WINDOW=131072`.
   - the GPT-5.5 dry-run workspace has been cleaned: the best draft was merged into final local project `cmocc5cfq0034s0v59k0ot713`, duplicate GPT5.5 trial projects were archived rather than deleted, a cloud inspection copy was rebuilt as `cmocgo05k0000v6w47xyxcr39`, and `docs/GPT55_ARTICLE_RUNBOOK.md` now records the article-production process for teammates
   - project lists now expose and display `updated_at`; Daily Run and Settings show "最后修改 / Updated", ordinary read models default-hide archived projects, and Settings remains the recovery surface for archived work
   - the `/daily-run` runtime screenshot was checked against a clean `.next` reset and fresh dev server; `/daily-run` returned `200`, so the observed webpack `call` error is treated as stale dev/HMR cache unless it reappears after clean restart
@@ -65,6 +66,7 @@
   - add an explicit "article length / depth" control to Daily Run and Script Lab so users can choose short update, standard article, or deep commentary without changing the prompt manually
   - normalize cloud model settings so packaging generation no longer falls back to the older unsupported `gemini-2.5-pro` setting
   - decide which routes should stay on local Qwen long-term versus returning to the quality-first cloud mix; currently all local model routes are pointed at LM Studio Qwen for testing
+  - evaluate whether article-writing routes should later get a slightly higher local-Qwen temperature than review/JSON routes, after parse reliability is measured
   - continue sweeping remaining 分镜 references in lower-traffic secondary pages (help-center, workflow-actions, marketing-ops, approval-board)
   - refine each owned-media line's final brand/persona package, especially `消费时尚`, which still needs a tighter runway/brand-analysis voice before the preset should be treated as final
 

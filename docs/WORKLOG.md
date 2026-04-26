@@ -1934,3 +1934,22 @@
 
 **Reason**:
 - The user needed one inspectable GPT5.5 article package, not scattered trial projects. The `/daily-run` runtime screenshot was consistent with a stale webpack/HMR cache; a clean local restart returned `200`, while code fixes addressed the real lint/read-model issues found during the sweep.
+
+---
+
+## 2026-04-26 11:20 — Agent: Codex
+
+### Task: Tune local Qwen parameters for Tahoe generation
+
+**Changes**:
+- Modified `lib/openai-json.ts` — local OpenAI-compatible Qwen requests now read `QWEN_TEMPERATURE`, `QWEN_TOP_P`, and `QWEN_MAX_TOKENS`, then include those values in the chat-completions request body.
+- Modified `.env.example` and `README.md` — documented the local LM Studio baseline: `QWEN_TEMPERATURE=0.35`, `QWEN_TOP_P=0.85`, `QWEN_MAX_TOKENS=8192`, and `QWEN_CONTEXT_WINDOW=131072`.
+- Updated local `.env.local` with the same Qwen parameter baseline for the user's machine.
+- Checked LM Studio directly: local server is running at `http://127.0.0.1:1234`, the active model is `qwen3.6-35b-a3b-uncensored-hauhaucs-aggressive`, temperature is `0.35`, and the model is loaded with a 131072-token context window.
+- Updated `docs/PROJECT_STATE.md`, `docs/TASKS.md`, and `docs/DECISIONS.md`.
+
+**Reason**:
+- Tahoe's local Qwen path is used for JSON-heavy production steps as well as long-form article generation. Conservative defaults reduce structured-output failures while still leaving enough sampling range for Chinese prose.
+
+**Remaining**:
+- After several real article runs, decide whether article-writing routes should use a higher temperature than review / classification routes.

@@ -100,6 +100,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
   - Chinese marketing writing now defaults to `qwen3-max` / `qwen3.5-plus`
 - Settings-page model labels and README/env examples are now aligned with that routing split, so the live UI no longer presents the older `gpt-4.1` / `gemini-2.5` / `qwen-plus` style defaults as the main recommended path.
 - Qwen routing now also supports a local OpenAI-compatible endpoint through `QWEN_BASE_URL` / `LOCAL_QWEN_BASE_URL`. This lets a locally deployed `qwen3.6-35b` service power Tahoe generation without using DashScope, as long as the model server exposes a `/v1/chat/completions`-compatible API.
+- Local OpenAI-compatible Qwen requests now also support production-safe parameter overrides: `QWEN_TEMPERATURE=0.35`, `QWEN_TOP_P=0.85`, and `QWEN_MAX_TOKENS=8192`. The user's LM Studio load currently uses a 131072-token context window; `QWEN_CONTEXT_WINDOW=131072` is documented as a setup note, but the real context must still be configured inside LM Studio / the local inference server.
 - `AppSettings.llm_model` schema default now also matches the new baseline (`gpt-5.4-mini`) instead of the earlier `gpt-4.1-mini`, preventing new settings records from silently inheriting an outdated fallback model.
 - Long-term architecture direction is now documented separately in `docs/FUTURE_BLUEPRINT.md`. The two most important future vectors are:
   - stronger review-loop / agentic orchestration over time
@@ -132,6 +133,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
 6. Cloud packaging generation can still inherit an older persisted Gemini model setting (`gemini-2.5-pro`) and fail with Google API `User location is not supported for the API use`. Manual packaging can still be saved through the Strategy Task API, but the next model-settings cleanup should normalize the cloud settings record to the current quality-first routing.
 7. Local Qwen support is now verified on the user's machine through LM Studio at `http://127.0.0.1:1234/v1`, using model `qwen3.6-35b-a3b-uncensored-hauhaucs-aggressive`. The local Tahoe settings database and `.env.local` both route all model steps to this Qwen endpoint for local testing. This does not make Tencent Cloud able to call the laptop-local endpoint.
+8. Local Qwen generation parameters are intentionally conservative for now (`temperature=0.35`, `top_p=0.85`, `max_tokens=8192`) because Tahoe still depends on JSON-shaped outputs for review, packaging, and image-brief records. Raise creativity only after checking parse reliability.
 
 ## Constraints — DO NOT VIOLATE
 

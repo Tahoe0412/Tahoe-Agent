@@ -446,3 +446,16 @@
   - keep cloud deployment separate from local machine access; Tencent Cloud cannot call the user's `127.0.0.1`
   - if local Qwen is expected to power cloud generation later, expose it through a secure network endpoint or deploy the model beside the server
 - **Files**: `lib/openai-json.ts`, `lib/model-routing.ts`, `services/app-settings.service.ts`, `components/settings/settings-form.tsx`, `README.md`, `.env.example`
+
+## D-039 Local Qwen Calls Should Pin Conservative Generation Parameters
+- **Date**: 2026-04-26
+- **Reason**: Tahoe uses local Qwen for structured JSON outputs, long-form drafts, packaging, and review loops. LM Studio defaults can be too creative for JSON-heavy production chains, and a high temperature increases parse failures and inconsistent review results.
+- **Impact**:
+  - local OpenAI-compatible Qwen requests now read `QWEN_TEMPERATURE`, `QWEN_TOP_P`, and `QWEN_MAX_TOKENS`
+  - the current local baseline is `temperature=0.35`, `top_p=0.85`, `max_tokens=8192`
+  - `QWEN_CONTEXT_WINDOW=131072` is documented as the current LM Studio load setting, but Tahoe treats it as a setup note because the actual context window is controlled by the local inference server
+- **Rule**:
+  - prefer stable local-Qwen parameters for the production pipeline before increasing creativity
+  - if article prose needs more variation later, tune route-specific prompts first, then raise temperature only after JSON reliability is verified
+  - do not assume `.env` can change the context window; set that inside LM Studio / vLLM / SGLang
+- **Files**: `lib/openai-json.ts`, `.env.example`, `README.md`

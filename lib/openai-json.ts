@@ -37,6 +37,20 @@ interface GeminiGenerateContentResponse {
 
 const appSettingsService = new AppSettingsService();
 
+function envNumber(name: string, fallback: number, min: number, max: number) {
+  const raw = process.env[name]?.trim();
+  if (!raw) {
+    return fallback;
+  }
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, parsed));
+}
+
 function isLocalUrl(value: string) {
   try {
     const url = new URL(value);
@@ -106,7 +120,13 @@ async function requestOpenAI<T>({
   strictJsonSchema,
 }: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string; strictJsonSchema?: boolean }) {
   const effectiveTimeout = timeoutMs ?? 120_000;
-  const promptOnlyJson = strictJsonSchema === false || isLocalUrl(baseUrl);
+  const localEndpoint = isLocalUrl(baseUrl);
+  const promptOnlyJson = strictJsonSchema === false || localEndpoint;
+  const effectiveTemperature = localEndpoint
+    ? envNumber("QWEN_TEMPERATURE", temperature, 0, 1.5)
+    : temperature;
+  const qwenTopP = localEndpoint ? envNumber("QWEN_TOP_P", 0.85, 0.05, 1) : null;
+  const qwenMaxTokens = localEndpoint ? Math.round(envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768)) : null;
   const userContent = promptOnlyJson
     ? [
         userPrompt,
@@ -129,7 +149,9 @@ async function requestOpenAI<T>({
       },
       body: JSON.stringify({
         model,
-        temperature,
+        temperature: effectiveTemperature,
+        ...(qwenTopP ? { top_p: qwenTopP } : {}),
+        ...(qwenMaxTokens ? { max_tokens: qwenMaxTokens } : {}),
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
