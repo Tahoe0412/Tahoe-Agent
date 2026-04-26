@@ -547,7 +547,7 @@ export function RenderLabWorkbench({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          script_scene_id: selectedScene.id,
+          ...(selectedScene.id.startsWith("frame:") ? {} : { script_scene_id: selectedScene.id }),
           storyboard_frame_id: selectedScene.frameId ?? undefined,
           job_type: jobType,
           provider,

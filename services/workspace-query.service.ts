@@ -377,7 +377,7 @@ export class WorkspaceQueryService {
     const publishCopyTasks = project.strategy_tasks.filter((task) => task.task_type === "SCRIPT" && taskHasKind(task.task_json, "PUBLISH_COPY"));
     const adCreativeTasks = project.strategy_tasks.filter((task) => taskHasKind(task.task_json, "AD_CREATIVE"));
 
-    const scenePlannerRows = scenes.map((scene) => {
+    const scenePlannerRows = scenes.length > 0 ? scenes.map((scene) => {
       const classification = scene.scene_classifications[0];
       const requiredAssets = scene.required_assets[0];
       const requiredAssetItems =
@@ -433,7 +433,39 @@ export class WorkspaceQueryService {
             fileUrl: reference.file_url,
           })) ?? [],
       };
-    });
+    }) : storyboardFrames.map((frame) => ({
+      id: `frame:${frame.id}`,
+      sceneOrder: frame.frame_order,
+      frameId: frame.id,
+      frameOrder: frame.frame_order,
+      frameStatus: frame.frame_status,
+      frameTitle: frame.frame_title,
+      rewritten: frame.narration_text ?? frame.frame_title,
+      shotGoal: frame.composition_notes ?? frame.frame_title,
+      durationSec: frame.duration_sec ?? 6,
+      continuityGroup: frame.continuity_group ?? `frame_${frame.frame_order}`,
+      productionClass: frame.production_class ?? "N/A",
+      difficulty: 0,
+      riskFlags: [],
+      assetReady: true,
+      requiredAssets: [],
+      uploadedAssets: [],
+      missing: [],
+      cameraPlan: frame.camera_plan ?? null,
+      motionPlan: frame.motion_plan ?? null,
+      compositionNotes: frame.composition_notes ?? null,
+      visualPrompt: frame.visual_prompt ?? null,
+      onScreenText: frame.on_screen_text ?? null,
+      narrationText: frame.narration_text ?? null,
+      referenceCount: frame.references.length,
+      storyboardVersion: latestStoryboard?.version_number ?? null,
+      references: frame.references.map((reference) => ({
+        id: reference.id,
+        type: reference.reference_type,
+        label: reference.source_label ?? reference.file_name ?? reference.reference_type,
+        fileUrl: reference.file_url,
+      })),
+    }));
 
     const priorities = [
       project.brand_profile

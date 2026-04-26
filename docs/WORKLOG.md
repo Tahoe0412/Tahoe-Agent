@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-04-26 10:15 — Agent: Codex
+
+### Task: T-014 DeepSeek V4 v2 package completion
+
+**Changes**:
+- Verified cloud health and `Script Lab` rendering for DeepSeek V4 project `cmocijq2u0000v6bgidcs789o`.
+- Cloud automatic packaging generation failed because the persisted cloud model setting still tried `gemini-2.5-pro`, which Google rejected with `User location is not supported for the API use`.
+- Created manual v2 title pack `cmof4q69e0001v6yg2m5s4lb5` aligned to the "价格表 / 电价" article angle.
+- Created manual v2 publish copy `cmof4q6cc0003v6ygzctsfkw0`.
+- Created v2 image-brief set `cmof4rior0005v6ygcahadf3r` with three READY rows:
+  - cover: DeepSeek V4 tearing open the AI pricing board
+  - body image 1: 1M context as a full conference table of real work materials
+  - body image 2: AI moving from idolized model to electricity-like infrastructure
+- Created three queued image jobs and saved `KEEP` feedback on each brief-level task:
+  - `cmof4tfxm000bv6ygi53jfrvh`
+  - `cmof4tfxq000dv6ygajy7yktm`
+  - `cmof4tfyd000fv6ygxmexr0tg`
+- Fixed the read-model/UI gap where manual storyboard-frame briefs without split script scenes were hidden behind an empty state in Scene Planner and Render Lab.
+
+**Reason**:
+- The v2主稿 improved the voice, but the rest of the project still needed to be realigned. A complete article package should not mix an upgraded main essay with older generic titles or generic AI images.
+- Article-first projects can legitimately create image briefs directly from the final article. The UI should not require script-scene rows before it can show those briefs.
+
+**Verification / Caveats**:
+- Cloud `/api/health` returned database ok.
+- Cloud `Script Lab` returned the v2 script in HTML.
+- Strategy task creation, storyboard creation, render-job creation, and render-job feedback updates all succeeded.
+- Remaining issue: fix cloud model settings so future packaging can be generated automatically instead of manually patched.
+
+---
+
 ## 2026-04-25 11:00 — Agent: Codex
 
 ### Task: T-014 AI快讯 anti-AI-tone calibration + DeepSeek V4 v2

@@ -1,6 +1,6 @@
 # Project State
 
-> Last updated: 2026-04-25 by Codex
+> Last updated: 2026-04-26 by Codex
 > Read this file FIRST before doing any work.
 
 ## Goal
@@ -116,7 +116,8 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 - AI快讯 main-draft prompting has been tightened so each change point must land on a user-perceivable consequence instead of stopping at generic industry-summary phrasing.
 - AI快讯 main-draft prompting now targets Toutiao-first long-form article drafts by default rather than short news summaries. The expected output is a complete mobile-readable article with a strong hook, factual grounding, explanation, clear judgment, and roughly 1800-2600 Chinese characters when source material is sufficient.
 - AI快讯 main-draft prompting and audience review now also include an explicit anti-AI-tone calibration. The writing target is no longer only "longer article"; it must have a core metaphor/tension, plain-language translation, author judgment, source-grounded facts, and non-template paragraph rhythm inspired by high-quality Chinese tech media/creator writing patterns. Do not copy a named creator's voice, but do preserve those structural standards.
-- The cloud DeepSeek V4 project `cmocijq2u0000v6bgidcs789o` now has a v2 human-edited draft `cmodr2ie90001v6icxfisey66` with the new title `DeepSeek V4来了：最该紧张的，不是模型公司，而是价格表`.
+- The cloud DeepSeek V4 project `cmocijq2u0000v6bgidcs789o` now has a v2 human-edited draft `cmodr2ie90001v6icxfisey66` with the new title `DeepSeek V4来了：最该紧张的，不是模型公司，而是价格表`. Its title pack (`cmof4q69e0001v6yg2m5s4lb5`), publish copy (`cmof4q6cc0003v6ygzctsfkw0`), image-brief set (`cmof4rior0005v6ygcahadf3r`), and three image jobs (`cmof4tfxm000bv6ygi53jfrvh`, `cmof4tfxq000dv6ygajy7yktm`, `cmof4tfyd000fv6ygxmexr0tg`) are aligned to the same price-table/electricity metaphor.
+- Scene Planner and Render Lab now also display storyboard-frame-only image briefs when a project has manual image briefs but no split script scenes. This is important for article/image packages where the image plan can be created directly from the article instead of from scene-split rows.
 - Homepage and project-intent cards are now intentionally shorter. Use cards to signal direction, not to explain the full workflow inside every card body.
 - Brief Studio platform values are now normalized to the backend schema-safe set (`XHS`, `DOUYIN`, `YOUTUBE`, `X`, `TIKTOK`). Do not reintroduce ad-hoc UI-only values such as `XIAOHONGSHU` or `BRAND_PAGE` into brief payloads unless the schema is explicitly expanded first.
 - These are **future roadmap items**, not the current sprint scope. Current work should stay focused on content quality, prompt quality, artifact-first UX, and clearer user flow.
@@ -128,6 +129,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 3. The local quality-first model route can still inherit older persisted provider/model settings from `app_settings`, so end-to-end verification may run on mixed current/legacy model choices unless the settings record is normalized.
 4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end. A later quality pass replaced the too-short cloud inspection draft with a long-form v2 and upgraded AI快讯 prompting, but future runs still need factual source quality checks before real publication.
 5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
+6. Cloud packaging generation can still inherit an older persisted Gemini model setting (`gemini-2.5-pro`) and fail with Google API `User location is not supported for the API use`. Manual packaging can still be saved through the Strategy Task API, but the next model-settings cleanup should normalize the cloud settings record to the current quality-first routing.
 
 ## Constraints — DO NOT VIOLATE
 

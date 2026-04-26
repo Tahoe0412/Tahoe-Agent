@@ -150,6 +150,7 @@ export function ScenePlannerWorkbench({
         : null,
     [jobs, selectedScene],
   );
+  const selectedIsFrameOnly = Boolean(selectedScene?.id.startsWith("frame:"));
   const storyboardVersion = rows[0]?.storyboardVersion ?? null;
   const readyFrames = rows.filter((row) => row.frameStatus === "READY" || row.frameStatus === "LOCKED").length;
   const totalReferences = rows.reduce((sum, row) => sum + row.referenceCount, 0);
@@ -165,6 +166,10 @@ export function ScenePlannerWorkbench({
 
   async function saveScene() {
     if (!selectedScene) return;
+    if (selectedIsFrameOnly) {
+      setMessage("这条配图说明来自手工 storyboard，当前可查看和进入图片任务；如需改写文字，请先重新生成或编辑对应 storyboard 数据。");
+      return;
+    }
 
     setPending("save");
     setLastAction("save");
@@ -198,6 +203,10 @@ export function ScenePlannerWorkbench({
     if (!selectedScene) {
       return;
     }
+    if (selectedIsFrameOnly) {
+      setMessage("这条配图说明没有绑定 script scene，不需要重跑条目分类。");
+      return;
+    }
 
     setPending("classify");
     setLastAction("classify");
@@ -225,6 +234,10 @@ export function ScenePlannerWorkbench({
     if (!selectedScene) {
       return;
     }
+    if (selectedIsFrameOnly) {
+      setMessage("这条配图说明没有绑定 script scene，当前按 storyboard brief 直接进入图片任务。");
+      return;
+    }
 
     setPending("assets");
     setLastAction("assets");
@@ -246,6 +259,10 @@ export function ScenePlannerWorkbench({
 
   async function saveAssetMetadata() {
     if (!selectedScene) {
+      return;
+    }
+    if (selectedIsFrameOnly) {
+      setMessage("这条配图说明没有绑定 script scene，暂不支持在这里上传并回写素材；可先在图片任务里记录参考和反馈。");
       return;
     }
 
@@ -537,13 +554,13 @@ export function ScenePlannerWorkbench({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => void saveScene()} disabled={pending !== null}>
+            <Button onClick={() => void saveScene()} disabled={pending !== null || selectedIsFrameOnly}>
               {pending === "save" ? "保存中..." : "保存配图说明"}
             </Button>
-            <Button variant="secondary" onClick={() => void rerunClassification()} disabled={pending !== null}>
+            <Button variant="secondary" onClick={() => void rerunClassification()} disabled={pending !== null || selectedIsFrameOnly}>
               {pending === "classify" ? "重跑中..." : "重跑条目分类"}
             </Button>
-            <Button variant="secondary" onClick={() => void rerunAssets()} disabled={pending !== null}>
+            <Button variant="secondary" onClick={() => void rerunAssets()} disabled={pending !== null || selectedIsFrameOnly}>
               {pending === "assets" ? "分析中..." : "重跑素材判断"}
             </Button>
             <Button variant="ghost" onClick={() => setShowAdvanced((value) => !value)}>
@@ -585,7 +602,7 @@ export function ScenePlannerWorkbench({
               文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前条目的素材分析。
               {uploadStorageMode === "tencent_cos" ? " 当前已启用腾讯云对象存储，可用于后续跨实例共享与更稳定的素材沉淀。" : " 当前使用服务端上传和本地存储，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
-            <Button onClick={() => void saveAssetMetadata()} disabled={pending !== null || !selectedFile}>
+            <Button onClick={() => void saveAssetMetadata()} disabled={pending !== null || !selectedFile || selectedIsFrameOnly}>
               {pending === "upload" ? "上传中..." : "上传并更新参考状态"}
             </Button>
           </div>
