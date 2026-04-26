@@ -64,6 +64,7 @@ export default async function SettingsPage() {
               geminiApiKey: settings.geminiApiKey,
               deepseekApiKey: settings.deepseekApiKey,
               qwenApiKey: settings.qwenApiKey,
+              qwenBaseUrl: settings.qwenBaseUrl,
               llmRouting: settings.llmRouting,
               newsSearchProvider: settings.newsSearchProvider,
               newsSearchMockMode: settings.newsSearchMockMode,

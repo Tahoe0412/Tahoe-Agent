@@ -10,6 +10,7 @@ export interface EffectiveAppSettings {
   geminiApiKey: string | null;
   deepseekApiKey: string | null;
   qwenApiKey: string | null;
+  qwenBaseUrl: string | null;
   llmRouting: Record<ModelRouteKey, ModelRouteConfig>;
   newsSearchProvider: SearchProvider;
   newsSearchMockMode: boolean;
@@ -101,6 +102,7 @@ export class AppSettingsService {
       geminiApiKey: trimOrNull(record?.gemini_api_key) ?? trimOrNull(process.env.GEMINI_API_KEY),
       deepseekApiKey: trimOrNull(record?.deepseek_api_key) ?? trimOrNull(process.env.DEEPSEEK_API_KEY),
       qwenApiKey: trimOrNull(record?.qwen_api_key) ?? trimOrNull(process.env.QWEN_API_KEY),
+      qwenBaseUrl: trimOrNull(process.env.QWEN_BASE_URL) ?? trimOrNull(process.env.LOCAL_QWEN_BASE_URL),
       llmRouting: normalizeModelRoutes(
         record?.llm_routing_json ??
           Object.fromEntries(

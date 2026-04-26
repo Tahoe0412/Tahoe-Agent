@@ -258,6 +258,7 @@
   - Scene Planner now summarizes recent image-job feedback for each row using the latest render jobs already available in the workspace read model
   - rows can now show whether they already carry recent retry / rewrite history
   - the detail panel now surfaces the latest verdict, high-frequency issue tags, and the latest short note from real image runs
+
 - **Rule**:
   - do not treat Scene Planner as a static pre-generation editor once real image outcomes exist
   - when recent render-job feedback is available for a row, surface it in planning before asking users to try another generation
@@ -432,3 +433,16 @@
   - a publishable AI快讯 article must have facts plus authorial interpretation; a correct neutral summary is not enough
   - if the first screen sounds like a press release, the draft should be revised even when the facts are correct
 - **Files**: `lib/mars-citizen-prompt.ts`, `lib/copy-review-panel.ts`, `lib/output-type-copy-prompt.ts`
+
+## D-038 Local Qwen Should Reuse The QWEN Provider Instead Of Adding A New Prisma Enum
+- **Date**: 2026-04-26
+- **Reason**: The user has a local `qwen3.6-35b` deployment and wants Tahoe to avoid unsupported Gemini routes during local generation. Adding a new `LOCAL_QWEN` Prisma enum would force a schema migration and create cloud/local compatibility risk. The safer seam is to reuse the existing `QWEN` provider and let `QWEN_BASE_URL` point at any OpenAI-compatible local model server.
+- **Impact**:
+  - `QWEN_BASE_URL` / `LOCAL_QWEN_BASE_URL` can override DashScope for Qwen calls
+  - Qwen local calls use prompt-embedded JSON schema instructions instead of relying on OpenAI's strict `json_schema` response format, because many local model servers do not implement it
+  - Settings and docs expose `qwen3.6-35b` / `qwen3.6-35b-a3b` as selectable Qwen model names
+- **Rule**:
+  - do not add a new model-provider enum solely for local Qwen while an OpenAI-compatible base URL is sufficient
+  - keep cloud deployment separate from local machine access; Tencent Cloud cannot call the user's `127.0.0.1`
+  - if local Qwen is expected to power cloud generation later, expose it through a secure network endpoint or deploy the model beside the server
+- **Files**: `lib/openai-json.ts`, `lib/model-routing.ts`, `services/app-settings.service.ts`, `components/settings/settings-form.tsx`, `README.md`, `.env.example`

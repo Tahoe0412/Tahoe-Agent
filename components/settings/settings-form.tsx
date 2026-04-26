@@ -12,6 +12,7 @@ type SettingsPayload = {
   geminiApiKey: string | null;
   deepseekApiKey: string | null;
   qwenApiKey: string | null;
+  qwenBaseUrl: string | null;
   llmRouting: Record<ModelRouteKey, { provider: "OPENAI" | "GEMINI" | "DEEPSEEK" | "QWEN"; model: string }>;
   newsSearchProvider: "MOCK" | "GOOGLE";
   newsSearchMockMode: boolean;
@@ -36,6 +37,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     "deepseek-chat": "DeepSeek Chat",
     "deepseek-reasoner": "DeepSeek Reasoner",
     "qwen3-max": "Qwen 3 Max",
+    "qwen3.6-35b": "Qwen 3.6 35B 本地",
+    "qwen3.6-35b-a3b": "Qwen 3.6 35B A3B 本地",
     "qwen3.5-plus": "Qwen 3.5 Plus",
     "qwen3.5-flash": "Qwen 3.5 Flash",
     "qwen-max": "Qwen Max",
@@ -80,7 +83,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     { key: "OPENAI", label: "OpenAI", ready: Boolean(form.openai_api_key.trim()) },
     { key: "GEMINI", label: "Gemini", ready: Boolean(form.gemini_api_key.trim()) },
     { key: "DEEPSEEK", label: "DeepSeek", ready: Boolean(form.deepseek_api_key.trim()) },
-    { key: "QWEN", label: "Qwen / 通义千问", ready: Boolean(form.qwen_api_key.trim()) },
+    { key: "QWEN", label: "Qwen / 通义千问", ready: Boolean(form.qwen_api_key.trim() || initial.qwenBaseUrl) },
   ] as const;
 
   function updateMainProvider(provider: LlmProvider) {
@@ -214,6 +217,18 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
       </div>
 
       <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+        本地 Qwen Base URL：
+        <span className="font-mono text-[var(--text-1)]">{initial.qwenBaseUrl ?? "未配置"}</span>
+        。如果你的 qwen3.6-35b 通过 LM Studio / Ollama / vLLM / SGLang 暴露 OpenAI-compatible 接口，请在
+        <span className="font-mono text-[var(--text-1)]"> .env.local </span>
+        里设置
+        <span className="font-mono text-[var(--text-1)]"> QWEN_BASE_URL </span>
+        ，例如
+        <span className="font-mono text-[var(--text-1)]"> http://127.0.0.1:1234/v1 </span>
+        。本字段只从环境变量读取，不能在页面内保存。
+      </div>
+
+      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         本地如果是通过 `.env.local` 修改 API key，改完后必须重启 `npm run dev`。Next.js 不会在运行中自动重新读取这些环境变量。
       </div>
 
@@ -308,8 +323,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                       ? "当前未填写 Gemini key"
                       : !form.llm_mock_mode && route.provider === "DEEPSEEK" && !form.deepseek_api_key.trim()
                         ? "当前未填写 DeepSeek key"
-                        : !form.llm_mock_mode && route.provider === "QWEN" && !form.qwen_api_key.trim()
-                          ? "当前未填写 Qwen key"
+                        : !form.llm_mock_mode && route.provider === "QWEN" && !form.qwen_api_key.trim() && !initial.qwenBaseUrl
+                          ? "当前未填写 Qwen key，也未配置 QWEN_BASE_URL"
                           : `当前会使用 ${providerLabel(route.provider)} / ${modelLabel(route.model)}`}
                 </div>
               </div>
@@ -461,8 +476,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         {!form.llm_mock_mode && form.llm_provider === "DEEPSEEK" && !form.deepseek_api_key.trim()
           ? " 但当前没有填写 DeepSeek key。"
           : null}
-        {!form.llm_mock_mode && form.llm_provider === "QWEN" && !form.qwen_api_key.trim()
-          ? " 但当前没有填写 Qwen key。"
+        {!form.llm_mock_mode && form.llm_provider === "QWEN" && !form.qwen_api_key.trim() && !initial.qwenBaseUrl
+          ? " 但当前没有填写 Qwen key，也没有配置 QWEN_BASE_URL。"
           : null}
       </div>
     </div>

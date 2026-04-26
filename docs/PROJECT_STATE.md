@@ -21,7 +21,7 @@ The platform aggregates trend and research signals, then routes users toward the
 - **Styling**: Vanilla CSS with CSS custom properties (design tokens)
 - **Database**: PostgreSQL (localhost:5432, database `ai_video_mvp`)
 - **ORM**: Prisma
-- **AI**: Google Gemini API + OpenAI API + Qwen API (quality-first routing)
+- **AI**: Google Gemini API + OpenAI API + Qwen API + local OpenAI-compatible Qwen endpoint support (quality-first routing)
 - **Search**: Serper.dev (replaced Google Custom Search)
 - **Deployment**: Tencent Cloud server (111.229.24.208), PM2, GitHub Actions CI/CD
 - **Proxy**: Clash/Mihomo at 127.0.0.1:7890 (required for mainland China to access Google/YouTube/OpenAI)
@@ -99,6 +99,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
   - `MARKETING_ANALYSIS` and `REPORT_GENERATION` now default to `gpt-5.4`
   - Chinese marketing writing now defaults to `qwen3-max` / `qwen3.5-plus`
 - Settings-page model labels and README/env examples are now aligned with that routing split, so the live UI no longer presents the older `gpt-4.1` / `gemini-2.5` / `qwen-plus` style defaults as the main recommended path.
+- Qwen routing now also supports a local OpenAI-compatible endpoint through `QWEN_BASE_URL` / `LOCAL_QWEN_BASE_URL`. This lets a locally deployed `qwen3.6-35b` service power Tahoe generation without using DashScope, as long as the model server exposes a `/v1/chat/completions`-compatible API.
 - `AppSettings.llm_model` schema default now also matches the new baseline (`gpt-5.4-mini`) instead of the earlier `gpt-4.1-mini`, preventing new settings records from silently inheriting an outdated fallback model.
 - Long-term architecture direction is now documented separately in `docs/FUTURE_BLUEPRINT.md`. The two most important future vectors are:
   - stronger review-loop / agentic orchestration over time
@@ -130,6 +131,7 @@ NO_PROXY=localhost,127.0.0.1,10.*,172.16.*,192.168.*
 4. The GPT-5.5 article dry run shows the pipeline is now functional end-to-end. A later quality pass replaced the too-short cloud inspection draft with a long-form v2 and upgraded AI快讯 prompting, but future runs still need factual source quality checks before real publication.
 5. The local `/daily-run` webpack runtime screenshot was not reproducible after clearing `.next` and starting a clean dev server; build and HTTP smoke tests returned `200`. If it reappears on port 3000, stop the older dev process and restart from a clean cache.
 6. Cloud packaging generation can still inherit an older persisted Gemini model setting (`gemini-2.5-pro`) and fail with Google API `User location is not supported for the API use`. Manual packaging can still be saved through the Strategy Task API, but the next model-settings cleanup should normalize the cloud settings record to the current quality-first routing.
+7. Local Qwen support requires the local model process to expose an HTTP endpoint. Common ports (`11434`, `1234`, `8000`) were not reachable during the 2026-04-26 check, so the actual local `QWEN_BASE_URL` still needs to be supplied by the operator before Tahoe can call `qwen3.6-35b`.
 
 ## Constraints — DO NOT VIOLATE
 

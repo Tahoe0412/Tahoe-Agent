@@ -37,6 +37,50 @@ interface GeminiGenerateContentResponse {
 
 const appSettingsService = new AppSettingsService();
 
+function isLocalUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function normalizeChatCompletionsUrl(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (trimmed.endsWith("/chat/completions")) {
+    return trimmed;
+  }
+  if (trimmed.endsWith("/v1")) {
+    return `${trimmed}/chat/completions`;
+  }
+  return `${trimmed}/v1/chat/completions`;
+}
+
+function parseJsonContent(content: string, label: string) {
+  const cleaned = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const objectStart = cleaned.indexOf("{");
+    const objectEnd = cleaned.lastIndexOf("}");
+    const arrayStart = cleaned.indexOf("[");
+    const arrayEnd = cleaned.lastIndexOf("]");
+    const objectCandidate = objectStart >= 0 && objectEnd > objectStart ? cleaned.slice(objectStart, objectEnd + 1) : "";
+    const arrayCandidate = arrayStart >= 0 && arrayEnd > arrayStart ? cleaned.slice(arrayStart, arrayEnd + 1) : "";
+    const candidate = objectCandidate || arrayCandidate;
+    if (!candidate) {
+      throw new Error(`${label} returned non-JSON content.`);
+    }
+    return JSON.parse(candidate);
+  }
+}
+
 function normalizeGeminiModel(model: string) {
   const normalized = model.trim();
   const aliases: Record<string, string> = {
@@ -59,8 +103,19 @@ async function requestOpenAI<T>({
   preprocess,
   temperature = 0.2,
   timeoutMs,
-}: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string }) {
+  strictJsonSchema,
+}: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string; strictJsonSchema?: boolean }) {
   const effectiveTimeout = timeoutMs ?? 120_000;
+  const promptOnlyJson = strictJsonSchema === false || isLocalUrl(baseUrl);
+  const userContent = promptOnlyJson
+    ? [
+        userPrompt,
+        "",
+        `Return valid JSON only for schema "${schemaName}".`,
+        "Do not include markdown fences or commentary.",
+        `JSON schema reference:\n${JSON.stringify(schema)}`,
+      ].join("\n")
+    : userPrompt;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
   let response: Response;
@@ -77,16 +132,20 @@ async function requestOpenAI<T>({
         temperature,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userContent },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: schemaName,
-            strict: true,
-            schema,
-          },
-        },
+        ...(promptOnlyJson
+          ? {}
+          : {
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: schemaName,
+                  strict: true,
+                  schema,
+                },
+              },
+            }),
       }),
     });
   } finally {
@@ -104,7 +163,7 @@ async function requestOpenAI<T>({
     throw new Error(`OpenAI(${model}) returned an empty response.`);
   }
 
-  const parsed = JSON.parse(content);
+  const parsed = parseJsonContent(content, `OpenAI(${model})`);
   const preprocessed = preprocess ? preprocess(parsed) : parsed;
   if (zodSchema) {
     const result = zodSchema.safeParse(preprocessed);
@@ -179,7 +238,7 @@ async function requestGemini<T>({
     throw new Error(`Gemini(${model}) returned an empty response.`);
   }
 
-  const parsed = JSON.parse(content);
+  const parsed = parseJsonContent(content, `Gemini(${model})`);
   const preprocessed = preprocess ? preprocess(parsed) : parsed;
   if (zodSchema) {
     const result = zodSchema.safeParse(preprocessed);
@@ -217,14 +276,17 @@ export async function generateStructuredJson<T>(params: StructuredJsonParams<T>)
         baseUrl: "https://api.deepseek.com/chat/completions",
       });
     case "QWEN":
-      if (!settings.qwenApiKey) {
-        throw new Error(`QWEN_API_KEY is missing for provider ${provider}.`);
+      if (!settings.qwenApiKey && !settings.qwenBaseUrl) {
+        throw new Error(`QWEN_API_KEY or QWEN_BASE_URL is missing for provider ${provider}.`);
       }
       return requestOpenAI({
         ...params,
-        apiKey: settings.qwenApiKey,
+        apiKey: settings.qwenApiKey ?? "local-qwen",
         model,
-        baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+        baseUrl: settings.qwenBaseUrl
+          ? normalizeChatCompletionsUrl(settings.qwenBaseUrl)
+          : "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+        strictJsonSchema: !settings.qwenBaseUrl,
       });
     case "GEMINI":
     default:

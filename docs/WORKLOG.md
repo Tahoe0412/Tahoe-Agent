@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-04-26 10:55 — Agent: Codex
+
+### Task: T-014 Local Qwen endpoint support
+
+**Changes**:
+- Added local OpenAI-compatible Qwen support through `QWEN_BASE_URL` / `LOCAL_QWEN_BASE_URL`.
+- Kept the existing `QWEN` provider instead of adding a new Prisma enum, avoiding a database migration for local-only model routing.
+- Added `qwen3.6-35b` and `qwen3.6-35b-a3b` to Qwen model options and Settings labels.
+- For local/custom Qwen endpoints, Tahoe now prompts for JSON output instead of requiring OpenAI's strict `json_schema` response format, which many local model servers do not support.
+- Updated README and `.env.example` with the local Qwen configuration pattern.
+
+**Reason**:
+- Cloud/current automatic packaging had fallen back to stale `gemini-2.5-pro` and hit region support errors. Local `qwen3.6-35b` should be available as a controllable local generation route for draft/review/packaging work.
+
+**Verification / Caveats**:
+- `npm run lint` passed with 16 existing warnings.
+- `npm run build` passed.
+- Probed common local model ports `11434`, `1234`, and `8000`; none responded during this check. The operator still needs to provide the actual local model URL in `QWEN_BASE_URL` before Tahoe can call the local model.
+- This does not make Tencent Cloud able to call the user's laptop `127.0.0.1`; cloud still needs a cloud-reachable provider or a model service deployed beside the server.
+
+---
+
 ## 2026-04-26 10:15 — Agent: Codex
 
 ### Task: T-014 DeepSeek V4 v2 package completion

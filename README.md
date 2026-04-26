@@ -223,6 +223,7 @@ TENCENT_COS_BASE_URL="https://your-cdn-or-cos-domain"
 - 或设置 `GEMINI_API_KEY`
 - 或设置 `DEEPSEEK_API_KEY`
 - 或设置 `QWEN_API_KEY`
+- 如果本机部署了 Qwen / LM Studio / Ollama / vLLM / SGLang，并且提供 OpenAI-compatible 接口，也可以设置 `QWEN_BASE_URL`，不必填写云端 Qwen key
 - 本地开发建议把这些 key 放在 `.env.local`
 - 当前版本会在第一次创建设置记录时自动读取 `.env.local` / `.env` 里的默认 API key，避免你每次重置本地数据库后重新输入
 - 模型选择、步骤模型路由和 mock 开关不会自动写入数据库，仍然由你在设置页手动控制
@@ -234,10 +235,23 @@ OPENAI_API_KEY="your_key"
 GEMINI_API_KEY=""
 DEEPSEEK_API_KEY=""
 QWEN_API_KEY=""
+QWEN_BASE_URL="" # optional, for example: http://127.0.0.1:1234/v1
 OPENAI_MODEL="gpt-5.4-mini"
 LLM_PROVIDER="OPENAI"
 LLM_MOCK_MODE="false"
 ```
+
+本地 Qwen 例子：
+
+```bash
+QWEN_BASE_URL="http://127.0.0.1:1234/v1"
+LLM_ROUTE_SCRIPT_REWRITE_PROVIDER="QWEN"
+LLM_ROUTE_SCRIPT_REWRITE_MODEL="qwen3.6-35b"
+LLM_ROUTE_MARKETING_ANALYSIS_PROVIDER="QWEN"
+LLM_ROUTE_MARKETING_ANALYSIS_MODEL="qwen3.6-35b"
+```
+
+`QWEN_BASE_URL` 可以填写根地址、`/v1` 地址或完整 `/v1/chat/completions` 地址；Tahoe 会自动补齐 OpenAI-compatible chat completions 路径。云端部署不能访问你电脑上的 `127.0.0.1`，所以这只适合本地开发或同一内网可访问的模型服务。
 
 推荐的分步骤模型路由：
 
