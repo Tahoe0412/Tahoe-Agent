@@ -33,13 +33,13 @@ export function getDashboardNextStep(
     if (workspace.scenePlannerRows.length === 0) {
       return {
         href: `/scene-planner?projectId=${workspace.project.id}`,
-        label: t ? "去生成分镜" : "Generate Storyboard",
+        label: t ? "去写配图 brief" : "Write Image Brief",
       };
     }
 
     return {
       href: `/render-lab?projectId=${workspace.project.id}`,
-      label: t ? "去准备生成" : "Prepare Render",
+      label: t ? "去出图" : "Open Image Desk",
     };
   }
 
@@ -47,14 +47,14 @@ export function getDashboardNextStep(
     if (workspace.scriptLabRows.length === 0) {
       return {
         href: `/script-lab?projectId=${workspace.project.id}`,
-        label: t ? "去编辑标题与文案" : "Edit Title & Copy",
+        label: t ? "去成稿编辑" : "Open Final Edit",
       };
     }
 
     if (workspace.scenePlannerRows.length === 0) {
       return {
         href: `/scene-planner?projectId=${workspace.project.id}`,
-        label: t ? "去补素材与分镜" : "Continue Storyboard",
+        label: t ? "去补配图 brief" : "Continue Image Brief",
       };
     }
 

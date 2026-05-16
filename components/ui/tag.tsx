@@ -19,5 +19,5 @@ export function Tag({
   tone?: "default" | "danger" | "success" | "warning";
 }) {
   const className = toneStyles[tone] ?? toneStyles.default;
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${className}`}>{children}</span>;
 }

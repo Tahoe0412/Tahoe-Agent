@@ -486,3 +486,17 @@
   - do not add new mandatory review gates unless they remove more work than they add
   - avoid concurrent local-model generation; local 35B runs should be sequenced to protect memory
 - **Files**: `app/daily-run/page.tsx`, `components/daily-run/daily-run-signal-panel.tsx`, `app/api/daily-run/quick-package/route.ts`, `components/dashboard/sidebar.tsx`
+
+## D-042 The Anti-Card Frontend Direction Applies System-Wide, Not Only To The Homepage
+- **Date**: 2026-04-26
+- **Reason**: After the first visual rewrite, the homepage and Daily Run entry had the intended editorial-desk tone, but deeper workbenches still carried the old AI-dashboard language. That mismatch made the product feel inconsistent once users left the first screen.
+- **Impact**:
+  - Today, Trend Explorer, Script Lab, Scene Planner, Render Lab, Marketing Ops, Settings, Brand Profiles, Brief Studio, Industry Templates, and shared utility components should follow the same flat editorial workbench language
+  - selected states should be light/tokenized instead of dark panels with white text
+  - status indicators should use small semantic tags or inline metadata, not decorative pill walls
+  - display typography belongs primarily at page-level hierarchy; dense workbench surfaces should stay readable and sans-serif
+- **Rule**:
+  - do not treat lower-traffic workbenches as exempt from the anti-card design direction
+  - avoid reintroducing large rounded cards, gradients, glows, hover-lift shadows, translucent white UI, circular score widgets, or hard-coded alert color palettes
+  - keep future UI changes inside the current frontend stack and do not change backend contracts for style-only work
+- **Files**: `app/globals.css`, `components/ui/*`, `components/today/*`, `components/trend-discovery/*`, `components/workspace/*`, `app/*/page.tsx`

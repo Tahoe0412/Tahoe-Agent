@@ -131,7 +131,7 @@ export function OutputStudio({
           <p className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.description}</p>
         </div>
         <div className="border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[var(--text-2)]">
-          <span className="text-xs uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.current}</span>
+          <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.current}</span>
           <div className="mt-1 font-medium text-[var(--text-1)]">{getOutputTypeMeta(currentOutputType, locale).label}</div>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function OutputStudio({
                   <Icon className="size-5 text-[var(--accent-strong)]" />
                 </div>
                 <span className={cn(
-                  "rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                  "rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
                   active
                     ? "bg-[var(--accent)]/12 text-[var(--accent-strong)]"
                     : "bg-[var(--surface-muted)] text-[var(--text-3)]",
@@ -190,7 +190,7 @@ export function OutputStudio({
 
       {lastResult ? (
         <div className="mt-5 border-y border-[var(--border)] py-4 text-sm leading-7 text-[var(--text-2)]">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.latest}</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.latest}</div>
           <div className="mt-2 text-base font-semibold text-[var(--text-1)]">{lastResult.title}</div>
           {lastResult.summary ? <div className="mt-1">{lastResult.summary}</div> : null}
         </div>

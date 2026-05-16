@@ -379,12 +379,12 @@ export function ProjectManager({
         </Button>
       </div>
       {message ? (
-        <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--ok-text)_24%,transparent)] bg-[var(--ok-bg)] px-4 py-3 text-sm text-[var(--ok-text)]">
+        <div className="rounded-md border border-[color:color-mix(in_srgb,var(--ok-text)_24%,transparent)] bg-[var(--ok-bg)] px-4 py-3 text-sm text-[var(--ok-text)]">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
+        <div className="rounded-md border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
           {error}
         </div>
       ) : null}
@@ -392,7 +392,7 @@ export function ProjectManager({
       {/* ── Create form: collapsed by default ── */}
       <Disclosure
         title={<span className="text-sm font-semibold text-[var(--text-1)]">{ui.createDisclosure}</span>}
-        className="theme-panel-muted rounded-2xl p-4"
+        className="theme-panel-muted rounded-md p-4"
         summaryClassName="py-1"
         contentClassName="mt-4 space-y-5"
       >
@@ -400,23 +400,23 @@ export function ProjectManager({
       </Disclosure>
 
       {/* ── Search & Filter bar ── */}
-      <div className="theme-panel-muted space-y-3 rounded-2xl p-4">
+      <div className="theme-panel-muted space-y-3 rounded-md p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_160px_160px]">
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={ui.searchPlaceholder} className="theme-input rounded-xl px-4 py-2.5 text-sm" />
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={ui.searchPlaceholder} className="theme-input rounded-md px-4 py-2.5 text-sm" />
+          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="theme-input rounded-md px-3 py-2.5 text-sm">
             <option value="ALL">{ui.allStatuses}</option>
             <option value="COMPLETED">{ui.completed}</option>
             <option value="RUNNING">{ui.running}</option>
             <option value="FAILED">{ui.failed}</option>
             <option value="ARCHIVED">{ui.archivedStatus}</option>
           </select>
-          <select value={modeFilter} onChange={(event) => setModeFilter(event.target.value as typeof modeFilter)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
+          <select value={modeFilter} onChange={(event) => setModeFilter(event.target.value as typeof modeFilter)} className="theme-input rounded-md px-3 py-2.5 text-sm">
             <option value="ALL">{ui.allModes}</option>
             <option value="SHORT_VIDEO">{ui.shortVideo}</option>
             <option value="COPYWRITING">{ui.copywriting}</option>
             <option value="PROMOTION">{ui.promotion}</option>
           </select>
-          <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
+          <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="theme-input rounded-md px-3 py-2.5 text-sm">
             <option value="recent">{ui.sortRecent}</option>
             <option value="updated">{ui.sortUpdated}</option>
             <option value="newest">{ui.sortNewest}</option>
@@ -433,7 +433,7 @@ export function ProjectManager({
       {showBulkActions ? (
         <Disclosure
           title={<span className="text-sm font-medium text-[var(--text-1)]">{ui.bulk(selectedIds.length)}</span>}
-          className="theme-panel rounded-2xl p-4"
+          className="theme-panel rounded-md p-4"
           summaryClassName="py-1"
           contentClassName="mt-3 space-y-3"
         >
@@ -446,7 +446,7 @@ export function ProjectManager({
             </Button>
           </div>
           <div className="grid gap-3 xl:grid-cols-[200px_200px_minmax(0,1fr)_auto]">
-            <select value={bulkBrandId} onChange={(event) => setBulkBrandId(event.target.value)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
+            <select value={bulkBrandId} onChange={(event) => setBulkBrandId(event.target.value)} className="theme-input rounded-md px-3 py-2.5 text-sm">
               <option value="">{ui.bindBrand}</option>
               {brandProfiles.map((profile) => (
                 <option key={profile.id} value={profile.id}>
@@ -454,7 +454,7 @@ export function ProjectManager({
                 </option>
               ))}
             </select>
-            <select value={bulkIndustryId} onChange={(event) => setBulkIndustryId(event.target.value)} className="theme-input rounded-xl px-3 py-2.5 text-sm">
+            <select value={bulkIndustryId} onChange={(event) => setBulkIndustryId(event.target.value)} className="theme-input rounded-md px-3 py-2.5 text-sm">
               <option value="">{ui.bindIndustry}</option>
               {industryTemplates.map((template) => (
                 <option key={template.id} value={template.id}>
@@ -462,7 +462,7 @@ export function ProjectManager({
                 </option>
               ))}
             </select>
-            <input value={bulkTags} onChange={(event) => setBulkTags(event.target.value)} placeholder={ui.appendTags} className="theme-input rounded-xl px-3 py-2.5 text-sm" />
+            <input value={bulkTags} onChange={(event) => setBulkTags(event.target.value)} placeholder={ui.appendTags} className="theme-input rounded-md px-3 py-2.5 text-sm" />
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -501,23 +501,23 @@ export function ProjectManager({
       {/* ── Project list ── */}
       <div className="space-y-2.5">
         {visibleProjects.map((project) => (
-          <div key={project.id} className="theme-panel grid gap-4 rounded-2xl px-4 py-3.5 md:grid-cols-[auto_1fr_auto] md:items-center">
+          <div key={project.id} className="theme-panel grid gap-4 rounded-md px-4 py-3.5 md:grid-cols-[auto_1fr_auto] md:items-center">
             <div className="pt-0.5">
               <input type="checkbox" checked={selectedIds.includes(project.id)} onChange={() => toggleSelection(project.id)} className="size-4 accent-[var(--accent-strong)]" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="text-sm font-semibold text-[var(--text-1)]">{project.title}</div>
-                <span className="theme-chip rounded-full px-2 py-0.5 text-xs font-medium">{project.status}</span>
-                {project.is_pinned ? <span className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--accent-strong)]">{ui.pinnedLabel}</span> : null}
-                <span className={cn("rounded-full border px-2 py-0.5 text-xs font-medium text-[var(--text-2)]", project.workspace_mode === "SHORT_VIDEO" ? "theme-chip-ok" : "border-[var(--border)]")}>
+                <span className="theme-chip rounded-sm px-2 py-0.5 text-xs font-medium">{project.status}</span>
+                {project.is_pinned ? <span className="rounded-sm border border-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--accent-strong)]">{ui.pinnedLabel}</span> : null}
+                <span className={cn("rounded-sm border px-2 py-0.5 text-xs font-medium text-[var(--text-2)]", project.workspace_mode === "SHORT_VIDEO" ? "theme-chip-ok" : "border-[var(--border)]")}>
                   {getWorkspaceModeMeta(project.workspace_mode ?? "SHORT_VIDEO", locale).label}
                 </span>
               </div>
               <div className="mt-1 text-sm text-[var(--text-2)]">{project.topic_query}</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(project.project_tags ?? []).map((tag) => (
-                  <span key={`${project.id}-${tag}`} className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">
+                  <span key={`${project.id}-${tag}`} className="rounded-sm border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-2)]">
                     {tag}
                   </span>
                 ))}
@@ -545,7 +545,7 @@ export function ProjectManager({
             </div>
           </div>
         ))}
-        {visibleProjects.length === 0 ? <div className="theme-panel rounded-2xl px-5 py-4 text-sm text-[var(--text-2)]">{ui.emptyFiltered}</div> : null}
+        {visibleProjects.length === 0 ? <div className="theme-panel rounded-md px-5 py-4 text-sm text-[var(--text-2)]">{ui.emptyFiltered}</div> : null}
       </div>
     </div>
   );

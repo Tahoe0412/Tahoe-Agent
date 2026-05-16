@@ -189,7 +189,7 @@ export default async function Home({
           noProjectDesc: "The selected project could not be loaded. Create a new one or switch projects.",
           startTitle: "Start here",
           startDesc: "Choose the path that matches what you want to produce right now.",
-          quickStartTitle: "What to do first",
+          quickStartTitle: "Minimum input",
           startTodayTitle: "Find today's topics",
           startTodayDesc: "Trends and source material",
           startMarsTitle: "Build owned-media content",
@@ -244,7 +244,7 @@ export default async function Home({
           noProjectDesc: "当前选中的项目没有加载成功。你可以重新创建，或者切换到其他项目。",
           startTitle: "先从这里开始",
           startDesc: "按你现在想产出的内容来选路径，不用先理解整个系统。",
-          quickStartTitle: "现在先做这三步",
+          quickStartTitle: "最少只需要这些",
           startTodayTitle: "今日选题",
           startTodayDesc: "热点与素材",
           startMarsTitle: "内容矩阵",
@@ -435,7 +435,7 @@ export default async function Home({
                   {(workspace.priorities ?? []).length > 0
                     ? workspace.priorities.slice(0, 3).map((item, index) => (
                         <div key={item} className="border-t border-[var(--border)] py-4">
-                          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">
                             {locale === "en" ? `Note ${index + 1}` : `备注 ${index + 1}`}
                           </div>
                           <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{item}</div>
@@ -475,8 +475,8 @@ export default async function Home({
               <div className="text-xs font-medium text-[var(--text-3)]">{ui.quickStartTitle}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                 {locale === "en"
-                  ? "① Pick a direction — ② Name the topic — ③ Paste raw material and create."
-                  : "① 选方向 — ② 写题目 — ③ 贴素材，创建项目。"}
+                  ? "Direction, topic, source material. The rest can wait."
+                  : "方向、题目、素材。其余信息可以后补。"}
               </div>
             </div>
 

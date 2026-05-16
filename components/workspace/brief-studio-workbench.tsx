@@ -112,7 +112,7 @@ type BriefRow = {
 };
 
 function BriefPill({ children }: { children: React.ReactNode }) {
-  return <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{children}</span>;
+  return <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{children}</span>;
 }
 
 export function BriefStudioWorkbench({
@@ -229,7 +229,7 @@ export function BriefStudioWorkbench({
         <div className="grid gap-6 xl:grid-cols-[0.42fr_1fr]">
           <div className="space-y-3">
             {briefs.length === 0 ? (
-              <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
+              <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
                 当前项目还没有任务单。先写清楚目标、平台、核心表达和行动号召，就够开始往下走了。
               </div>
             ) : (
@@ -238,30 +238,30 @@ export function BriefStudioWorkbench({
                   key={brief.id}
                   type="button"
                   onClick={() => setSelectedBriefId(brief.id)}
-                  className={`w-full rounded-[24px] border p-4 text-left transition ${
+                  className={`w-full rounded-md border p-4 text-left transition ${
                     brief.id === activeBrief?.id
-                      ? "theme-panel-strong border-transparent"
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                       : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-base font-semibold">{brief.title}</div>
-                      <div className={`mt-1 text-xs ${brief.id === activeBrief?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>
+                      <div className={`mt-1 text-xs ${brief.id === activeBrief?.id ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                         第 {brief.version_number} 版
                       </div>
                     </div>
                     <BriefPill>{getObjectiveMeta(brief.objective).label}</BriefPill>
                   </div>
-                  <div className={`mt-3 line-clamp-3 text-sm leading-6 ${brief.id === activeBrief?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{brief.key_message}</div>
+                  <div className={`mt-3 line-clamp-3 text-sm leading-6 ${brief.id === activeBrief?.id ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>{brief.key_message}</div>
                 </button>
               ))
             )}
           </div>
 
           <div className="space-y-4">
-            <div className="theme-panel-muted rounded-[24px] p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">方向 preset</div>
+            <div className="theme-panel-muted rounded-md p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">方向 preset</div>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {directionPresets.map((preset) => {
                   const active = selectedPresetId === preset.id;
@@ -270,7 +270,7 @@ export function BriefStudioWorkbench({
                       key={preset.id}
                       type="button"
                       onClick={() => applyDirectionPreset(preset.id)}
-                      className={`rounded-2xl border px-4 py-4 text-left transition ${
+                      className={`rounded-md border px-4 py-4 text-left transition ${
                         active
                           ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                           : "border-[var(--border-soft)] bg-[var(--surface-solid)] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]"
@@ -284,23 +284,23 @@ export function BriefStudioWorkbench({
               </div>
             </div>
 
-            <div className="theme-panel-muted rounded-[24px] p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第一步：项目目标</div>
+            <div className="theme-panel-muted rounded-md p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">第一步：项目目标</div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">任务单标题</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">任务单标题</span>
                   <input
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                    className="theme-input rounded-md px-4 py-3 text-sm"
                   />
                 </label>
                 <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">目标</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">目标</span>
                   <select
                     value={objective}
                     onChange={(event) => setObjective(event.target.value as (typeof objectives)[number])}
-                    className="theme-input min-w-0 rounded-[16px] px-4 py-3 text-sm"
+                    className="theme-input min-w-0 rounded-md px-4 py-3 text-sm"
                   >
                     {objectives.map((item) => (
                       <option key={item} value={item}>
@@ -313,10 +313,10 @@ export function BriefStudioWorkbench({
               </div>
             </div>
 
-            <div className="theme-panel-muted rounded-[24px] p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第二步：平台与动作</div>
+            <div className="theme-panel-muted rounded-md p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">第二步：平台与动作</div>
               <div className="mt-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布平台</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">发布平台</div>
                 <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                   这里选的是这轮内容准备发到哪里。国内图文优先一般先选“小红书”，需要更强分发时再加“抖音”。
                 </div>
@@ -328,9 +328,9 @@ export function BriefStudioWorkbench({
                         key={platform}
                         type="button"
                         onClick={() => togglePlatform(platform)}
-                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                        className={`rounded-sm border px-3 py-1.5 text-sm transition ${
                           active
-                            ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]"
+                            ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]"
                             : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-muted)]"
                         }`}
                       >
@@ -342,7 +342,7 @@ export function BriefStudioWorkbench({
               </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {selectedPlatforms.map((platform) => (
-                    <div key={platform} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
+                    <div key={platform} className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
                     <div className="text-sm font-medium">{getPlatformLabel(platform)}</div>
                     <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">
                       {getPlatformDescription(platform)}
@@ -352,11 +352,11 @@ export function BriefStudioWorkbench({
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-[1fr_0.9fr]">
                 <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">行动号召</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">行动号召</span>
                   <input
                     value={callToAction}
                     onChange={(event) => setCallToAction(event.target.value)}
-                    className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                    className="theme-input rounded-md px-4 py-3 text-sm"
                     placeholder="例如：立即咨询 / 预约体验 / 进店了解"
                   />
                   <div className="flex flex-wrap gap-2">
@@ -365,9 +365,9 @@ export function BriefStudioWorkbench({
                         key={item}
                         type="button"
                         onClick={() => setCallToAction(item)}
-                        className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                        className={`rounded-sm border px-3 py-1.5 text-sm transition ${
                           callToAction === item
-                            ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]"
+                            ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]"
                             : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-muted)]"
                         }`}
                       >
@@ -376,22 +376,22 @@ export function BriefStudioWorkbench({
                     ))}
                   </div>
                 </label>
-                <div className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm leading-7 text-[var(--text-2)]">
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm leading-7 text-[var(--text-2)]">
                   先只选最关键的发布平台和行动号召就够了。活动名、风格边界、时长和约束都可以后面再补。
                 </div>
               </div>
             </div>
 
-            <div className="theme-panel-muted rounded-[24px] p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">第三步：核心表达</div>
+            <div className="theme-panel-muted rounded-md p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">第三步：核心表达</div>
               <div className="mt-4 grid gap-4">
                 <label className="grid gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">核心表达</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">核心表达</span>
                   <textarea
                     value={keyMessage}
                     onChange={(event) => setKeyMessage(event.target.value)}
                     rows={5}
-                    className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7"
+                    className="theme-input rounded-md px-4 py-3 text-sm leading-7"
                     placeholder="这次广告究竟要让用户理解什么、记住什么、行动什么。"
                   />
                 </label>
@@ -405,27 +405,27 @@ export function BriefStudioWorkbench({
             </div>
 
             {showAdvanced ? (
-              <div className="theme-panel-muted rounded-[24px] p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">高级设置</div>
+              <div className="theme-panel-muted rounded-md p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">高级设置</div>
                 <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
                   这些内容不是启动项目的必须项。只有当你需要更细地控制表达时，再补进去。
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(220px,0.95fr)]">
                   <label className="grid gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">活动名（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">活动名（可选）</span>
                     <input
                       value={campaignName}
                       onChange={(event) => setCampaignName(event.target.value)}
-                      className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                      className="theme-input rounded-md px-4 py-3 text-sm"
                       placeholder="例如：春季上新 / 门店活动"
                     />
                   </label>
                   <label className="grid gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">表达气质（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">表达气质（可选）</span>
                     <select
                       value={tone}
                       onChange={(event) => setTone(event.target.value as (typeof tones)[number])}
-                      className="theme-input min-w-0 rounded-[16px] px-4 py-3 text-sm"
+                      className="theme-input min-w-0 rounded-md px-4 py-3 text-sm"
                     >
                       {tones.map((item) => (
                         <option key={item} value={item}>
@@ -435,11 +435,11 @@ export function BriefStudioWorkbench({
                     </select>
                   </label>
                   <label className="grid gap-2 md:col-span-2 xl:col-span-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">用户熟悉程度（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">用户熟悉程度（可选）</span>
                     <select
                       value={audienceAwareness}
                       onChange={(event) => setAudienceAwareness(event.target.value as (typeof awarenessLevels)[number])}
-                      className="theme-input min-w-0 rounded-[16px] px-4 py-3 text-sm"
+                      className="theme-input min-w-0 rounded-md px-4 py-3 text-sm"
                     >
                       {awarenessLevels.map((item) => (
                         <option key={item} value={item}>
@@ -449,34 +449,34 @@ export function BriefStudioWorkbench({
                     </select>
                   </label>
                   <label className="grid gap-2 md:col-span-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">目标受众（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">目标受众（可选）</span>
                     <input
                       value={targetAudience}
                       onChange={(event) => setTargetAudience(event.target.value)}
-                      className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                      className="theme-input rounded-md px-4 py-3 text-sm"
                       placeholder="例如：25-35 岁城市白领女性"
                     />
                   </label>
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
                   <label className="grid gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">目标时长（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">目标时长（可选）</span>
                     <input
                       type="number"
                       min={5}
                       max={300}
                       value={durationSec}
                       onChange={(event) => setDurationSec(Number(event.target.value))}
-                      className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                      className="theme-input rounded-md px-4 py-3 text-sm"
                     />
                   </label>
                   <label className="grid gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">补充要求（可选）</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">补充要求（可选）</span>
                     <textarea
                       value={constraintsText}
                       onChange={(event) => setConstraintsText(event.target.value)}
                       rows={4}
-                      className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7"
+                      className="theme-input rounded-md px-4 py-3 text-sm leading-7"
                       placeholder={"每行一条，例如：\n避免空泛宏大口号\n优先强调品牌可信度\n开头 3 秒必须有明确钩子"}
                     />
                   </label>
@@ -499,7 +499,7 @@ export function BriefStudioWorkbench({
         {activeBrief ? (
           <>
             <div>
-              <div className="text-xl font-semibold text-[var(--text-inverse)]">{activeBrief.title}</div>
+              <div className="text-xl font-semibold text-[var(--text-1)]">{activeBrief.title}</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <BriefPill>{getObjectiveMeta(activeBrief.objective).label}</BriefPill>
                 <BriefPill>{getToneMeta(activeBrief.primary_tone)}</BriefPill>
@@ -509,12 +509,12 @@ export function BriefStudioWorkbench({
             </div>
 
             <div>
-              <div className="text-sm font-medium text-[var(--text-inverse)]">核心表达</div>
-              <div className="mt-3 text-sm leading-7 text-white/78">{activeBrief.key_message}</div>
+              <div className="text-sm font-medium text-[var(--text-1)]">核心表达</div>
+              <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{activeBrief.key_message}</div>
             </div>
 
             <div>
-              <div className="text-sm font-medium text-[var(--text-inverse)]">目标与平台</div>
+              <div className="text-sm font-medium text-[var(--text-1)]">目标与平台</div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {activeBrief.target_platforms.map((item) => (
                   <BriefPill key={item}>{getPlatformLabel(item as (typeof publishingPlatforms)[number])}</BriefPill>
@@ -524,13 +524,13 @@ export function BriefStudioWorkbench({
             </div>
 
             <div>
-              <div className="text-sm font-medium text-[var(--text-inverse)]">约束条件</div>
+              <div className="text-sm font-medium text-[var(--text-1)]">约束条件</div>
               <div className="mt-3 space-y-2">
                 {activeBrief.constraints.length ? (
                   activeBrief.constraints.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-[rgba(255,255,255,0.1)] px-3 py-2">
-                      <div className="text-sm text-[var(--text-inverse)]">{item.constraint_label}</div>
-                      <div className="text-xs text-white/58">
+                    <div key={item.id} className="rounded-md border border-[var(--border)] px-3 py-2">
+                      <div className="text-sm text-[var(--text-1)]">{item.constraint_label}</div>
+                      <div className="text-xs text-[var(--text-3)]">
                         {item.is_hard_constraint ? "重要约束" : "补充建议"}
                       </div>
                     </div>

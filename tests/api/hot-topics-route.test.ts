@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { prepareTrendContentItems } from "../services/hot-topics/prepare-trend-content";
-import { buildMockContentItems } from "../lib/platform-mocks";
-import type { NewsSearchResult } from "../types/news-search";
-import type { PlatformCollectResult } from "../types/platform-data";
+import { prepareTrendContentItems } from "@/services/hot-topics/prepare-trend-content";
+import { buildMockContentItems } from "@/lib/platform-mocks";
+import type { NewsSearchResult } from "@/types/news-search";
+import type { PlatformCollectResult } from "@/types/platform-data";
 
 describe("hot topics route helpers", () => {
   it("enriches mock platform items with live news titles and clamps negative metrics", () => {
@@ -53,7 +53,9 @@ describe("hot topics route helpers", () => {
     expect(prepared[0]?.title).toBe("火星公民联名茶饮门店观察");
     expect(prepared[0]?.view_count).toBe(0);
     expect(prepared[0]?.like_count).toBe(0);
-    expect(prepared[0]?.topic_hints).toContain("火星公民联名茶饮门店观察".replace(/[^\p{L}\p{N}\s]+/gu, " ").toLowerCase().split(/\s+/)[0]);
+    expect(prepared[0]?.topic_hints).toContain(
+      "火星公民联名茶饮门店观察".replace(/[^\p{L}\p{N}\s]+/gu, " ").toLowerCase().split(/\s+/)[0],
+    );
   });
 
   it("builds mock content without generic hook or workflow placeholders", () => {

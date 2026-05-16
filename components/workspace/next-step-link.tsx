@@ -9,7 +9,7 @@ export function NextStepLink({
   label: string;
 }) {
   const className =
-    "inline-flex items-center justify-center rounded-md bg-[var(--accent-strong)] px-4 py-2.5 text-sm font-medium text-[var(--text-inverse)] shadow-none transition hover:bg-[var(--accent)]";
+    "inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--text-inverse)] shadow-none transition hover:bg-[var(--accent-strong)]";
 
   if (href.startsWith("#")) {
     return (

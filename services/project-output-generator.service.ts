@@ -210,7 +210,7 @@ export class ProjectOutputGeneratorService {
       angle_summary: "优先突出反差、意义和技术冲击感。",
     };
 
-    if (canUseModelRoute("SCRIPT_REWRITE", settings)) {
+    if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       const prompt = buildVideoTitlePrompt({
         title: project.title,
         topicQuery: project.topic_query,
@@ -221,7 +221,7 @@ export class ProjectOutputGeneratorService {
       });
 
       output = await generateStructuredJson({
-        routeKey: "SCRIPT_REWRITE",
+        routeKey: "PROMOTIONAL_COPY",
         schemaName: "video_title_pack",
         schema: {
           type: "object",
@@ -350,7 +350,7 @@ export class ProjectOutputGeneratorService {
       publish_cta: "收藏这条，后续更新来了第一时间回来看。",
     };
 
-    if (canUseModelRoute("SCRIPT_REWRITE", settings)) {
+    if (canUseModelRoute("PROMOTIONAL_COPY", settings)) {
       const prompt = buildPublishCopyPrompt({
         title: project.title,
         topicQuery: project.topic_query,
@@ -361,7 +361,7 @@ export class ProjectOutputGeneratorService {
       });
 
       output = await generateStructuredJson({
-        routeKey: "SCRIPT_REWRITE",
+        routeKey: "PROMOTIONAL_COPY",
         schemaName: "publish_copy_output",
         schema: {
           type: "object",

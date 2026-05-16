@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,133 +7,35 @@ import { DetailPanel } from "@/components/ui/detail-panel";
 import { ErrorNotice } from "@/components/ui/error-notice";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Tag } from "@/components/ui/tag";
+import { DailyRunPackagingNotice } from "@/components/workspace/daily-run-packaging-notice";
+import { renderAudiencePanel } from "@/components/workspace/script-lab-audience-panel";
+import { ScriptLabDraftReviewPanel } from "@/components/workspace/script-lab-draft-review-panel";
+import { QualityAlertList } from "@/components/workspace/script-lab-quality-alerts";
+import { StatCard } from "@/components/workspace/script-lab-stat-card";
+import { ScriptLabSummaryPanel } from "@/components/workspace/script-lab-summary-panel";
+import type { MarsOutputs, ScriptDraftPreview, ScriptLabRow } from "@/components/workspace/script-lab-types";
 import { assessPublishCopy, assessScenePrompt, assessVideoTitlePack } from "@/lib/artifact-quality";
-import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
+import { normalizeAudiencePanelReview } from "@/lib/copy-review-panel";
 import { getOutputKnowledgePack, reviewOutputArtifact } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
 import { normalizeStringList, normalizeString, normalizeArtifactReview, copyToClipboard } from "@/lib/utils";
-
-type ScriptLabRow = {
-  id: string;
-  sceneOrder: number;
-  originalText: string;
-  rewritten: string;
-  shotGoal: string;
-  durationSec: number;
-  visualPriority: string[];
-  avoid: string[];
-  labels: string[];
-  classification: {
-    humanType: string;
-    motionType: string;
-    lipSyncType: string;
-    assetDependencyType: string;
-    productionClass: string;
-    difficultyScore: number;
-    riskFlags: string[];
-  } | null;
-  assets: string[];
-  assetReady: boolean;
-  missingAssets: string[];
-  uploadedAssets: Array<{
-    id: string;
-    type: string;
-    fileName: string;
-    continuityGroup: string | null;
-    fileUrl?: string | null;
-  }>;
-  continuityGroup: string;
-};
-
-type OutputArtifact = {
-  id: string;
-  title: string;
-  summary: string | null;
-  createdAt: string | Date;
-  taskJson: unknown;
-};
-
-type MarsOutputs = {
-  latestVideoTitlePack: OutputArtifact | null;
-  videoTitlePacks: OutputArtifact[];
-  latestPublishCopy: OutputArtifact | null;
-  publishCopyPacks: OutputArtifact[];
-};
-
-type ScriptDraftPreview = {
-  id: string;
-  title: string | null;
-  originalText: string;
-  structuredOutput: unknown;
-  rawPayload: unknown;
-  modelName: string | null;
-  sourceType: string;
-  createdAt: string | Date;
-  versionNumber?: number;
-};
-
-
-
-function renderAudiencePanel(panel: AudiencePanelReview | null, empty: string) {
-  if (!panel) {
-    return <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">{empty}</div>;
-  }
-
-  return (
-    <div className="mt-3 space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Tag>{`平均分 ${panel.averageScore}`}</Tag>
-        <Tag>{`媒体贴合度 ${panel.styleFitScore}`}</Tag>
-        <Tag tone={panel.publishReadiness === "READY" ? "success" : "danger"}>{panel.publishReadiness === "READY" ? "可继续发布" : "先修再发"}</Tag>
-      </div>
-      <div className="text-sm leading-6 text-[var(--text-1)]">{panel.overallVerdict}</div>
-      <div className="text-sm leading-6 text-[var(--text-2)]">{panel.calibrationSummary}</div>
-      <div className="space-y-2">
-        {panel.reviewers.map((reviewer) => (
-          <div key={reviewer.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
-              <span className="text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
-            </div>
-            <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{reviewer.verdict}</div>
-            {reviewer.concerns.length ? (
-              <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">
-                {reviewer.concerns.slice(0, 2).map((item) => (
-                  <div key={item}>- {item}</div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-
-
-
-
-function StatCard({ label, value, caption }: { label: string; value: string; caption: string }) {
-  return (
-    <div className="theme-panel-muted rounded-[22px] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{label}</div>
-      <div className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-1)]">{value}</div>
-      <div className="mt-1 text-sm text-[var(--text-2)]">{caption}</div>
-    </div>
-  );
-}
 
 export function ScriptLabWorkbench({
   projectId,
   rows,
   marsOutputs,
   latestDraftPreview,
+  isOwnedMediaPackage = false,
+  fastPackageStatus = null,
+  locale = "zh",
 }: {
   projectId: string;
   rows: ScriptLabRow[];
   marsOutputs: MarsOutputs;
   latestDraftPreview?: ScriptDraftPreview | null;
+  isOwnedMediaPackage?: boolean;
+  fastPackageStatus?: string | null;
+  locale?: "zh" | "en";
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
@@ -158,6 +59,10 @@ export function ScriptLabWorkbench({
   const [publishHighlightsText, setPublishHighlightsText] = useState("");
   const [publishCta, setPublishCta] = useState("");
   const [artifactPending, setArtifactPending] = useState<"title" | "publish" | null>(null);
+  const [showTitleMore, setShowTitleMore] = useState(false);
+  const [showPublishMore, setShowPublishMore] = useState(false);
+  const [showTitleReview, setShowTitleReview] = useState(false);
+  const [showPublishReview, setShowPublishReview] = useState(false);
 
   const selectedScene = useMemo(() => rows.find((row) => row.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
   const latestVideoTitlePayload = (marsOutputs.latestVideoTitlePack?.taskJson as Record<string, unknown> | null) ?? null;
@@ -193,23 +98,27 @@ export function ScriptLabWorkbench({
   }).length;
   const scriptFeedback = useMemo(() => {
     const completed: string[] = [];
-    if (rows.length > 0) completed.push(`已拆出 ${rows.length} 个镜头单元`);
-    if (hasTitlePack) completed.push("标题包已生成");
+    if (rows.length > 0) completed.push(`已生成 ${rows.length} 条配图说明`);
+    if (hasTitlePack) completed.push("标题已生成");
     if (hasPublishCopy) completed.push("发布文案已生成");
 
-    let weakest = "先继续把镜头文本改到更清楚、更可执行。";
-    let next = "从左侧挑一条最关键镜头开始细修，然后补跑分类或素材分析。";
+    let weakest = "正文和发布包装还需要轻改。";
+    let next = "下一步：先检查正文，再确认标题和发布文案。";
 
     if (latestDraftAudiencePanel?.reviewers?.length && latestDraftAudiencePanel.publishReadiness !== "READY") {
       const weakestReviewer = [...latestDraftAudiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
       weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "主稿还不够像一篇能直接发布的内容。";
       next = weakestReviewer?.nextAction || "先修主稿的信息密度、证据感和段落推进，再处理包装。";
     } else if (!hasTitlePack) {
-      weakest = "还缺少内容标题包，发布包装没有闭环。";
-      next = "回总览页点“内容标题”，拿到第一版标题包后再回这里微调。";
+      weakest = "标题还在生成，稍后刷新。";
+      next = isOwnedMediaPackage
+        ? "下一步：标题还在生成，可以先检查正文，稍后刷新。"
+        : "下一步：先补标题，再继续轻改发布文案。";
     } else if (!hasPublishCopy) {
-      weakest = "还缺少发布文案，发布层还不完整。";
-      next = "回总览页点“发布文案”，补出可直接发布的一版说明文案。";
+      weakest = "发布文案还在生成，稍后刷新。";
+      next = isOwnedMediaPackage
+        ? "下一步：发布文案还在生成，可以先检查正文和标题，稍后刷新。"
+        : "下一步：补出一版发布文案。";
     } else if (publishAudiencePanel?.reviewers?.length && publishAudiencePanel.publishReadiness !== "READY") {
       const weakestReviewer = [...publishAudiencePanel.reviewers].sort((a, b) => a.score - b.score)[0];
       weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "模拟观众判断当前发布包装还不适合直接发。";
@@ -219,17 +128,17 @@ export function ScriptLabWorkbench({
       weakest = weakestReviewer?.concerns?.slice(0, 2).join("；") || "模拟观众判断当前标题包还不够能停住人。";
       next = weakestReviewer?.nextAction || "先补强标题钩子和区分度，再继续推进。";
     } else if (readySceneCount < rows.length) {
-      weakest = `还有 ${rows.length - readySceneCount} 个镜头没到可执行状态。`;
-      next = "优先处理待补素材的条目，把这条内容推进到可做配图说明 / 图片生产。";
+      weakest = `还有 ${rows.length - readySceneCount} 条配图说明需要确认。`;
+      next = "下一步：正文、标题和发布文案确认后，再展开配图细节。";
     } else if (promptReadySceneCount < rows.length) {
-      weakest = `还有 ${rows.length - promptReadySceneCount} 个镜头不够适合 Nano Banana / Seedance / Veo 的后续生成。`;
-      next = "补齐连续性锚点、视觉重点和 avoid 标签，确保每镜头都是单主体、单动作、清晰环境。";
+      weakest = `还有 ${rows.length - promptReadySceneCount} 条配图说明需要轻改。`;
+      next = "下一步：正文、标题和发布文案确认后，再展开配图细节。";
     } else if (totalRiskFlags > 0) {
       weakest = `当前还有 ${totalRiskFlags} 个风险标记需要复核。`;
-      next = "先检查高风险镜头的动作、口型和素材依赖，再决定是否进入下游生成。";
+      next = "下一步：正文、标题和发布文案确认后，再展开配图细节。";
     } else {
-      weakest = "主稿、发布包装和配图提示词都比较完整，可以进入配图说明 / 图片生产。";
-      next = "继续去配图说明或图片生产页，把这条内容推进到图片生产阶段。";
+      weakest = "正文、标题、发布文案和配图说明都比较完整。";
+      next = "下一步：做最后轻改，然后复制标题和发布文案。";
     }
 
     return {
@@ -237,7 +146,7 @@ export function ScriptLabWorkbench({
       weakest,
       next,
     };
-  }, [hasPublishCopy, hasTitlePack, latestDraftAudiencePanel, promptReadySceneCount, publishAudiencePanel, readySceneCount, rows.length, titleAudiencePanel, totalRiskFlags]);
+  }, [hasPublishCopy, hasTitlePack, isOwnedMediaPackage, latestDraftAudiencePanel, promptReadySceneCount, publishAudiencePanel, readySceneCount, rows.length, titleAudiencePanel, totalRiskFlags]);
   const titleQualityAlerts = useMemo(
     () =>
       hasTitlePack
@@ -352,7 +261,7 @@ export function ScriptLabWorkbench({
         }),
       });
 
-      setMessage("Scene 已保存。");
+      setMessage("配图说明已保存。");
       router.refresh();
     } catch (requestError) {
       setError(requestError);
@@ -406,7 +315,7 @@ export function ScriptLabWorkbench({
         method: "POST",
       });
 
-      setMessage("素材依赖已重算。");
+      setMessage("素材情况已更新。");
       router.refresh();
     } catch (requestError) {
       setError(requestError);
@@ -494,7 +403,7 @@ export function ScriptLabWorkbench({
         body: JSON.stringify({
           task_type: "SCRIPT",
           task_status: "DONE",
-          task_title: `内容标题包 · ${recommendedTitle.trim()}`,
+          task_title: `标题 · ${recommendedTitle.trim()}`,
           task_summary: recommendedTitle.trim(),
           priority_score: 84,
           task_json: {
@@ -508,7 +417,7 @@ export function ScriptLabWorkbench({
           },
         }),
       });
-      setMessage("标题包已另存为新版本。");
+      setMessage("标题已保存。");
       router.refresh();
     } catch (requestError) {
       setError(requestError);
@@ -555,7 +464,7 @@ export function ScriptLabWorkbench({
           },
         }),
       });
-      setMessage("发布文案已另存为新版本。");
+      setMessage("发布文案已保存。");
       router.refresh();
     } catch (requestError) {
       setError(requestError);
@@ -572,222 +481,204 @@ export function ScriptLabWorkbench({
 
   return (
     <div className="space-y-6">
+      <DailyRunPackagingNotice
+        isOwnedMediaPackage={isOwnedMediaPackage}
+        packagingIncomplete={!hasTitlePack || !hasPublishCopy || rows.length === 0 || fastPackageStatus === "RUNNING" || fastPackageStatus === "FAILED"}
+        packagingStatus={fastPackageStatus}
+        hasTitlePack={hasTitlePack}
+        hasPublishCopy={hasPublishCopy}
+        hasImageBrief={rows.length > 0}
+        locale={locale}
+      />
+
+      {latestDraftPreview && (latestDraftSections.opening || latestDraftSections.body || latestDraftSections.closing || latestDraftAudiencePanel) ? (
+        <ScriptLabDraftReviewPanel
+          latestDraftPreview={latestDraftPreview}
+          latestDraftSections={latestDraftSections}
+          latestDraftAudiencePanel={latestDraftAudiencePanel}
+        />
+      ) : null}
+
+      <ScriptLabSummaryPanel feedback={scriptFeedback} />
+
       {/* ── Section 1: Title Pack + Publish Copy (primary area) ── */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <PanelCard title="内容标题包" description="编辑推荐标题和备选标题，用于图文发布包装。">
+        <PanelCard title="标题" description="确认推荐标题和备选标题。">
           <div className="space-y-4">
             {marsOutputs.latestVideoTitlePack ? (
-              <div className="theme-panel-muted rounded-[24px] p-4">
+              <div className="theme-panel-muted rounded-[14px] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">推荐标题</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">推荐标题</div>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyVideoTitlePack()}>
-                      复制标题包
+                      复制标题
                     </Button>
                     <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void saveVideoTitlePack()} disabled={artifactPending !== null}>
-                      {artifactPending === "title" ? "保存中..." : "另存新版本"}
+                      {artifactPending === "title" ? "保存中..." : "保存修改"}
                     </Button>
                     <Tag>{new Date(marsOutputs.latestVideoTitlePack.createdAt).toLocaleString("zh-CN")}</Tag>
                   </div>
                 </div>
                 <div className="mt-4 space-y-4">
                   <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">推荐标题</div>
-                    <input value={recommendedTitle} onChange={(event) => setRecommendedTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" />
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">推荐标题</div>
+                    <input value={recommendedTitle} onChange={(event) => setRecommendedTitle(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
                   </div>
                   <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">角度说明</div>
-                    <textarea value={titleAngleSummary} onChange={(event) => setTitleAngleSummary(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">备选标题</div>
+                    <textarea value={titleOptionsText} onChange={(event) => setTitleOptionsText(event.target.value)} rows={4} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                   </div>
-                  <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">备选标题</div>
-                    <textarea value={titleOptionsText} onChange={(event) => setTitleOptionsText(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <QualityAlertList alerts={titleQualityAlerts} />
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => setShowTitleMore((value) => !value)}>
+                      {showTitleMore ? "收起更多字段" : "展开更多字段"}
+                    </Button>
+                    <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => setShowTitleReview((value) => !value)}>
+                      {showTitleReview ? "收起复核详情" : "复核详情"}
+                    </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">创作知识</div>
-                      <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
-                        {(titleKnowledgeNotes.length ? titleKnowledgeNotes : getOutputKnowledgePack("VIDEO_TITLE").knowledgeNotes).map((item) => (
-                          <div key={item}>- {item}</div>
-                        ))}
-                      </div>
+                  {showTitleMore ? (
+                    <div>
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">角度说明</div>
+                      <textarea value={titleAngleSummary} onChange={(event) => setTitleAngleSummary(event.target.value)} rows={3} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                     </div>
-                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">系统复核</div>
-                      <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{titleArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
-                      {titleArtifactReview?.issues.length ? (
+                  ) : null}
+                  {showTitleReview ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">创作知识</div>
                         <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
-                          {titleArtifactReview.issues.slice(0, 3).map((item) => (
+                          {(titleKnowledgeNotes.length ? titleKnowledgeNotes : getOutputKnowledgePack("VIDEO_TITLE").knowledgeNotes).map((item) => (
                             <div key={item}>- {item}</div>
                           ))}
                         </div>
-                      ) : null}
-                      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
-                      {renderAudiencePanel(titleAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
+                      </div>
+                      <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">系统复核</div>
+                        <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{titleArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
+                        {titleArtifactReview?.issues.length ? (
+                          <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                            {titleArtifactReview.issues.slice(0, 3).map((item) => (
+                              <div key={item}>- {item}</div>
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">观众评分</div>
+                        {renderAudiencePanel(titleAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
             ) : (
-              <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
-                还没有生成标题包。回到总览页点一下“内容标题”就能补上。
+              <div className="rounded-[14px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+                {isOwnedMediaPackage
+                  ? "标题还在生成，稍后刷新。"
+                  : "还没有生成标题。"}
               </div>
             )}
           </div>
         </PanelCard>
 
-        <PanelCard title="发布文案" description="保留一版可直接复制到抖音、小红书或视频简介区的发布文案。">
+        <PanelCard title="发布文案" description="确认一版可直接复制发布的文案。" className="scroll-mt-20" id="publish-copy">
           {marsOutputs.latestPublishCopy ? (
             <div className="space-y-4">
-              <div className="theme-panel-muted rounded-[24px] p-4">
+              <div className="theme-panel-muted rounded-[14px] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前版本</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">当前版本</div>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyPublishCopy()}>
                       复制发布文案
                     </Button>
                     <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void savePublishCopyPack()} disabled={artifactPending !== null}>
-                      {artifactPending === "publish" ? "保存中..." : "另存新版本"}
+                      {artifactPending === "publish" ? "保存中..." : "保存修改"}
                     </Button>
                     <Tag>{new Date(marsOutputs.latestPublishCopy.createdAt).toLocaleString("zh-CN")}</Tag>
                   </div>
                 </div>
                 <div className="mt-4 space-y-4">
                   <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布标题</div>
-                    <input value={publishPrimaryTitle} onChange={(event) => setPublishPrimaryTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" />
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">发布标题</div>
+                    <input value={publishPrimaryTitle} onChange={(event) => setPublishPrimaryTitle(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
                   </div>
                   <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">导语</div>
-                    <textarea value={publishLeadIn} onChange={(event) => setPublishLeadIn(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">导语</div>
+                    <textarea value={publishLeadIn} onChange={(event) => setPublishLeadIn(event.target.value)} rows={3} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                   </div>
                   <div>
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">发布正文</div>
-                    <textarea value={publishDescription} onChange={(event) => setPublishDescription(event.target.value)} rows={6} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">发布正文</div>
+                    <textarea value={publishDescription} onChange={(event) => setPublishDescription(event.target.value)} rows={6} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">亮点</div>
-                      <textarea value={publishHighlightsText} onChange={(event) => setPublishHighlightsText(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
-                    </div>
-                    <div>
-                      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">CTA</div>
-                      <textarea value={publishCta} onChange={(event) => setPublishCta(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
-                    </div>
+                  <QualityAlertList alerts={publishQualityAlerts} />
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => setShowPublishMore((value) => !value)}>
+                      {showPublishMore ? "收起更多字段" : "展开更多字段"}
+                    </Button>
+                    <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => setShowPublishReview((value) => !value)}>
+                      {showPublishReview ? "收起复核详情" : "复核详情"}
+                    </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">创作知识</div>
-                      <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
-                        {(publishKnowledgeNotes.length ? publishKnowledgeNotes : getOutputKnowledgePack("PUBLISH_COPY").knowledgeNotes).map((item) => (
-                          <div key={item}>- {item}</div>
-                        ))}
+                  {showPublishMore ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">亮点</div>
+                        <textarea value={publishHighlightsText} onChange={(event) => setPublishHighlightsText(event.target.value)} rows={4} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
+                      </div>
+                      <div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">CTA</div>
+                        <textarea value={publishCta} onChange={(event) => setPublishCta(event.target.value)} rows={4} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                       </div>
                     </div>
-                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">系统复核</div>
-                      <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{publishArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
-                      {publishArtifactReview?.issues.length ? (
+                  ) : null}
+                  {showPublishReview ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">创作知识</div>
                         <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
-                          {publishArtifactReview.issues.slice(0, 3).map((item) => (
+                          {(publishKnowledgeNotes.length ? publishKnowledgeNotes : getOutputKnowledgePack("PUBLISH_COPY").knowledgeNotes).map((item) => (
                             <div key={item}>- {item}</div>
                           ))}
                         </div>
-                      ) : null}
-                      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
-                      {renderAudiencePanel(publishAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
+                      </div>
+                      <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">系统复核</div>
+                        <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{publishArtifactReview?.summary ?? "当前版本还没有复核结果。"}</div>
+                        {publishArtifactReview?.issues.length ? (
+                          <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
+                            {publishArtifactReview.issues.slice(0, 3).map((item) => (
+                              <div key={item}>- {item}</div>
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">观众评分</div>
+                        {renderAudiencePanel(publishAudiencePanel, "系统完成第二轮复核后，这里会出现多观众评分。")}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="rounded-[24px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
-              还没有生成发布文案。回到总览页点一下&quot;发布文案&quot;就能补上。
+            <div className="rounded-[14px] border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+              {isOwnedMediaPackage
+                ? "发布文案还在生成，稍后刷新。"
+                : "还没有生成发布文案。"}
             </div>
           )}
         </PanelCard>
       </div>
 
-      {/* ── Section 2: Summary cards ── */}
-      <PanelCard title="当前判断" description="这条内容已经到哪一步、最该补哪里、下一步怎么继续。">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="theme-panel-muted rounded-[22px] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">已完成</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.completed}</div>
-          </div>
-          <div className="theme-panel-muted rounded-[22px] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前最弱处</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.weakest}</div>
-          </div>
-          <div className="theme-panel-muted rounded-[22px] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">建议下一步</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{scriptFeedback.next}</div>
-          </div>
-        </div>
-      </PanelCard>
-
-      {latestDraftPreview && (latestDraftSections.opening || latestDraftSections.body || latestDraftSections.closing || latestDraftAudiencePanel) ? (
-        <PanelCard title="主稿复核" description="主稿本身是否像一篇能发的图文，要先于镜头和包装成立。">
-          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-            <div className="space-y-4">
-              <div className="theme-panel-muted rounded-[22px] p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">主稿标题</div>
-                    <div className="mt-2 text-lg font-semibold text-[var(--text-1)]">
-                      {latestDraftSections.title || "当前主稿"}
-                    </div>
-                  </div>
-                  {latestDraftPreview.versionNumber ? (
-                    <Tag>{`v${latestDraftPreview.versionNumber}`}</Tag>
-                  ) : null}
-                </div>
-              </div>
-
-              {latestDraftSections.opening ? (
-                <div className="theme-panel-muted rounded-[22px] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">开头</div>
-                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">{latestDraftSections.opening}</div>
-                </div>
-              ) : null}
-
-              {latestDraftSections.body ? (
-                <div className="theme-panel-muted rounded-[22px] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">主体</div>
-                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">
-                    {latestDraftSections.body}
-                  </div>
-                </div>
-              ) : null}
-
-              {latestDraftSections.closing ? (
-                <div className="theme-panel-muted rounded-[22px] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">结尾</div>
-                  <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">{latestDraftSections.closing}</div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="theme-panel-muted rounded-[22px] p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">观众评分</div>
-              {renderAudiencePanel(latestDraftAudiencePanel, "系统完成主稿复核后，这里会出现多观众评分。")}
-            </div>
-          </div>
-        </PanelCard>
-      ) : null}
-
       {/* ── Section 3: Collapsible shot editor ── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)]">
+      <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)]">
         <button
           type="button"
           onClick={() => setShowShotEditor((v) => !v)}
           className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-[var(--surface-muted)]"
         >
           <div>
-            <div className="text-sm font-semibold text-[var(--text-1)]">镜头打磨（高级）</div>
+            <div className="text-sm font-semibold text-[var(--text-1)]">高级：配图细节</div>
             <div className="mt-0.5 text-xs text-[var(--text-3)]">
-              {rows.length} 个镜头 · {readySceneCount} 可执行 · {totalRiskFlags} 风险标记
+              已生成 {rows.length} 条配图说明
             </div>
           </div>
           <div className={`text-[var(--text-3)] transition-transform ${showShotEditor ? "rotate-180" : ""}`}>
@@ -798,13 +689,13 @@ export function ScriptLabWorkbench({
         {showShotEditor && (
           <div className="space-y-6 border-t border-[var(--border)] px-6 py-6">
             <div className="grid gap-4 md:grid-cols-3">
-              <StatCard label="镜头数" value={String(rows.length)} caption="当前脚本镜头单元数" />
-              <StatCard label="可执行镜头" value={String(readySceneCount)} caption="素材齐备、可直接下游生产" />
-              <StatCard label="风险标记" value={String(totalRiskFlags)} caption="需要额外审阅的风险标记" />
+              <StatCard label="配图说明" value={String(rows.length)} caption="当前已生成条目" />
+              <StatCard label="可继续" value={String(readySceneCount)} caption="可进入后续出图" />
+              <StatCard label="需复核" value={String(totalRiskFlags)} caption="建议人工看一眼" />
             </div>
 
             <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
-              <PanelCard title="快速镜头编辑" description="先选镜头、改 AI 重构、保存或重跑。其他细项先收进高级信息。">
+              <PanelCard title="配图说明编辑" description="只在配图不够清楚时再改。">
                 <div className="grid gap-5 lg:grid-cols-[0.48fr_1fr]">
                   <div className="space-y-3">
                     {rows.map((row) => (
@@ -812,21 +703,21 @@ export function ScriptLabWorkbench({
                         key={row.id}
                         type="button"
                         onClick={() => syncWithScene(row.id)}
-                        className={`w-full rounded-[24px] border p-4 text-left transition ${
+                        className={`w-full rounded-[14px] border p-4 text-left transition ${
                           row.id === selectedScene.id
-                            ? "theme-panel-strong border-transparent"
+                            ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                             : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                          <div className="text-base font-semibold">镜头 {row.sceneOrder}</div>
-                            <div className={`mt-1 text-xs ${row.id === selectedScene.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
+                            <div className="text-base font-semibold">配图 {row.sceneOrder}</div>
+                            <div className={`mt-1 text-xs ${row.id === selectedScene.id ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
                           </div>
                           <Tag tone={row.assetReady ? "success" : "danger"}>{row.assetReady ? "已齐备" : "待补素材"}</Tag>
                         </div>
-                        <div className={`mt-3 line-clamp-2 text-sm font-medium ${row.id === selectedScene.id ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>{row.shotGoal}</div>
-                        <div className={`mt-2 line-clamp-3 text-sm leading-6 ${row.id === selectedScene.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{row.rewritten}</div>
+                        <div className={`mt-3 line-clamp-2 text-sm font-medium ${row.id === selectedScene.id ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>{row.shotGoal}</div>
+                        <div className={`mt-2 line-clamp-3 text-sm leading-6 ${row.id === selectedScene.id ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{row.rewritten}</div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {row.labels.slice(0, 4).map((label) => (
                             <Tag key={label}>{label}</Tag>
@@ -837,43 +728,45 @@ export function ScriptLabWorkbench({
                   </div>
 
                   <div className="space-y-4">
-                    <div className="theme-panel-muted rounded-[24px] p-4">
+                    <div className="theme-panel-muted rounded-[14px] p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <Tag>{selectedScene.continuityGroup}</Tag>
                         <Tag>{selectedScene.durationSec}s</Tag>
-                        {selectedScene.classification ? <Tag>{selectedScene.classification.productionClass}</Tag> : null}
                         <Tag tone={selectedScene.assetReady ? "success" : "danger"}>{selectedScene.assetReady ? "素材齐备" : "待补素材"}</Tag>
                       </div>
                       <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">
                         {selectedScene.classification
-                          ? `当前分类为 ${selectedScene.classification.humanType} / ${selectedScene.classification.motionType} / ${selectedScene.classification.lipSyncType}，制作难度 ${selectedScene.classification.difficultyScore}。`
-                          : "当前 scene 还没有分类结果。"}
+                          ? `这条配图说明已完成基础判断，难度 ${selectedScene.classification.difficultyScore}。`
+                          : "这条配图说明还没有完成基础判断。"}
                       </div>
                     </div>
 
-                    <div className="theme-panel-muted rounded-[24px] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">原始文本</div>
-                      <div className="mt-3 min-h-24 rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-sm leading-7 text-[var(--text-1)]">
+                    <div className="theme-panel-muted rounded-[14px] p-4">
+                      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">原始文本</div>
+                      <div className="mt-3 min-h-24 rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-sm leading-7 text-[var(--text-1)]">
                         {selectedScene.originalText}
                       </div>
                     </div>
 
-                    <div className="theme-panel-muted rounded-[24px] p-4">
-                      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">AI 重构文本</div>
+                    <div className="theme-panel-muted rounded-[14px] p-4">
+                      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">配图说明</div>
                       <label className="mt-4 grid gap-2">
-                        <span className="text-sm font-medium text-[var(--text-2)]">先把这个镜头改成更清楚、更可执行的一版。</span>
+                        <span className="text-sm font-medium text-[var(--text-2)]">把这条配图说明改得更清楚。</span>
                         <textarea
                           value={rewritten}
                           onChange={(event) => setRewritten(event.target.value)}
                           rows={8}
-                          className="theme-input rounded-[20px] px-4 py-3 text-sm leading-7"
+                          className="theme-input rounded-[14px] px-4 py-3 text-sm leading-7"
                         />
                       </label>
+                      <div className="mt-4">
+                        <QualityAlertList alerts={selectedSceneQualityAlerts} />
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       <Button onClick={() => void saveScene()} disabled={pending !== null}>
-                        {pending === "save" ? "保存中..." : "保存 Scene"}
+                        {pending === "save" ? "保存中..." : "保存配图说明"}
                       </Button>
                       <Button variant="secondary" onClick={() => void rerunClassification()} disabled={pending !== null}>
                         {pending === "classify" ? "重跑中..." : "重跑分类"}
@@ -886,7 +779,7 @@ export function ScriptLabWorkbench({
                       </Button>
                     </div>
 
-                    {message ? <div className="theme-chip-ok rounded-2xl px-3 py-2 text-sm">{message}</div> : null}
+                    {message ? <div className="theme-chip-ok rounded-[14px] px-3 py-2 text-sm">{message}</div> : null}
                     {error ? (
                       <ErrorNotice
                         error={error}
@@ -904,35 +797,35 @@ export function ScriptLabWorkbench({
 
                     {showAdvanced ? (
                       <>
-                        <div className="theme-panel-muted rounded-[24px] p-4">
-                          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">镜头设定</div>
+                        <div className="theme-panel-muted rounded-[14px] p-4">
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">配图设定</div>
                           <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]">
                             <label className="grid gap-2">
-                              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">镜头目标</span>
-                              <input value={shotGoal} onChange={(event) => setShotGoal(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" />
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">配图目标</span>
+                              <input value={shotGoal} onChange={(event) => setShotGoal(event.target.value)} className="theme-input rounded-[14px] px-4 py-3 text-sm" />
                             </label>
                             <div className="grid gap-4 md:grid-cols-2">
                               <label className="grid gap-2">
-                                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">连续性分组</span>
-                                <input value={continuityGroup} onChange={(event) => setContinuityGroup(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" />
+                                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">连续性分组</span>
+                                <input value={continuityGroup} onChange={(event) => setContinuityGroup(event.target.value)} className="theme-input rounded-[14px] px-4 py-3 text-sm" />
                               </label>
                               <label className="grid gap-2">
-                                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">时长（秒）</span>
-                                <input type="number" min={1} max={120} value={durationSec} onChange={(event) => setDurationSec(Number(event.target.value))} className="theme-input rounded-[16px] px-4 py-3 text-sm" />
+                                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">时长（秒）</span>
+                                <input type="number" min={1} max={120} value={durationSec} onChange={(event) => setDurationSec(Number(event.target.value))} className="theme-input rounded-[14px] px-4 py-3 text-sm" />
                               </label>
                             </div>
                           </div>
                         </div>
-                        <div className="theme-panel-muted rounded-[24px] p-4">
-                          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">视觉指令</div>
+                        <div className="theme-panel-muted rounded-[14px] p-4">
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">视觉指令</div>
                           <div className="mt-4 grid gap-4 md:grid-cols-2">
                             <label className="grid gap-2">
-                              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">视觉重点</span>
-                              <input value={visualPriority} onChange={(event) => setVisualPriority(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" />
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">视觉重点</span>
+                              <input value={visualPriority} onChange={(event) => setVisualPriority(event.target.value)} className="theme-input rounded-[14px] px-4 py-3 text-sm" />
                             </label>
                             <label className="grid gap-2">
-                              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">避免项</span>
-                              <input value={avoid} onChange={(event) => setAvoid(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" />
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">避免项</span>
+                              <input value={avoid} onChange={(event) => setAvoid(event.target.value)} className="theme-input rounded-[14px] px-4 py-3 text-sm" />
                             </label>
                           </div>
                         </div>
@@ -942,15 +835,15 @@ export function ScriptLabWorkbench({
                 </div>
               </PanelCard>
 
-              <DetailPanel title={`镜头 ${selectedScene.sceneOrder} 详情`} className="xl:sticky xl:top-6 xl:self-start">
+              <DetailPanel title={`配图 ${selectedScene.sceneOrder} 详情`} className="xl:sticky xl:top-6 xl:self-start">
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">分类标签</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">分类标签</div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedScene.labels.length > 0 ? selectedScene.labels.map((label) => <Tag key={label}>{label}</Tag>) : <Tag>待分类</Tag>}
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">风险标记</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">风险标记</div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedScene.classification?.riskFlags.length ? (
                     selectedScene.classification.riskFlags.map((flag) => (
@@ -962,28 +855,28 @@ export function ScriptLabWorkbench({
                 </div>
               </div>
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">素材依赖</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">素材情况</div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedScene.assets.length ? selectedScene.assets.map((asset) => <Tag key={asset}>{asset}</Tag>) : <div>尚未生成素材依赖。</div>}
+                  {selectedScene.assets.length ? selectedScene.assets.map((asset) => <Tag key={asset}>{asset}</Tag>) : <div>尚未生成素材判断。</div>}
                 </div>
                 {selectedScene.missingAssets.length ? <div className="mt-3 text-[var(--danger-text)]">{selectedScene.missingAssets.join("；")}</div> : <div className="mt-3 text-[var(--ok-text)]">当前素材判断为齐备。</div>}
               </div>
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">已登记素材</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">已登记素材</div>
                 <div className="mt-3 space-y-2">
                   {selectedScene.uploadedAssets.length ? (
                     selectedScene.uploadedAssets.map((asset) => (
-                      <div key={asset.id} className="rounded-2xl border border-[rgba(255,255,255,0.1)] px-3 py-2">
-                        <div className="text-sm text-[var(--text-inverse)]">
+                      <div key={asset.id} className="rounded-[14px] border border-[var(--border)] px-3 py-2">
+                        <div className="text-sm text-[var(--text-1)]">
                           {asset.fileUrl ? (
-                            <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="underline decoration-[rgba(255,255,255,0.2)] underline-offset-4">
+                            <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="underline decoration-[var(--border)] underline-offset-4">
                               {asset.fileName}
                             </a>
                           ) : (
                             asset.fileName
                           )}
                         </div>
-                        <div className="text-xs text-white/58">
+                        <div className="text-xs text-[var(--text-3)]">
                           {asset.type}
                           {asset.continuityGroup ? ` · ${asset.continuityGroup}` : ""}
                         </div>

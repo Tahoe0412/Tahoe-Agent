@@ -36,7 +36,7 @@ type NavItem = {
 function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
   if (!show) return null;
   return (
-    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[var(--surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] opacity-0 shadow-none transition-opacity group-hover:opacity-100">
+    <span className="pointer-events-none absolute left-full top-1/2 z-[9999] ml-3 -translate-y-1/2 whitespace-nowrap rounded-full border border-[var(--sidebar-border)] bg-[var(--sidebar-bg)] px-3 py-1.5 text-xs font-medium text-[var(--sidebar-text-hover)] opacity-0 shadow-none transition-opacity group-hover:opacity-100">
       {label}
     </span>
   );
@@ -45,7 +45,7 @@ function SidebarTooltip({ label, show }: { label: string; show: boolean }) {
 function GroupHeading({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
   if (collapsed) return null;
   return (
-    <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--sidebar-text)] opacity-95">
+    <div className="theme-kicker mb-2 px-3 text-[10px] font-medium text-[var(--sidebar-text)] opacity-85">
       {children}
     </div>
   );
@@ -61,18 +61,18 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
     <Link
       href={href}
       className={cn(
-        "group relative flex items-center gap-3 rounded-md border transition-colors duration-200",
-        collapsed ? "justify-center px-0 py-2" : "px-3 py-3.5",
+        "group relative flex items-center gap-3 rounded-[16px] border border-transparent transition-colors duration-150",
+        collapsed ? "justify-center px-0 py-2" : "px-3 py-3",
         active
-          ? "border-white/10 text-[var(--sidebar-item-active-text)]"
-          : "border-transparent text-[var(--sidebar-text)] hover:border-white/10 hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
+          ? "border-[var(--sidebar-border)] text-[var(--sidebar-item-active-text)]"
+          : "text-[var(--sidebar-text)] hover:border-[var(--sidebar-border)] hover:bg-[var(--sidebar-item-hover)] hover:text-[var(--sidebar-text-hover)]",
       )}
       style={active ? { background: accentBg ?? "var(--sidebar-item-active-bg)" } : undefined}
     >
       <div
         className={cn(
-          "shrink-0 rounded-md p-2 transition-colors duration-200",
-          active ? "bg-white/14" : "bg-transparent group-hover:bg-white/8"
+          "shrink-0 p-1.5 transition-colors duration-200",
+          active ? "text-[var(--sidebar-item-active-text)]" : "bg-transparent"
         )}
         style={accentColor ? { color: accentColor } : undefined}
       >
@@ -80,7 +80,7 @@ function NavLink({ item, active, projectId, collapsed }: { item: NavItem; active
       </div>
       {!collapsed && (
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-medium">{item.label}</div>
+          <div className="text-sm font-semibold">{item.label}</div>
           <div className={cn("mt-1 truncate text-xs", active ? "opacity-95" : "opacity-82")}>{item.hint}</div>
         </div>
       )}
@@ -98,16 +98,16 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
 
   /* ── Group 1: 默认日更路径 (Explore) ── */
   const exploreItems: NavItem[] = [
-    { href: "/daily-run" as Route, label: text.nav.dailyRun, hint: text.nav.dailyRunHint || "今日选题、状态和下一步", icon: Rows3, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
+    { href: "/daily-run" as Route, label: text.nav.dailyRun, hint: text.nav.dailyRunHint || "三线选题与成稿", icon: Rows3, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
     { href: "/" as Route, label: text.nav.dashboard, hint: "项目总览与下一步", icon: LayoutDashboard, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
   ];
 
   /* ── Group 2: 生产车间 (Build) ── */
   const buildItems: NavItem[] = [
-    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "改脚本、定镜头", icon: Clapperboard, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
-    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: "配图说明与素材", icon: BarChart3, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
-    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "生成与预览", icon: Sparkles, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
-    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与合规", icon: Waypoints, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
+    { href: "/script-lab" as Route, label: text.nav.scriptLab, hint: text.nav.scriptHint || "正文 / 标题 / 发布文案", icon: Clapperboard, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },
+    { href: "/scene-planner" as Route, label: text.nav.scenePlanner, hint: text.nav.sceneHint || "配图意图、参考与素材", icon: BarChart3, accentBg: "var(--sage-soft)", accentColor: "var(--sage)" },
+    { href: "/render-lab" as Route, label: text.nav.renderLab, hint: text.nav.renderHint || "提示词、参考图与图片任务", icon: Sparkles, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
+    { href: "/marketing-ops" as Route, label: text.nav.marketingOps, hint: text.nav.marketingHint || "平台分发与复盘", icon: Waypoints, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
   ];
 
   /* ── Group 3: 资产与配置 (Manage) ── */
@@ -130,24 +130,23 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* ── Brand Header ── */}
       <div className={cn("mb-5 flex shrink-0 items-center", collapsed ? "justify-center" : "px-1")}>
       <div
           className={cn(
-            "transition-all",
+            "transition",
             collapsed
-              ? "flex size-10 items-center justify-center rounded-md border border-white/8 bg-transparent"
-              : "border-b border-white/10 px-1 pb-4"
+              ? "flex size-10 items-center justify-center rounded-full border border-[var(--sidebar-border)] bg-[var(--sidebar-item-hover)]"
+              : "border-b border-[var(--sidebar-border)] px-1 pb-4"
           )}
         >
           {!collapsed ? (
             <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-white/10 text-[var(--sidebar-text-hover)]">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[var(--sidebar-border)] bg-[var(--sidebar-item-hover)] text-[var(--sidebar-text-hover)]">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               <div>
-                <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
-                <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.22em] text-[var(--sidebar-text-hover)]">
+                <div className="theme-kicker text-[10px] font-medium text-[var(--sidebar-text)] opacity-85">{text.shell.workspaceLabel}</div>
+                <span className="mt-1 block text-[15px] font-semibold uppercase tracking-[0.12em] text-[var(--sidebar-text-hover)]">
                   Tahoe
                 </span>
               </div>
@@ -170,10 +169,9 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
           </nav>
         ))}
 
-        {/* ── Mode description card ── */}
         {!collapsed && (
-          <div className="mt-auto mb-2 border-t border-white/10 pt-4">
-            <div className="theme-kicker text-[10px] font-semibold text-[var(--sidebar-text)] opacity-95">{text.shell.workspaceLabel}</div>
+          <div className="mt-auto mb-2 border-t border-[var(--sidebar-border)] pt-4">
+            <div className="theme-kicker text-[10px] font-medium text-[var(--sidebar-text)] opacity-85">{text.shell.workspaceLabel}</div>
             <div className="mt-2 text-sm font-medium text-[var(--sidebar-text-hover)]">{text.shell.workModeTitle}</div>
             <p className="mt-2 text-xs leading-5 text-[var(--sidebar-text)] opacity-95">
               {text.shell.workModeDesc}

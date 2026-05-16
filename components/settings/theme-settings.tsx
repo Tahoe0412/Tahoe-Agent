@@ -10,7 +10,7 @@ const options: Array<{ value: ThemePreference; label: string; hint: string }> = 
 ];
 
 export function ThemeSettings() {
-  const [theme, setTheme] = useState<ThemePreference>("system");
+  const [theme, setTheme] = useState<ThemePreference>("light");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -20,7 +20,7 @@ export function ThemeSettings() {
       return;
     }
 
-    applyTheme("system");
+    applyTheme("light");
   }, []);
 
   useEffect(() => {
@@ -51,9 +51,9 @@ export function ThemeSettings() {
               key={option.value}
               type="button"
               onClick={() => updateTheme(option.value)}
-              className={`rounded-2xl border p-4 text-left transition-all ${
+              className={`rounded-md border p-4 text-left transition ${
                 active
-                  ? "border-[var(--border-selected)] bg-[var(--surface-selected)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  ? "border-[var(--border-selected)] bg-[var(--surface-selected)]"
                   : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)] hover:border-[var(--border)]"
               }`}
             >
@@ -63,8 +63,8 @@ export function ThemeSettings() {
           );
         })}
       </div>
-      <div className="theme-panel-muted rounded-[18px] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
-        当前主题偏好只保存在本地浏览器，不会影响数据库里的项目数据。默认推荐使用“跟随系统”。
+      <div className="theme-panel-muted rounded-md px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+        当前主题偏好只保存在本地浏览器，不会影响数据库里的项目数据。默认推荐使用“浅色模式”。
       </div>
     </div>
   );

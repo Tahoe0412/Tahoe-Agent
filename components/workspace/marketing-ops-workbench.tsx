@@ -1047,19 +1047,17 @@ export function MarketingOpsWorkbench({
   return (
     <div className="space-y-6">
       <PanelCard title={ui.feedbackTitle} description={ui.feedbackDesc}>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackDone}</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.done}</div>
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackWeak}</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.weakest}</div>
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.feedbackNext}</div>
-            <div className="mt-3 text-sm leading-7 text-[var(--text-1)]">{feedbackSummary.next}</div>
-          </div>
+        <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
+          {[
+            [ui.feedbackDone, feedbackSummary.done],
+            [ui.feedbackWeak, feedbackSummary.weakest],
+            [ui.feedbackNext, feedbackSummary.next],
+          ].map(([label, value]) => (
+            <div key={label} className="grid gap-2 py-4 md:grid-cols-[160px_1fr]">
+              <div className="text-xs font-semibold text-[var(--text-3)]">{label}</div>
+              <div className="text-sm leading-7 text-[var(--text-1)]">{value}</div>
+            </div>
+          ))}
         </div>
       </PanelCard>
 
@@ -1067,23 +1065,23 @@ export function MarketingOpsWorkbench({
         title={locale === "en" ? "Quality alerts" : "质量提醒"}
         description={locale === "en" ? "Keep the feedback concrete: hook strength, proof density, and whether the creative is visual enough to shoot." : "只抓最影响交付质量的几个点：钩子、证据密度，以及创意是否已经足够可拍。"}
       >
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Master copy" : "主稿"}</div>
-            <div className="mt-3 space-y-2">
+        <div className="grid gap-8 xl:grid-cols-2">
+          <div className="border-y border-[var(--border)] py-4">
+            <div className="text-xs font-semibold text-[var(--text-3)]">{locale === "en" ? "Master copy" : "主稿"}</div>
+            <div className="mt-3 divide-y divide-[var(--border)]">
               {selectedVersion ? masterCopyQualityAlerts.map((alert) => (
-                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                <div key={`${alert.label}-${alert.detail}`} className="py-3">
                   <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
                   <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
                 </div>
               )) : <div className="text-sm leading-7 text-[var(--text-2)]">{locale === "en" ? "Generate the first master draft before quality review can say anything useful." : "先拿到第一版主稿，系统才能判断它是不是还停留在空泛层。 "}</div>}
             </div>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Ad creative" : "广告创意"}</div>
-            <div className="mt-3 space-y-2">
+          <div className="border-y border-[var(--border)] py-4">
+            <div className="text-xs font-semibold text-[var(--text-3)]">{locale === "en" ? "Ad creative" : "广告创意"}</div>
+            <div className="mt-3 divide-y divide-[var(--border)]">
               {marketingOverview.latestAdCreative ? creativeQualityAlerts.map((alert) => (
-                <div key={`${alert.label}-${alert.detail}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-3">
+                <div key={`${alert.label}-${alert.detail}`} className="py-3">
                   <div className="text-sm font-semibold text-[var(--text-1)]">{alert.label}</div>
                   <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{alert.detail}</div>
                 </div>
@@ -1096,19 +1094,19 @@ export function MarketingOpsWorkbench({
       {/* ── Header: Project Context & Config ── */}
       <PanelCard title={ui.headerTitle} description={ui.headerDesc}>
         <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
-          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.brandProfile?.brandName ?? ui.unboundBrand}</span>
-          <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">{marketingOverview.industryTemplate?.industryName ?? ui.unboundTemplate}</span>
+          <span className="theme-pill rounded-sm px-3 py-1 text-xs font-medium">{marketingOverview.brandProfile?.brandName ?? ui.unboundBrand}</span>
+          <span className="theme-pill rounded-sm px-3 py-1 text-xs font-medium">{marketingOverview.industryTemplate?.industryName ?? ui.unboundTemplate}</span>
           <span className="text-[var(--text-3)]">{ui.summary(versions.length, (marketingOverview.platformAdaptations ?? []).length, (marketingOverview.complianceChecks ?? []).length)}</span>
         </div>
 
         {!marketingOverview.brandProfile || !marketingOverview.industryTemplate ? (
-          <div className="mb-4 rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm leading-7 text-[var(--warning-text)]">
+          <div className="mb-4 rounded-md border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm leading-7 text-[var(--warning-text)]">
             {ui.bindWarning}
           </div>
         ) : null}
 
         <Disclosure
-          className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4"
+          className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4"
           summaryClassName="text-sm font-medium text-[var(--text-1)]"
           contentClassName="mt-4 space-y-4"
           title={ui.adjustConfig}
@@ -1116,14 +1114,14 @@ export function MarketingOpsWorkbench({
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
               <div className="text-sm font-medium text-[var(--text-2)]">{ui.writingMode}</div>
-              <select value={writingMode} onChange={(event) => void updateWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+              <select value={writingMode} onChange={(event) => void updateWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-md px-4 py-3 text-sm" disabled={pending !== null}>
                 {writingModeList.map((mode) => (<option key={mode} value={mode}>{getWritingModeMeta(mode, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{writingMeta.description}</div>
             </label>
             <label className="space-y-2">
               <div className="text-sm font-medium text-[var(--text-2)]">{ui.outputStyle}</div>
-              <select value={styleTemplate} onChange={(event) => void updateStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+              <select value={styleTemplate} onChange={(event) => void updateStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-md px-4 py-3 text-sm" disabled={pending !== null}>
                 {styleTemplateList.map((style) => (<option key={style} value={style}>{getStyleTemplateMeta(style, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{styleMeta.description}</div>
@@ -1132,35 +1130,35 @@ export function MarketingOpsWorkbench({
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
               <div className="text-sm font-medium text-[var(--text-2)]">{ui.copyLength}</div>
-              <select value={copyLength} onChange={(event) => void updateCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+              <select value={copyLength} onChange={(event) => void updateCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-md px-4 py-3 text-sm" disabled={pending !== null}>
                 {copyLengthList.map((item) => (<option key={item} value={item}>{getCopyLengthMeta(item, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{copyLengthMeta.description}</div>
             </label>
             <label className="space-y-2">
               <div className="text-sm font-medium text-[var(--text-2)]">{ui.usageScenario}</div>
-              <select value={usageScenario} onChange={(event) => void updateUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+              <select value={usageScenario} onChange={(event) => void updateUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-md px-4 py-3 text-sm" disabled={pending !== null}>
                 {usageScenarioList.map((item) => (<option key={item} value={item}>{getUsageScenarioMeta(item, locale).label}</option>))}
               </select>
               <div className="text-sm text-[var(--text-2)]">{usageScenarioMeta.description}</div>
             </label>
           </div>
           {styleReferenceSample ? (
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.styleReference}</div>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.styleReferenceDesc}</div>
               {styleReferenceInsight ? (
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.titleStyle}</div>
+                  <div className="rounded-md bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.titleStyle}</div>
                     {(styleReferenceInsight.titleStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
-                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.openingStyle}</div>
+                  <div className="rounded-md bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.openingStyle}</div>
                     {(styleReferenceInsight.openingStyleLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
-                  <div className="rounded-xl bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
-                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.bodyRhythm}</div>
+                  <div className="rounded-md bg-[var(--surface-solid)] px-3 py-3 text-sm leading-7 text-[var(--text-2)]">
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.bodyRhythm}</div>
                     {(styleReferenceInsight.bodyRhythmLines ?? []).map((line) => (<div key={line}>• {line}</div>))}
                   </div>
                 </div>
@@ -1168,7 +1166,7 @@ export function MarketingOpsWorkbench({
               {styleReferenceInsight ? (
                 <div className="mt-3 grid gap-2 md:grid-cols-2">
                   {(styleReferenceInsight.summaryLines ?? []).map((line) => (
-                    <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">{line}</div>
+                    <div key={line} className="rounded-md bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">{line}</div>
                   ))}
                 </div>
               ) : null}
@@ -1177,16 +1175,16 @@ export function MarketingOpsWorkbench({
           ) : null}
         </Disclosure>
 
-        {message ? <div className="mt-4 rounded-xl bg-[var(--ok-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--ok-text)]">{message}</div> : null}
-        {error ? <div className="mt-4 rounded-xl bg-[var(--danger-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--danger-text)]">{error}</div> : null}
+        {message ? <div className="mt-4 rounded-md bg-[var(--ok-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--ok-text)]">{message}</div> : null}
+        {error ? <div className="mt-4 rounded-md bg-[var(--danger-bg,var(--surface-muted))] px-4 py-2 text-sm text-[var(--danger-text)]">{error}</div> : null}
       </PanelCard>
 
       <PanelCard title={ui.creativeTitle} description={ui.creativeDesc}>
         {marketingOverview.latestAdCreative && latestAdCreative ? (
           <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="theme-panel-muted rounded-[24px] p-5">
+            <div className="theme-panel-muted rounded-md p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeLatest}</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeLatest}</div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" className="h-auto px-3 py-1.5 text-xs" onClick={() => void copyCreativeBrief()}>
                     {ui.creativeCopy}
@@ -1197,60 +1195,60 @@ export function MarketingOpsWorkbench({
                   <Button variant="secondary" className="h-auto px-3 py-1.5 text-xs" onClick={() => void saveCreativeBriefVersion()} disabled={creativePending}>
                     {creativePending ? (locale === "en" ? "Saving..." : "保存中...") : (locale === "en" ? "Save as version" : "另存新版本")}
                   </Button>
-                  <span className="theme-pill rounded-full px-3 py-1 text-xs font-medium">
+                  <span className="theme-pill rounded-sm px-3 py-1 text-xs font-medium">
                     {new Date(marketingOverview.latestAdCreative.createdAt).toLocaleString(timeLocale)}
                   </span>
                 </div>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div>
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeAudience}</div>
-                  <textarea value={creativeAudience} onChange={(event) => setCreativeAudience(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeAudience}</div>
+                  <textarea value={creativeAudience} onChange={(event) => setCreativeAudience(event.target.value)} rows={4} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
                 <div>
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeAngle}</div>
-                  <textarea value={creativeAngle} onChange={(event) => setCreativeAngle(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeAngle}</div>
+                  <textarea value={creativeAngle} onChange={(event) => setCreativeAngle(event.target.value)} rows={4} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-3">
                 <div>
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeHook}</div>
-                  <textarea value={creativeHook} onChange={(event) => setCreativeHook(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeHook}</div>
+                  <textarea value={creativeHook} onChange={(event) => setCreativeHook(event.target.value)} rows={5} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
                 <div>
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeVisual}</div>
-                  <textarea value={creativeVisualDirection} onChange={(event) => setCreativeVisualDirection(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeVisual}</div>
+                  <textarea value={creativeVisualDirection} onChange={(event) => setCreativeVisualDirection(event.target.value)} rows={5} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
                 <div>
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeTone}</div>
-                  <textarea value={creativeShotTone} onChange={(event) => setCreativeShotTone(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeTone}</div>
+                  <textarea value={creativeShotTone} onChange={(event) => setCreativeShotTone(event.target.value)} rows={5} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
               </div>
               <div className="mt-4">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeCta}</div>
-                <textarea value={creativeCtaDirection} onChange={(event) => setCreativeCtaDirection(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeCta}</div>
+                <textarea value={creativeCtaDirection} onChange={(event) => setCreativeCtaDirection(event.target.value)} rows={3} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeSellingPoints}</div>
+              <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeSellingPoints}</div>
                 <div className="mt-3">
-                  <textarea value={creativeSellingPoints} onChange={(event) => setCreativeSellingPoints(event.target.value)} rows={8} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" />
+                  <textarea value={creativeSellingPoints} onChange={(event) => setCreativeSellingPoints(event.target.value)} rows={8} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" />
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Knowledge notes" : "创作知识"}</div>
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{locale === "en" ? "Knowledge notes" : "创作知识"}</div>
                   <div className="mt-3 space-y-2 text-sm leading-6 text-[var(--text-2)]">
                     {(creativeKnowledgeNotes.length ? creativeKnowledgeNotes : getOutputKnowledgePack("AD_CREATIVE").knowledgeNotes).map((item) => (
                       <div key={item}>- {item}</div>
                     ))}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "System review" : "系统复核"}</div>
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{locale === "en" ? "System review" : "系统复核"}</div>
                   <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">
                     {creativeArtifactReview?.summary || (locale === "en" ? "No stored review on this version yet." : "当前版本还没有存档复核结果。")}
                   </div>
@@ -1265,11 +1263,11 @@ export function MarketingOpsWorkbench({
               </div>
 
               {marketingOverview.adCreativeVersions.length > 1 ? (
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.creativeHistory}</div>
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.creativeHistory}</div>
                   <div className="mt-3 space-y-2">
                     {marketingOverview.adCreativeVersions.slice(1).map((item) => (
-                      <div key={item.id} className="rounded-xl bg-[var(--surface-muted)] px-3 py-3">
+                      <div key={item.id} className="rounded-md bg-[var(--surface-muted)] px-3 py-3">
                         <div className="text-sm font-medium text-[var(--text-1)]">{item.title}</div>
                         <div className="mt-1 text-sm leading-7 text-[var(--text-2)]">{item.summary ?? ""}</div>
                       </div>
@@ -1280,7 +1278,7 @@ export function MarketingOpsWorkbench({
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
+          <div className="rounded-md border border-dashed border-[var(--border)] p-4 text-sm leading-7 text-[var(--text-2)]">
             {ui.creativeEmpty}
           </div>
         )}
@@ -1288,18 +1286,18 @@ export function MarketingOpsWorkbench({
 
       <PanelCard title={ui.storyboardTitle} description={ui.storyboardDesc}>
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardVersion}</div>
+          <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.storyboardVersion}</div>
             <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">
               {marketingOverview.storyboardSummary.versionNumber ? `v${marketingOverview.storyboardSummary.versionNumber}` : "-"}
             </div>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardFrames}</div>
+          <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.storyboardFrames}</div>
             <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">{marketingOverview.storyboardSummary.frameCount}</div>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.storyboardReady}</div>
+          <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.storyboardReady}</div>
             <div className="mt-3 text-2xl font-semibold text-[var(--text-1)]">
               {marketingOverview.storyboardSummary.readyFrameCount}/{Math.max(marketingOverview.storyboardSummary.frameCount, marketingOverview.storyboardSummary.sceneCount)}
             </div>
@@ -1311,7 +1309,7 @@ export function MarketingOpsWorkbench({
           <NextStepLink href={`/scene-planner?projectId=${projectId}`} label={ui.storyboardOpen} />
         </div>
 
-        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-sm leading-7 text-[var(--text-2)]">
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-sm leading-7 text-[var(--text-2)]">
           {marketingOverview.storyboardSummary.frameCount > 0 ? ui.storyboardHintReady : ui.storyboardHintEmpty}
         </div>
       </PanelCard>
@@ -1336,23 +1334,23 @@ export function MarketingOpsWorkbench({
 
             <div className="grid gap-4 md:grid-cols-[1fr_0.62fr]">
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.versionTitle}</label>
-                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder={ui.versionTitlePlaceholder} />
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.versionTitle}</label>
+                <input value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} className="theme-input w-full rounded-md px-4 py-3 text-sm" placeholder={ui.versionTitlePlaceholder} />
               </div>
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.masterAngle}</label>
-                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" placeholder={ui.masterAnglePlaceholder} />
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.masterAngle}</label>
+                <input value={masterAngle} onChange={(event) => setMasterAngle(event.target.value)} className="theme-input w-full rounded-md px-4 py-3 text-sm" placeholder={ui.masterAnglePlaceholder} />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.heroCopy}</label>
-              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.heroCopyPlaceholder} />
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.heroCopy}</label>
+              <textarea value={heroCopy} onChange={(event) => setHeroCopy(event.target.value)} rows={4} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.heroCopyPlaceholder} />
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.longForm}</label>
-              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-2xl px-4 py-4 text-sm leading-8" placeholder={ui.longFormPlaceholder} />
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.longForm}</label>
+              <textarea value={longFormCopy} onChange={(event) => setLongFormCopy(event.target.value)} rows={14} className="theme-input w-full rounded-md px-4 py-4 text-sm leading-8" placeholder={ui.longFormPlaceholder} />
             </div>
 
             {selectedVersion ? (() => {
@@ -1360,33 +1358,33 @@ export function MarketingOpsWorkbench({
               const diagnosis = payload?.quality_diagnosis;
               if (!diagnosis) return null;
               return (
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.diagnosisTitle}</div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.diagnosisTitle}</div>
                       <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{diagnosis.summary ?? ui.diagnosisFallback}</div>
                     </div>
                     {typeof diagnosis.overall_score === "number" ? (
-                      <div className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">
+                      <div className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">
                         {ui.scoreLabel} {diagnosis.overall_score}
                       </div>
                     ) : null}
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.strengths}</div>
+                    <div className="rounded-md bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.strengths}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.strengths ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
-                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.issues}</div>
+                    <div className="rounded-md bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.issues}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.issues ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
                     </div>
-                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.focus}</div>
+                    <div className="rounded-md bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.focus}</div>
                       <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                         {(diagnosis.rewrite_focus ?? []).map((item, idx) => (<div key={idx}>• {toDisplayString(item)}</div>))}
                       </div>
@@ -1401,63 +1399,63 @@ export function MarketingOpsWorkbench({
               const panel = payload?.audience_panel_review;
               if (!panel) {
                 return (
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-sm leading-7 text-[var(--text-2)]">
+                  <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-sm leading-7 text-[var(--text-2)]">
                     {ui.audienceEmpty}
                   </div>
                 );
               }
 
               return (
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audiencePanelTitle}</div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audiencePanelTitle}</div>
                       <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.audiencePanelDesc}</div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceAvg} {panel.averageScore}</span>
-                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceStyleFit} {panel.styleFitScore}</span>
-                      <span className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceReady} {ui.audienceReadyValue(panel.publishReadiness === "READY")}</span>
+                      <span className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceAvg} {panel.averageScore}</span>
+                      <span className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceStyleFit} {panel.styleFitScore}</span>
+                      <span className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-1)]">{ui.audienceReady} {ui.audienceReadyValue(panel.publishReadiness === "READY")}</span>
                     </div>
                   </div>
 
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceVerdict}</div>
+                    <div className="rounded-md bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audienceVerdict}</div>
                       <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{panel.overallVerdict}</div>
                     </div>
-                    <div className="rounded-xl bg-[var(--surface-solid)] p-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceCalibration}</div>
+                    <div className="rounded-md bg-[var(--surface-solid)] p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audienceCalibration}</div>
                       <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{panel.calibrationSummary}</div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid gap-3 lg:grid-cols-2">
                     {panel.reviewers.map((reviewer) => (
-                      <div key={reviewer.id} className="rounded-xl bg-[var(--surface-solid)] p-4">
+                      <div key={reviewer.id} className="rounded-md bg-[var(--surface-solid)] p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
                             <div className="mt-1 text-sm leading-6 text-[var(--text-2)]">{reviewer.persona}</div>
                           </div>
-                          <span className="rounded-full border border-[var(--border)] px-3 py-1 text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
+                          <span className="rounded-sm border border-[var(--border)] px-3 py-1 text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
                         </div>
                         <div className="mt-3 text-sm leading-6 text-[var(--text-1)]">{reviewer.verdict}</div>
                         <div className="mt-3 grid gap-3">
                           <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceLikes}</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audienceLikes}</div>
                             <div className="mt-2 space-y-1 text-sm leading-6 text-[var(--text-2)]">
                               {reviewer.likes.map((item) => (<div key={item}>• {item}</div>))}
                             </div>
                           </div>
                           <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceConcerns}</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audienceConcerns}</div>
                             <div className="mt-2 space-y-1 text-sm leading-6 text-[var(--text-2)]">
                               {reviewer.concerns.map((item) => (<div key={item}>• {item}</div>))}
                             </div>
                           </div>
                           <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.audienceNext}</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.audienceNext}</div>
                             <div className="mt-2 text-sm leading-6 text-[var(--text-2)]">{reviewer.nextAction}</div>
                           </div>
                         </div>
@@ -1478,26 +1476,26 @@ export function MarketingOpsWorkbench({
               <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.headlineOptions}</label>
-                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.headlinePlaceholder} />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.headlineOptions}</label>
+                    <textarea value={headlineOptions} onChange={(event) => setHeadlineOptions(event.target.value)} rows={5} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.headlinePlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.proofPoints}</label>
-                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.proofPlaceholder} />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.proofPoints}</label>
+                    <textarea value={proofPoints} onChange={(event) => setProofPoints(event.target.value)} rows={5} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.proofPlaceholder} />
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.cta}</label>
-                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.ctaPlaceholder} />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.cta}</label>
+                    <textarea value={callToAction} onChange={(event) => setCallToAction(event.target.value)} rows={3} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.ctaPlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.riskNotes}</label>
-                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.riskPlaceholder} />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.riskNotes}</label>
+                    <textarea value={riskNotes} onChange={(event) => setRiskNotes(event.target.value)} rows={3} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.riskPlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.nextSteps}</label>
-                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-2xl px-4 py-3 text-sm leading-7" placeholder={ui.nextStepsPlaceholder} />
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.nextSteps}</label>
+                    <textarea value={recommendedNextSteps} onChange={(event) => setRecommendedNextSteps(event.target.value)} rows={3} className="theme-input w-full rounded-md px-4 py-3 text-sm leading-7" placeholder={ui.nextStepsPlaceholder} />
                   </div>
                 </div>
               </>
@@ -1520,7 +1518,7 @@ export function MarketingOpsWorkbench({
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedVersionId(item.id)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                    className={`w-full rounded-md border px-4 py-3 text-left transition ${
                       active
                         ? "border-[var(--accent-strong)] bg-[var(--surface-muted)]"
                         : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
@@ -1529,11 +1527,11 @@ export function MarketingOpsWorkbench({
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-medium text-[var(--text-1)]">{item.title}</div>
                       <div className="flex items-center gap-2">
-                        {versionNumber ? <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
+                        {versionNumber ? <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">v{versionNumber}</span> : null}
                         <span
                           role="button"
                           tabIndex={0}
-                          className={`rounded-full px-2 py-1 text-xs transition cursor-pointer ${
+                          className={`rounded-sm px-2 py-1 text-xs transition cursor-pointer ${
                             deleteArmedId === item.id
                               ? "bg-[var(--danger-bg)] text-[var(--danger-text)] font-medium"
                               : "text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)]"
@@ -1568,13 +1566,13 @@ export function MarketingOpsWorkbench({
                     <div className="mt-2 line-clamp-2 text-sm text-[var(--text-2)]">{payload?.hero_copy ?? item.summary ?? ui.noSummary}</div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
                       <span>{new Date(item.createdAt).toLocaleString(timeLocale)}</span>
-                      {payload?.generation_source ? <span className="theme-pill rounded-full px-2 py-1 text-[11px] font-medium">{payload.generation_source}</span> : null}
+                      {payload?.generation_source ? <span className="theme-pill rounded-sm px-2 py-1 text-[11px] font-medium">{payload.generation_source}</span> : null}
                     </div>
                   </button>
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
+              <div className="rounded-md border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
                 {ui.noVersions}
               </div>
             )}
@@ -1590,7 +1588,7 @@ export function MarketingOpsWorkbench({
             <div className="flex items-end gap-3">
               <label className="flex-1 space-y-1">
                 <div className="text-xs font-medium text-[var(--text-3)]">{ui.targetPlatform}</div>
-                <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-xl px-4 py-3 text-sm" disabled={pending !== null}>
+                <select value={adaptSurface} onChange={(event) => setAdaptSurface(event.target.value as PlatformSurface)} className="theme-input w-full rounded-md px-4 py-3 text-sm" disabled={pending !== null}>
                   {platformSurfaceList.map((item) => (<option key={item} value={item}>{getPlatformSurfaceMeta(item, locale).label}</option>))}
                 </select>
               </label>
@@ -1610,7 +1608,7 @@ export function MarketingOpsWorkbench({
                       key={item.id}
                       type="button"
                       onClick={() => setSelectedAdaptationId(item.id)}
-                      className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
+                      className={`w-full rounded-md border px-4 py-4 text-left transition ${
                         active
                           ? "border-[var(--accent-strong)] bg-[var(--surface-muted)] ring-1 ring-[var(--accent-strong)]"
                           : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
@@ -1618,10 +1616,10 @@ export function MarketingOpsWorkbench({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-block size-2 shrink-0 rounded-full ${statusColor}`} />
+                          <span className={`inline-block size-2 shrink-0 rounded-sm ${statusColor}`} />
                           <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(item.surface as PlatformSurface, locale).label}</span>
                         </div>
-                        <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, locale)}</span>
+                        <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{getAdaptationStatusLabel(item.status, locale)}</span>
                       </div>
                       <div className="mt-2 text-sm text-[var(--text-1)]">{item.title ?? item.hook ?? ui.noChannelTitle}</div>
                       <div className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--text-2)]">{item.body || ui.noChannelBody}</div>
@@ -1630,7 +1628,7 @@ export function MarketingOpsWorkbench({
                   );
                 })
               ) : (
-                <div className="rounded-2xl border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
+                <div className="rounded-md border border-dashed border-[var(--border)] p-4 text-sm text-[var(--text-2)]">
                   {ui.noChannelDrafts}
                 </div>
               )}
@@ -1641,16 +1639,16 @@ export function MarketingOpsWorkbench({
         {/* Right: Selected adaptation detail + compliance */}
         <PanelCard title={ui.detailTitle} description={ui.detailDesc}>
           <div className="space-y-4">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.selectedDraft}</div>
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.selectedDraft}</div>
               {selectedAdaptation ? (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-block size-2 rounded-full ${
+                    <span className={`inline-block size-2 rounded-sm ${
                       selectedAdaptation.status === "APPROVED" ? "bg-[var(--ok-text)]" : selectedAdaptation.status === "DRAFT" ? "bg-[var(--text-3)]" : "bg-[var(--accent)]"
                     }`} />
                     <span className="font-medium text-[var(--text-1)]">{getPlatformSurfaceMeta(selectedAdaptation.surface as PlatformSurface, locale).label}</span>
-                    <span className="theme-pill rounded-full px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, locale)}</span>
+                    <span className="theme-pill rounded-sm px-2 py-0.5 text-[11px] font-medium">{getAdaptationStatusLabel(selectedAdaptation.status, locale)}</span>
                   </div>
                   <div className="text-sm text-[var(--text-1)]">{selectedAdaptation.title ?? selectedAdaptation.hook ?? ui.noChannelTitle}</div>
                   <div className="line-clamp-4 text-sm leading-7 text-[var(--text-2)]">{selectedAdaptation.body || ui.noChannelBody}</div>
@@ -1666,16 +1664,16 @@ export function MarketingOpsWorkbench({
             </Button>
 
             {/* Compliance results — colocated! */}
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.complianceResult}</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.complianceResult}</div>
                 {latestCheckForSelected && (
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                  <span className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium ${
                     latestCheckForSelected.needsReview
                       ? "bg-[var(--danger-bg,var(--surface-muted))] text-[var(--danger-text)]"
                       : "bg-[var(--ok-bg,var(--surface-muted))] text-[var(--ok-text)]"
                   }`}>
-                    <span className={`inline-block size-1.5 rounded-full ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
+                    <span className={`inline-block size-1.5 rounded-sm ${latestCheckForSelected.needsReview ? "bg-[var(--danger-text)]" : "bg-[var(--ok-text)]"}`} />
                     {latestCheckForSelected.needsReview ? ui.needsReview : ui.noRisk}
                   </span>
                 )}
@@ -1690,7 +1688,7 @@ export function MarketingOpsWorkbench({
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-[var(--danger-text)]">{ui.issueCount(issues.length)}</div>
                         {(issues as Array<{ type?: string; text?: string; reason?: string }>).slice(0, 6).map((item, index) => (
-                          <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
+                          <div key={`${String(item?.type ?? "issue")}-${index}`} className="rounded-md bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)]">
                             <div className="font-medium text-[var(--text-1)]">{String(item?.type ?? ui.issueTypeFallback)} · {String(item?.text ?? ui.unnamedContent)}</div>
                             <div className="mt-1">{String(item?.reason ?? ui.issueReasonFallback)}</div>
                           </div>

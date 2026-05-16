@@ -140,7 +140,7 @@ export function PlatformContentPanel({
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+    <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function PlatformContentPanel({
           )}
           <span
             className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] font-medium",
+              "rounded-sm px-2 py-0.5 text-[10px] font-medium",
               result.success && result.mode === "live"
                 ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                 : result.mode === "mock"
@@ -197,9 +197,9 @@ export function PlatformContentPanel({
               <div
                 key={item.external_content_id}
                 className={cn(
-                  "group flex items-start gap-3 rounded-xl border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
+                  "group flex items-start gap-3 rounded-md border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
                   isSelected
-                    ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
+                    ? "border-[var(--accent)] bg-[var(--accent)]/5 "
                     : "border-[var(--border)] hover:border-[var(--accent)]/40",
                 )}
                 onClick={() =>
@@ -217,9 +217,9 @@ export function PlatformContentPanel({
                 {/* Checkbox */}
                 <div
                   className={cn(
-                    "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+                    "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition",
                     isSelected
-                      ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                      ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--text-inverse)]"
                       : "border-[var(--text-3)]/30 group-hover:border-[var(--accent)]/50",
                   )}
                 >

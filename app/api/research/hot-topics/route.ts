@@ -1,34 +1,5 @@
 import { ok, fail } from "@/lib/api-response";
-import { getPlatformConnector } from "@/services/platform-connectors";
-import { TrendScoringEngine } from "@/services/trend-scoring";
-import { searchLatestNews, searchCnIndexedEvidence } from "@/services/news-search";
-import { MockNewsSearchProvider } from "@/services/news-search/mock";
-import { prepareTrendContentItems } from "@/services/hot-topics/prepare-trend-content";
-import type { SupportedPlatform, ContentItem, Creator, PlatformCollectResult } from "@/types/platform-data";
-import type { ScoredTrendTopic } from "@/services/trend-scoring/engine";
-import type { NewsSearchResult } from "@/types/news-search";
-
-const ALLOWED_PLATFORMS: SupportedPlatform[] = ["YOUTUBE", "X", "TIKTOK", "XHS", "DOUYIN"];
-
-interface HotTopicsRequest {
-  query: string;
-  platforms?: SupportedPlatform[];
-  limit?: number;
-  mockMode?: boolean;
-}
-
-interface HotTopicsResponse {
-  success: boolean;
-  query: string;
-  platforms: SupportedPlatform[];
-  topics: ScoredTrendTopic[];
-  creators: Creator[];
-  content_items: ContentItem[];
-  news: NewsSearchResult;
-  cn_indexed: NewsSearchResult;
-  platform_results: PlatformCollectResult[];
-  fetched_at: string;
-}
+import { runHotTopicsResearch, type HotTopicsRequest } from "@/services/hot-topics/hot-topics.service";
 
 export async function POST(request: Request) {
   try {
@@ -38,79 +9,7 @@ export async function POST(request: Request) {
       return fail("Missing or empty 'query' field.", 400);
     }
 
-    const query = body.query.trim();
-    const platforms: SupportedPlatform[] = (body.platforms ?? ["YOUTUBE", "X"]).filter((p) =>
-      ALLOWED_PLATFORMS.includes(p)
-    );
-    const limit = Math.min(body.limit ?? 10, 25);
-    const mockMode = body.mockMode ?? false;
-
-    // 1. Parallel: platform connectors + news search + CN indexed evidence
-    //    In mock mode, bypass AppSettingsService (requires DB) and use mock directly.
-    const newsSearchPromise = mockMode
-      ? new MockNewsSearchProvider().searchLatest({ topic: query, limit: 5 })
-      : searchLatestNews({ topic: query, limit: 5 });
-
-    const cnIndexedPromise = mockMode
-      ? Promise.resolve<NewsSearchResult>({
-          provider: "GOOGLE",
-          mode: "mock",
-          success: true,
-          items: [],
-          errors: [],
-          fetched_at: new Date().toISOString(),
-        })
-      : searchCnIndexedEvidence({ topic: query, limit: 5 });
-
-    const [platformResults, newsResult, cnIndexedResult] = await Promise.all([
-      Promise.all(
-        platforms.map((platform) =>
-          getPlatformConnector(platform).collect({
-            topic: query,
-            limit,
-            mock: mockMode,
-          })
-        )
-      ),
-      newsSearchPromise,
-      cnIndexedPromise,
-    ]);
-
-    // 2. Dedupe and aggregate
-    const creatorMap = new Map<string, Creator>();
-    const contentMap = new Map<string, ContentItem>();
-
-    for (const result of platformResults) {
-      for (const creator of result.creators) {
-        creatorMap.set(`${creator.platform}:${creator.external_creator_id}`, creator);
-      }
-      for (const item of result.content_items) {
-        contentMap.set(`${item.platform}:${item.external_content_id}`, item);
-      }
-    }
-
-    const creators = [...creatorMap.values()];
-    const contentItems = [...contentMap.values()];
-    const trendContentItems = prepareTrendContentItems(contentItems, newsResult, platformResults, query);
-
-    // 3. Score & rank trend topics
-    const trendEngine = new TrendScoringEngine();
-    const topics = trendEngine.score(trendContentItems);
-
-    const response: HotTopicsResponse = {
-      success: true,
-      query,
-      platforms,
-      topics,
-      creators,
-      content_items: contentItems,
-      news: newsResult,
-      cn_indexed: cnIndexedResult,
-      platform_results: platformResults,
-      fetched_at: new Date().toISOString(),
-    };
-
-    return ok(response);
+    return ok(await runHotTopicsResearch(body));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return fail(message, 500);

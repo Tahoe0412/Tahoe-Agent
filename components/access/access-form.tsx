@@ -34,9 +34,9 @@ export function AccessForm() {
   }
 
   return (
-    <div className="theme-panel mx-auto max-w-xl space-y-6 rounded-[28px] p-8">
+    <div className="theme-panel mx-auto max-w-xl space-y-6 rounded-md p-8">
       <div className="space-y-2">
-        <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-3)]">Preview Access</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Preview Access</div>
         <div className="text-3xl font-semibold tracking-tight text-[var(--text-1)]">输入测试口令</div>
         <div className="text-sm leading-7 text-[var(--text-2)]">
           当前是受控测试版。输入访问口令后即可进入工作台，适合内部团队和受邀测试用户。
@@ -49,7 +49,7 @@ export function AccessForm() {
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="theme-input w-full rounded-2xl px-4 py-3 text-sm"
+          className="theme-input w-full rounded-md px-4 py-3 text-sm"
           placeholder="输入访问口令"
         />
       </div>

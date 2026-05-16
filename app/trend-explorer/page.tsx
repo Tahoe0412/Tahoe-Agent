@@ -24,7 +24,7 @@ import type { SupportedPlatform } from "@/types/platform-data";
 const workspaceQueryService = new WorkspaceQueryService();
 
 function MetaPill({ children }: { children: ReactNode }) {
-  return <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{children}</span>;
+  return <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{children}</span>;
 }
 
 export default async function TrendExplorerPage({
@@ -162,7 +162,7 @@ export default async function TrendExplorerPage({
         />
 
         {workspaceDataUnavailable && !projectId ? (
-          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+          <div className="border-y border-[color:color-mix(in_srgb,var(--warning-text)_24%,transparent)] bg-transparent px-0 py-3 text-sm leading-7 text-[var(--warning-text)]">
             {locale === "en"
               ? "Workspace data is temporarily unavailable, but you can still search trend topics manually from this page."
               : "当前工作区数据暂时不可用，但你仍然可以在这个页面里手动搜索趋势主题。"}
@@ -199,7 +199,7 @@ export default async function TrendExplorerPage({
                     <EmptyPanel title={ui.noPlatformData} description={ui.filterDesc} action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Refresh Project Data" : "回总览刷新数据"} />} />
                   ) : (
                     <>
-                      <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-muted)] p-5">
+                      <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-5">
                         <div className="text-sm font-semibold text-[var(--text-1)]">{ui.quickStartStep1}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.sourceScopeDesc}</div>
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -209,9 +209,9 @@ export default async function TrendExplorerPage({
                               <Link
                                 key={item}
                                 href={buildHref(item)}
-                                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                                className={`rounded-sm border px-4 py-2 text-sm font-medium transition ${
                                   active
-                                    ? "theme-panel-strong border-transparent text-[var(--text-inverse)]"
+                                    ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--text-1)]"
                                     : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-solid)]"
                                 }`}
                               >
@@ -224,35 +224,35 @@ export default async function TrendExplorerPage({
                         <div className="mt-4 flex flex-wrap gap-2">
                           {connectedPlatforms.length ? connectedPlatforms.map((item) => <MetaPill key={item}>{item}</MetaPill>) : <span className="text-sm text-[var(--text-2)]">{ui.noConnectedSources}</span>}
                           {plannedPlatforms.map((item) => (
-                            <span key={item} className="rounded-full border border-dashed border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-3)]">
+                            <span key={item} className="rounded-sm border border-dashed border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-3)]">
                               {item}
                             </span>
                           ))}
                         </div>
                       </div>
 
-                      <div className="grid gap-3 rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4 md:grid-cols-3">
+                      <div className="grid gap-3 rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4 md:grid-cols-3">
                         <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep1}</div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.quickStartStep1}</div>
                           <div className="mt-2 text-sm text-[var(--text-2)]">{selectedPlatform === "ALL" ? ui.allPlatforms : selectedPlatform}</div>
                         </div>
                         <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep2}</div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.quickStartStep2}</div>
                           <div className="mt-2 text-sm text-[var(--text-2)]">{primaryTrend ? primaryTrend.label : ui.emptyPrimaryLabel}</div>
                         </div>
                         <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{ui.quickStartStep3}</div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.quickStartStep3}</div>
                           <div className="mt-2">{projectId ? <NextStepLink href={nextStep.href} label={nextStep.label} /> : null}</div>
                         </div>
                       </div>
                       {primaryTrend ? (
-                        <div className="grid gap-4 rounded-[24px] border border-[var(--accent)] bg-[var(--accent-soft)] p-5 lg:grid-cols-[minmax(0,1.2fr)_180px_220px]">
+                        <div className="grid gap-4 rounded-md border border-[var(--accent)] bg-[var(--accent-soft)] p-5 lg:grid-cols-[minmax(0,1.2fr)_180px_220px]">
                           <div className="min-w-0">
                             <div className="flex items-center gap-3">
-                              <div className="grid size-8 place-items-center rounded-full bg-[var(--surface-strong)] text-xs font-semibold text-[var(--text-inverse)]">1</div>
+                              <div className="grid size-8 place-items-center rounded-sm bg-[var(--surface-strong)] text-xs font-semibold text-[var(--text-1)]">1</div>
                               <div className="text-lg font-semibold text-[var(--text-1)]">{ui.leadTopicTitle}{primaryTrend.label}</div>
                             </div>
-                            <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{primaryTrend.topic}</div>
+                            <div className="mt-2 text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{primaryTrend.topic}</div>
                             <div className="mt-4 flex flex-wrap gap-2">
                               <MetaPill>{primaryTrend.platforms}</MetaPill>
                               <MetaPill>{primaryTrend.evidence} {ui.evidenceLabel}</MetaPill>
@@ -270,10 +270,10 @@ export default async function TrendExplorerPage({
                           </div>
 
                           <div className="space-y-3">
-                            <div className="theme-panel-muted rounded-[20px] p-3">
+                            <div className="theme-panel-muted rounded-md p-3">
                               <ScoreRing value={primaryTrend.total} label={ui.scoreRingLead} />
                             </div>
-                            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-solid)] p-3 text-sm leading-6 text-[var(--text-2)]">
+                            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-3 text-sm leading-6 text-[var(--text-2)]">
                               {ui.leadTopicAdvice}
                             </div>
                           </div>
@@ -283,7 +283,7 @@ export default async function TrendExplorerPage({
                       {topTrends.length > 1 ? (
                         <div className="grid gap-4 md:grid-cols-2">
                           {topTrends.slice(1).map((row, index) => (
-                            <div key={row.topic} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                            <div key={row.topic} className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
                               <div className="flex items-center justify-between gap-3">
                                 <div>
                                   <div className="text-sm font-semibold text-[var(--text-1)]">{ui.altOptionPrefix}{index + 2}</div>
@@ -305,17 +305,17 @@ export default async function TrendExplorerPage({
 
                       {secondaryTrends.length > 0 ? (
                         <Disclosure
-                          className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4"
+                          className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4"
                           summaryClassName="text-sm font-medium text-[var(--text-1)]"
                           contentClassName="mt-4 space-y-3"
                           title={ui.viewMoreTrends(secondaryTrends.length)}
                         >
                             {secondaryTrends.map((row, index) => (
-                              <div key={row.topic} className="rounded-[18px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                              <div key={row.topic} className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                                 <div className="flex items-center justify-between gap-3">
                                   <div>
                                     <div className="text-sm font-semibold text-[var(--text-1)]">#{index + 4} {row.label}</div>
-                                    <div className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{row.topic}</div>
+                                    <div className="mt-1 text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{row.topic}</div>
                                   </div>
                                   <MetaPill>{row.total} 分</MetaPill>
                                 </div>
@@ -336,26 +336,26 @@ export default async function TrendExplorerPage({
                 {primaryTrend ? (
                   <>
                     <div>
-                      <div className="text-xl font-semibold text-[var(--text-inverse)]">{primaryTrend.label}</div>
-                      <div className="mt-2 text-xs uppercase tracking-[0.16em] text-white/58">{primaryTrend.topic}</div>
+                      <div className="text-xl font-semibold text-[var(--text-1)]">{primaryTrend.label}</div>
+                      <div className="mt-2 text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{primaryTrend.topic}</div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {primaryTrend.sourceEvidenceMap.map((item) => (
                         <MetaPill key={`focus-${item.platform}`}>{item.platform} · {item.count}</MetaPill>
                       ))}
                     </div>
-                    <div className="grid gap-3 rounded-[24px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{ui.whyTitle}</div>
+                    <div className="grid gap-3 rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-sm font-medium text-[var(--text-1)]">{ui.whyTitle}</div>
                       <div>{ui.whyA}</div>
                       <div>{ui.whyB}</div>
                     </div>
-                    <div className="grid gap-3 rounded-[24px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{ui.usageTitle}</div>
+                    <div className="grid gap-3 rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-sm font-medium text-[var(--text-1)]">{ui.usageTitle}</div>
                       <div>{ui.usageA}</div>
                       <div>{ui.usageB}</div>
                     </div>
-                    <div className="grid gap-3 rounded-[24px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{ui.nextStepTitle}</div>
+                    <div className="grid gap-3 rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-sm font-medium text-[var(--text-1)]">{ui.nextStepTitle}</div>
                       <div>
                         {workspace?.contentLine === "MARS_CITIZEN"
                           ? ui.nextStepVideo

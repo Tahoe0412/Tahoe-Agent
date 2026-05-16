@@ -166,27 +166,27 @@ export function IndustryTemplateWorkbench({
                 key={template.id}
                 type="button"
                 onClick={() => setSelectedTemplateId(template.id)}
-                className={`w-full rounded-[22px] border p-4 text-left transition ${
-                  template.id === activeTemplate?.id ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
+                className={`w-full rounded-md border p-4 text-left transition ${
+                  template.id === activeTemplate?.id ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-base font-semibold">{template.industry_name}</div>
-                    <div className={`mt-1 text-xs ${template.id === activeTemplate?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{template.competitor_profiles.length} 个竞品 · {template.projects.length} 个项目</div>
+                    <div className={`mt-1 text-xs ${template.id === activeTemplate?.id ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{template.competitor_profiles.length} 个竞品 · {template.projects.length} 个项目</div>
                   </div>
-                  {projectId && activeIndustryTemplateId === template.id ? <span className="theme-chip-ok rounded-full px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
+                  {projectId && activeIndustryTemplateId === template.id ? <span className="theme-chip-ok rounded-sm px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
                 </div>
-                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${template.id === activeTemplate?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{template.recommended_topic_directions.slice(0, 2).join(" · ") || "等待补充推荐选题方向。"}</div>
+                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${template.id === activeTemplate?.id ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>{template.recommended_topic_directions.slice(0, 2).join(" · ") || "等待补充推荐选题方向。"}</div>
               </button>
             ))}
           </div>
 
           <div className="space-y-4">
-            <div className="theme-panel-muted rounded-[22px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">先填最关键的行业信息</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">先填最关键的行业信息</div>
               <div className="mt-4 grid gap-4">
-                <input value={industryName} onChange={(event) => setIndustryName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="行业名称，例如口腔连锁 / 新消费护肤 / 本地餐饮" />
+                <input value={industryName} onChange={(event) => setIndustryName(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="行业名称，例如口腔连锁 / 新消费护肤 / 本地餐饮" />
                 <TagInput value={industryKeywords} onChange={setIndustryKeywords} placeholder="输入行业关键词后按回车" />
                 <TagInput value={painPoints} onChange={setPainPoints} placeholder="输入用户常见痛点后按回车" />
                 <TagInput value={topics} onChange={setTopics} placeholder="输入推荐选题方向后按回车" />
@@ -194,7 +194,7 @@ export function IndustryTemplateWorkbench({
                   <div className="text-xs font-medium text-[var(--text-3)]">优先平台（可多选）</div>
                   <div className="flex flex-wrap gap-2">
                     {surfaces.map((surface) => (
-                      <button key={surface} type="button" onClick={() => toggle(platformPriority, surface, setPlatformPriority)} className={`rounded-full border px-3 py-1.5 text-xs transition ${platformPriority.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
+                      <button key={surface} type="button" onClick={() => toggle(platformPriority, surface, setPlatformPriority)} className={`rounded-sm border px-3 py-1.5 text-xs transition ${platformPriority.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
                         {getPlatformSurfaceMeta(surface).label}
                       </button>
                     ))}
@@ -210,7 +210,7 @@ export function IndustryTemplateWorkbench({
             </div>
 
             {activeTemplate ? (
-              <div className="theme-panel-muted rounded-[22px] p-4">
+              <div className="theme-panel-muted rounded-md p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-[var(--text-1)]">{activeTemplate.industry_name}</div>
@@ -218,11 +218,11 @@ export function IndustryTemplateWorkbench({
                   </div>
                   {projectId ? <Button variant="secondary" onClick={() => void attachToProject(activeTemplate.id)} disabled={pending !== null}>绑定到当前项目</Button> : null}
                 </div>
-                <Disclosure className="mt-4 rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4" summary="继续补充竞品（可选）" defaultOpen={false}>
+                <Disclosure className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4" summary="继续补充竞品（可选）" defaultOpen={false}>
                   <div className="grid gap-3 pt-3">
-                    <input value={competitorName} onChange={(event) => setCompetitorName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="竞品名" />
+                    <input value={competitorName} onChange={(event) => setCompetitorName(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="竞品名" />
                     <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
-                      <select value={competitorTier} onChange={(event) => setCompetitorTier(event.target.value as (typeof competitorTiers)[number])} className="theme-input rounded-[16px] px-4 py-3 text-sm">
+                      <select value={competitorTier} onChange={(event) => setCompetitorTier(event.target.value as (typeof competitorTiers)[number])} className="theme-input rounded-md px-4 py-3 text-sm">
                         {competitorTiers.map((item) => (
                           <option key={item} value={item}>
                             {getCompetitorTierLabel(item)}
@@ -233,7 +233,7 @@ export function IndustryTemplateWorkbench({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {surfaces.map((surface) => (
-                        <button key={surface} type="button" onClick={() => toggle(competitorPlatforms, surface, setCompetitorPlatforms)} className={`rounded-full border px-3 py-1.5 text-xs transition ${competitorPlatforms.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
+                        <button key={surface} type="button" onClick={() => toggle(competitorPlatforms, surface, setCompetitorPlatforms)} className={`rounded-sm border px-3 py-1.5 text-xs transition ${competitorPlatforms.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
                           {getPlatformSurfaceMeta(surface).label}
                         </button>
                       ))}
@@ -255,31 +255,31 @@ export function IndustryTemplateWorkbench({
             <div className="text-2xl font-semibold tracking-tight text-[var(--text-1)]">{activeTemplate.industry_name}</div>
             <div className="flex flex-wrap gap-2">
               {activeTemplate.industry_keywords.slice(0, 8).map((item) => (
-                <span key={item} className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{item}</span>
+                <span key={item} className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{item}</span>
               ))}
             </div>
-            <div className="theme-panel-muted rounded-[20px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">推荐选题方向</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">推荐选题方向</div>
               <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--text-2)]">
                 {activeTemplate.recommended_topic_directions.length ? activeTemplate.recommended_topic_directions.map((item) => <div key={item}>• {item}</div>) : <div>当前未配置。</div>}
               </div>
             </div>
-            <div className="theme-panel-muted rounded-[20px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">风险词</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">风险词</div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {activeTemplate.forbidden_terms.length ? activeTemplate.forbidden_terms.map((item) => <span key={item} className="theme-chip-danger rounded-full px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">当前未配置。</span>}
+                {activeTemplate.forbidden_terms.length ? activeTemplate.forbidden_terms.map((item) => <span key={item} className="theme-chip-danger rounded-sm px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">当前未配置。</span>}
               </div>
             </div>
             <div className="space-y-3">
               {activeTemplate.competitor_profiles.map((competitor) => (
-                <div key={competitor.id} className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div key={competitor.id} className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm font-semibold text-[var(--text-1)]">{competitor.competitor_name}</div>
-                    <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getCompetitorTierLabel(competitor.competitor_tier)}</span>
+                    <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{getCompetitorTierLabel(competitor.competitor_tier)}</span>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {competitor.primary_platforms.map((item) => (
-                      <span key={item} className="theme-chip rounded-full px-2.5 py-1 text-xs font-medium">{getPlatformSurfaceMeta(item as PlatformSurface).label}</span>
+                      <span key={item} className="theme-chip rounded-sm px-2.5 py-1 text-xs font-medium">{getPlatformSurfaceMeta(item as PlatformSurface).label}</span>
                     ))}
                   </div>
                 </div>
@@ -287,7 +287,7 @@ export function IndustryTemplateWorkbench({
             </div>
           </div>
         ) : (
-          <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
+          <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
             先创建一个行业模板，再把它绑定到项目。之后趋势研究、内容方向和合规边界都可以复用这套行业配置。
           </div>
         )}

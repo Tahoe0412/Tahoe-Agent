@@ -21,6 +21,32 @@ export interface EffectiveAppSettings {
   appBaseUrl: string | null;
 }
 
+export type ClientAppSettings = Omit<
+  EffectiveAppSettings,
+  | "openaiApiKey"
+  | "geminiApiKey"
+  | "deepseekApiKey"
+  | "qwenApiKey"
+  | "googleSearchApiKey"
+  | "serperApiKey"
+  | "serpApiKey"
+> & {
+  openaiApiKey: null;
+  geminiApiKey: null;
+  deepseekApiKey: null;
+  qwenApiKey: null;
+  googleSearchApiKey: null;
+  serperApiKey: null;
+  serpApiKey: null;
+  hasOpenaiApiKey: boolean;
+  hasGeminiApiKey: boolean;
+  hasDeepseekApiKey: boolean;
+  hasQwenApiKey: boolean;
+  hasGoogleSearchApiKey: boolean;
+  hasSerperApiKey: boolean;
+  hasSerpApiKey: boolean;
+};
+
 function envBoolean(value: string | undefined, fallback: boolean) {
   if (value === undefined) {
     return fallback;
@@ -31,6 +57,34 @@ function envBoolean(value: string | undefined, fallback: boolean) {
 
 function trimOrNull(value?: string | null) {
   return value && value.trim().length > 0 ? value.trim() : null;
+}
+
+function inputOrExisting(input: string | null | undefined, existing: string | null | undefined) {
+  if (input === undefined) {
+    return trimOrNull(existing);
+  }
+
+  return trimOrNull(input);
+}
+
+export function toClientAppSettings(settings: EffectiveAppSettings): ClientAppSettings {
+  return {
+    ...settings,
+    openaiApiKey: null,
+    geminiApiKey: null,
+    deepseekApiKey: null,
+    qwenApiKey: null,
+    googleSearchApiKey: null,
+    serperApiKey: null,
+    serpApiKey: null,
+    hasOpenaiApiKey: Boolean(settings.openaiApiKey),
+    hasGeminiApiKey: Boolean(settings.geminiApiKey),
+    hasDeepseekApiKey: Boolean(settings.deepseekApiKey),
+    hasQwenApiKey: Boolean(settings.qwenApiKey),
+    hasGoogleSearchApiKey: Boolean(settings.googleSearchApiKey),
+    hasSerperApiKey: Boolean(settings.serperApiKey),
+    hasSerpApiKey: Boolean(settings.serpApiKey),
+  };
 }
 
 function envRoute(key: ModelRouteKey): ModelRouteConfig {
@@ -135,7 +189,14 @@ export class AppSettingsService {
     serper_api_key?: string | null;
     app_base_url?: string | null;
   }) {
-    await this.getRecord();
+    const existing = await this.getRecord();
+    const openaiApiKey = inputOrExisting(input.openai_api_key, existing.openai_api_key);
+    const geminiApiKey = inputOrExisting(input.gemini_api_key, existing.gemini_api_key);
+    const deepseekApiKey = inputOrExisting(input.deepseek_api_key, existing.deepseek_api_key);
+    const qwenApiKey = inputOrExisting(input.qwen_api_key, existing.qwen_api_key);
+    const googleSearchApiKey = inputOrExisting(input.google_search_api_key, existing.google_search_api_key);
+    const googleSearchCx = inputOrExisting(input.google_search_cx, existing.google_search_cx);
+    const serperApiKey = inputOrExisting(input.serper_api_key, existing.serper_api_key);
 
     return prisma.appSettings.upsert({
       where: { id: "default" },
@@ -143,16 +204,16 @@ export class AppSettingsService {
         llm_provider: input.llm_provider,
         llm_model: input.llm_model,
         llm_mock_mode: input.llm_mock_mode,
-        openai_api_key: trimOrNull(input.openai_api_key),
-        gemini_api_key: trimOrNull(input.gemini_api_key),
-        deepseek_api_key: trimOrNull(input.deepseek_api_key),
-        qwen_api_key: trimOrNull(input.qwen_api_key),
+        openai_api_key: openaiApiKey,
+        gemini_api_key: geminiApiKey,
+        deepseek_api_key: deepseekApiKey,
+        qwen_api_key: qwenApiKey,
         llm_routing_json: normalizeModelRoutes(input.llm_routing_json) as never,
         news_search_provider: input.news_search_provider,
         news_search_mock_mode: input.news_search_mock_mode,
-        google_search_api_key: trimOrNull(input.google_search_api_key),
-        google_search_cx: trimOrNull(input.google_search_cx),
-        serper_api_key: trimOrNull(input.serper_api_key),
+        google_search_api_key: googleSearchApiKey,
+        google_search_cx: googleSearchCx,
+        serper_api_key: serperApiKey,
         app_base_url: trimOrNull(input.app_base_url),
       },
       create: {
@@ -160,16 +221,16 @@ export class AppSettingsService {
         llm_provider: input.llm_provider,
         llm_model: input.llm_model,
         llm_mock_mode: input.llm_mock_mode,
-        openai_api_key: trimOrNull(input.openai_api_key),
-        gemini_api_key: trimOrNull(input.gemini_api_key),
-        deepseek_api_key: trimOrNull(input.deepseek_api_key),
-        qwen_api_key: trimOrNull(input.qwen_api_key),
+        openai_api_key: openaiApiKey,
+        gemini_api_key: geminiApiKey,
+        deepseek_api_key: deepseekApiKey,
+        qwen_api_key: qwenApiKey,
         llm_routing_json: normalizeModelRoutes(input.llm_routing_json) as never,
         news_search_provider: input.news_search_provider,
         news_search_mock_mode: input.news_search_mock_mode,
-        google_search_api_key: trimOrNull(input.google_search_api_key),
-        google_search_cx: trimOrNull(input.google_search_cx),
-        serper_api_key: trimOrNull(input.serper_api_key),
+        google_search_api_key: googleSearchApiKey,
+        google_search_cx: googleSearchCx,
+        serper_api_key: serperApiKey,
         app_base_url: trimOrNull(input.app_base_url),
       },
     });

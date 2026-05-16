@@ -4,7 +4,7 @@ const themeBootScript = `
 (() => {
   try {
     const stored = localStorage.getItem("${THEME_STORAGE_KEY}");
-    const preference = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+    const preference = stored === "light" || stored === "dark" || stored === "system" ? stored : "light";
     const resolved = preference === "system"
       ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
       : preference;

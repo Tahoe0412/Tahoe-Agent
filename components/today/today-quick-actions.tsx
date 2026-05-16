@@ -25,7 +25,7 @@ export function TodayQuickActions({
   const t = locale === "zh";
 
   return (
-    <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] p-6">
+    <section className="border-y border-[var(--accent)]/20 py-5">
       <div className="mb-4 flex items-center gap-3">
         <Zap className="size-5 text-[var(--accent)]" />
         <div>
@@ -48,7 +48,6 @@ export function TodayQuickActions({
             desc: t
               ? "进入火星公民脚本主线，先拿到第一版叙事脚本"
               : "Start the Mars Citizen line with a first narrative script",
-            color: "from-[var(--sage)]/12 to-[var(--sage)]/4",
             textColor: "text-[var(--sage)]",
           },
           {
@@ -58,7 +57,6 @@ export function TodayQuickActions({
             desc: t
               ? "直接去做视频标题和发布文案"
               : "Jump straight to titles and publish copy",
-            color: "from-[var(--accent)]/12 to-[var(--accent)]/4",
             textColor: "text-[var(--accent)]",
           },
           {
@@ -68,7 +66,6 @@ export function TodayQuickActions({
             desc: t
               ? "进入 Marketing 主线，先生成平台文案"
               : "Start the Marketing line with platform copy",
-            color: "from-[var(--terracotta)]/12 to-[var(--terracotta)]/4",
             textColor: "text-[var(--terracotta)]",
           },
           {
@@ -78,21 +75,15 @@ export function TodayQuickActions({
             desc: t
               ? "直接走广告分镜与视觉制作方向"
               : "Go directly into ad storyboard and visual planning",
-            color: "from-[var(--accent)]/12 to-[var(--accent)]/4",
             textColor: "text-[var(--accent)]",
           },
         ].map((item) => (
           <button
             key={item.label}
             onClick={() => onAction(selectedTopic.label, item.type)}
-            className="group flex flex-col items-start rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md"
+            className="group flex flex-col items-start border-t border-[var(--border)] py-4 text-left transition hover:text-[var(--text-1)]"
           >
-            <div
-              className={cn(
-                "flex size-10 items-center justify-center rounded-xl bg-gradient-to-br",
-                item.color
-              )}
-            >
+            <div className="flex size-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent">
               <item.icon className={cn("size-5", item.textColor)} />
             </div>
             <div className="mt-3 text-sm font-semibold text-[var(--text-1)]">

@@ -14,17 +14,17 @@ export function PageHeader({
   locale?: Locale;
 }) {
   return (
-    <header className="border-b border-[var(--border)] pb-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <header className="py-2 sm:py-3">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
         <div className="min-w-0 space-y-3">
-          <div className="theme-kicker text-[11px] font-semibold text-[var(--accent-strong)]">
+          <div className="theme-kicker text-[10px] font-semibold text-[var(--accent-strong)]">
             {eyebrow}
           </div>
           <div className="max-w-[76rem]">
-            <h2 className="theme-font-display max-w-[17ch] text-[2.55rem] leading-[0.92] text-[var(--text-1)] sm:text-[3.2rem] md:text-[3.65rem] xl:text-[3.85rem]">
+            <h2 className="theme-font-display max-w-[20ch] text-[2.05rem] font-semibold leading-[1.05] text-[var(--text-1)] sm:text-[2.45rem] md:text-[2.75rem] xl:text-[2.9rem]">
               {title}
             </h2>
-            <p className="mt-3 max-w-3xl text-[15px] leading-8 text-[var(--text-2)] min-[1700px]:max-w-[60rem]">{description}</p>
+            <p className="mt-3 max-w-3xl text-[15px] leading-7 text-[var(--text-2)]">{description}</p>
           </div>
         </div>
         {action ? <div className="w-full shrink-0 xl:w-auto">{action}</div> : null}

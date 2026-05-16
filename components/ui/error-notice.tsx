@@ -34,16 +34,16 @@ export function ErrorNotice({
   }
 
   return (
-    <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_28%,transparent)] bg-[var(--danger-bg)] py-4">
+    <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-transparent py-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] text-[var(--danger-text)]">
-          <AlertTriangle className="size-5" />
+        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] text-[var(--danger-text)]">
+          <AlertTriangle className="size-4" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-[var(--danger-text)]">{info.title}</div>
           <div className="mt-1 text-sm leading-6 text-[var(--danger-text)]/90">{info.suggestion}</div>
           {info.traceId ? (
-            <div className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-[var(--danger-text)]/75">
+            <div className="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-[var(--danger-text)]/75">
               trace id: {info.traceId}
             </div>
           ) : null}

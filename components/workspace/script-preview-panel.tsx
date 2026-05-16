@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeAudiencePanelReview, type AudiencePanelReview } from "@/lib/copy-review-panel";
 import {
@@ -58,6 +58,8 @@ export function ScriptPreviewPanel({
   const isNewsRoundup = rawPayload?.origin === "news_roundup";
   const newsItems = rawPayload?.news_items ?? [];
   const audiencePanel = normalizeAudiencePanelReview(structured?.audience_panel_review);
+  const [showAudienceReview, setShowAudienceReview] = useState(false);
+  const [showSources, setShowSources] = useState(false);
 
   // Determine if we should poll
   const initialStatus = structured?.scene_split_status;
@@ -85,10 +87,10 @@ export function ScriptPreviewPanel({
   return (
     <div className="space-y-5">
       {/* Script header */}
-      <div className="rounded-2xl border border-[var(--accent)]/20 bg-[linear-gradient(135deg,var(--accent-soft),rgba(255,255,255,0.6))] p-6 shadow-sm">
+      <div className="border-y border-[var(--accent)]/20 bg-transparent py-5">
         <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-white shadow-md">
-            <FileText className="size-6" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-[14px] bg-[var(--accent-strong)] text-[var(--text-inverse)] ">
+            <FileText className="size-5" />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-bold text-[var(--text-1)] leading-tight">
@@ -96,7 +98,7 @@ export function ScriptPreviewPanel({
             </h3>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--text-3)]">
               {isNewsRoundup && (
-                <span className="rounded-full bg-[var(--accent)]/10 px-2.5 py-1 text-[var(--accent)] font-medium">
+                <span className="rounded-[14px] bg-[var(--accent)]/10 px-2.5 py-1 text-[var(--accent)] font-medium">
                   {t ? "新闻盘点" : "News Roundup"}
                 </span>
               )}
@@ -136,7 +138,7 @@ export function ScriptPreviewPanel({
         }}
       />
 
-      <AudiencePanelSummary panel={audiencePanel} locale={locale} />
+      <AudiencePanelSummary panel={audiencePanel} locale={locale} open={showAudienceReview} onToggle={() => setShowAudienceReview((value) => !value)} />
 
       {/* Script body — structured sections */}
       {structured && (structured.opening || structured.body || structured.closing) ? (
@@ -165,7 +167,7 @@ export function ScriptPreviewPanel({
         </div>
       ) : (
         /* Fallback: show raw original_text */
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-6">
+        <div className="border-y border-[var(--border)] bg-[var(--surface-solid)] py-5">
           <div className="whitespace-pre-wrap text-sm leading-7 text-[var(--text-1)]">
             {script.originalText}
           </div>
@@ -174,20 +176,24 @@ export function ScriptPreviewPanel({
 
       {/* Source news items */}
       {newsItems.length > 0 && (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)] mb-3">
-            {t ? "引用素材" : "Source Materials"} · {newsItems.length}
-          </div>
-          <div className="space-y-2">
+        <div className="border-y border-[var(--border)] bg-[var(--surface-muted)] py-4">
+          <button
+            type="button"
+            onClick={() => setShowSources((value) => !value)}
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)] underline decoration-[var(--border)] underline-offset-4"
+          >
+            {showSources ? (t ? "收起素材来源" : "Hide sources") : (t ? "查看素材来源" : "View sources")} · {newsItems.length}
+          </button>
+          {showSources ? <div className="mt-3 space-y-2">
             {newsItems.map((item, i) => (
               <a
                 key={i}
                 href={item.url}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-2.5 text-xs transition hover:border-[var(--accent)]/40"
+                className="flex items-start gap-2 border-t border-[var(--border)] bg-[var(--surface-solid)] px-3 py-2.5 text-xs transition hover:border-[var(--accent)]/40"
               >
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-[14px] bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)]">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -199,7 +205,7 @@ export function ScriptPreviewPanel({
                 <ExternalLink className="mt-0.5 size-3 shrink-0 text-[var(--text-3)]" />
               </a>
             ))}
-          </div>
+          </div> : null}
         </div>
       )}
     </div>
@@ -209,9 +215,13 @@ export function ScriptPreviewPanel({
 function AudiencePanelSummary({
   panel,
   locale,
+  open,
+  onToggle,
 }: {
   panel: AudiencePanelReview | null;
   locale: "zh" | "en";
+  open: boolean;
+  onToggle: () => void;
 }) {
   if (!panel) {
     return null;
@@ -220,19 +230,18 @@ function AudiencePanelSummary({
   const t = locale === "zh";
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5 shadow-sm">
+    <div className="border-y border-[var(--border)] bg-[var(--surface-solid)] py-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
-            {t ? "主稿观众评分" : "Audience panel"}
-          </div>
-          <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">
-            {t
-              ? "先看这版主稿是否像一篇能发的内容，而不是只看 scene 有没有拆出来。"
-              : "Judge whether this draft reads like a publishable piece, not just a script that splits into scenes."}
-          </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="text-sm font-medium text-[var(--text-1)] underline decoration-[var(--border)] underline-offset-4"
+          >
+            {open ? (t ? "收起正文检查" : "Hide draft check") : (t ? "正文检查：先确认文章读起来像真人写的。" : "Draft check: confirm it reads like a real article.")}
+          </button>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        {open ? <div className="flex flex-wrap items-center gap-2">
           <MetricChip label={t ? "平均分" : "Average"} value={panel.averageScore} />
           <MetricChip label={t ? "媒体贴合度" : "Style fit"} value={panel.styleFitScore} />
           <MetricChip
@@ -240,27 +249,27 @@ function AudiencePanelSummary({
             value={panel.publishReadiness === "READY" ? (t ? "可继续" : "Ready") : (t ? "先修" : "Revise")}
             tone={panel.publishReadiness === "READY" ? "success" : "danger"}
           />
-        </div>
+        </div> : null}
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl bg-[var(--surface-muted)] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
+      {open ? <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="border-y border-[var(--border)] bg-[var(--surface-muted)] py-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">
             {t ? "总判断" : "Verdict"}
           </div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{panel.overallVerdict}</div>
         </div>
-        <div className="rounded-xl bg-[var(--surface-muted)] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">
+        <div className="border-y border-[var(--border)] bg-[var(--surface-muted)] py-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">
             {t ? "媒体校准" : "Calibration"}
           </div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{panel.calibrationSummary}</div>
         </div>
-      </div>
+      </div> : null}
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+      {open ? <div className="mt-4 grid gap-3 lg:grid-cols-2">
         {panel.reviewers.map((reviewer) => (
-          <div key={reviewer.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+          <div key={reviewer.id} className="border-y border-[var(--border)] bg-[var(--surface-muted)] py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-semibold text-[var(--text-1)]">{reviewer.label}</div>
               <span className="text-sm font-semibold text-[var(--text-1)]">{reviewer.score}</span>
@@ -278,7 +287,7 @@ function AudiencePanelSummary({
             </div>
           </div>
         ))}
-      </div>
+      </div> : null}
     </div>
   );
 }
@@ -300,7 +309,7 @@ function MetricChip({
         : "theme-chip";
 
   return (
-    <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${className}`}>
+    <span className={`rounded-[14px] px-3 py-1.5 text-sm font-semibold ${className}`}>
       {label} {value}
     </span>
   );
@@ -329,10 +338,10 @@ function SceneSplitBanner({
 
   if (status === "pending" || status === "splitting" || isPolling) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-5 py-3.5">
+      <div className="flex items-center gap-3 border-y border-[var(--accent)]/20 bg-[var(--accent)]/5 py-3.5">
         <Loader2 className="size-4 animate-spin text-[var(--accent)]" />
         <span className="text-sm text-[var(--text-2)]">
-          {t ? "正在拆分场景…" : "Splitting into scenes…"}
+          {t ? "配图说明生成中…" : "Image brief is being prepared…"}
         </span>
       </div>
     );
@@ -340,29 +349,29 @@ function SceneSplitBanner({
 
   if (status === "done" && sceneCount > 0) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-50/60 px-5 py-3.5">
-        <CheckCircle2 className="size-4 text-emerald-600" />
-        <span className="text-sm text-emerald-800">
+      <div className="flex items-center gap-3 border-y border-[color:color-mix(in_srgb,var(--ok-text)_24%,transparent)] py-3.5">
+        <CheckCircle2 className="size-4 text-[var(--ok-text)]" />
+        <span className="text-sm text-[var(--ok-text)]">
           {t
-            ? `已拆分为 ${sceneCount} 个场景，正在刷新…`
-            : `Split into ${sceneCount} scenes, refreshing…`}
+            ? `已生成 ${sceneCount} 条配图说明，正在刷新…`
+            : `${sceneCount} image briefs prepared, refreshing…`}
         </span>
-        <LayoutGrid className="ml-auto size-4 text-emerald-600" />
+        <LayoutGrid className="ml-auto size-4 text-[var(--ok-text)]" />
       </div>
     );
   }
 
   if (status === "failed") {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-red-300/30 bg-red-50/60 px-5 py-3.5">
-        <AlertTriangle className="size-4 text-red-500" />
-        <span className="text-sm text-red-700">
-          {t ? "场景拆分失败" : "Scene split failed"}
+      <div className="flex items-center gap-3 border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] py-3.5">
+        <AlertTriangle className="size-4 text-[var(--danger-text)]" />
+        <span className="text-sm text-[var(--danger-text)]">
+          {t ? "配图说明生成失败" : "Image brief preparation failed"}
           {error ? `: ${error}` : ""}
         </span>
         <button
           onClick={onRetry}
-          className="ml-auto rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-700 transition hover:bg-red-200"
+          className="ml-auto rounded-[14px] border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] px-3 py-1 text-xs font-medium text-[var(--danger-text)] transition hover:bg-[var(--danger-bg)]"
         >
           {t ? "重试" : "Retry"}
         </button>
@@ -384,9 +393,9 @@ function ScriptSection({
   text: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5 shadow-sm">
+    <div className="border-y border-[var(--border)] bg-[var(--surface-solid)] py-5">
       <div
-        className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em]"
+        className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em]"
         style={{ color: accent }}
       >
         {label}

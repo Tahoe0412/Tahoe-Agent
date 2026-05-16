@@ -29,12 +29,12 @@ function getStateText(locale: Locale) {
 export function LoadingPanel({ label, locale = "zh" }: { label?: string; locale?: Locale }) {
   const text = getStateText(locale);
   return (
-    <div className="theme-panel flex min-h-64 items-center justify-center py-6">
+    <div className="theme-panel flex min-h-48 items-center justify-center px-5 py-5">
       <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent-strong)]">
+        <div className="mx-auto flex size-10 items-center justify-center rounded-[14px] border border-[var(--border)] bg-transparent text-[var(--accent-strong)]">
           <LoaderCircle className="size-5 animate-spin" />
         </div>
-        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--text-3)]">{text.loadingEyebrow}</div>
+        <div className="theme-kicker mt-4 text-[11px] font-medium text-[var(--text-3)]">{text.loadingEyebrow}</div>
         <div className="mt-2 text-base font-medium text-[var(--text-1)]">{label ?? text.loadingLabel}</div>
       </div>
     </div>
@@ -54,13 +54,13 @@ export function EmptyPanel({
 }) {
   const text = getStateText(locale);
   return (
-    <div className="theme-panel flex min-h-72 items-center justify-center border-dashed py-6">
+    <div className="theme-panel flex min-h-56 items-center justify-center border-dashed px-5 py-5">
       <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--slate-blue)]">
-          <DatabaseZap className="size-6" />
+        <div className="mx-auto flex size-10 items-center justify-center rounded-[14px] border border-[var(--border)] bg-transparent text-[var(--slate-blue)]">
+          <DatabaseZap className="size-5" />
         </div>
-        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{text.emptyEyebrow}</div>
-        <div className="mt-2 text-2xl font-semibold text-[var(--text-1)]">{title ?? text.emptyTitle}</div>
+        <div className="theme-kicker mt-4 text-[11px] font-medium text-[var(--text-3)]">{text.emptyEyebrow}</div>
+        <div className="mt-2 text-xl font-semibold text-[var(--text-1)]">{title ?? text.emptyTitle}</div>
         <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{description ?? text.emptyDescription}</div>
         {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
       </div>
@@ -81,15 +81,17 @@ export function ErrorPanel({
 }) {
   const text = getStateText(locale);
   return (
-    <div className="flex min-h-64 items-center justify-center border-y border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-[var(--danger-bg)] py-6">
-      <div className="max-w-sm text-center">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-md border border-[color:color-mix(in_srgb,var(--danger-text)_32%,transparent)] bg-transparent text-[var(--danger-text)]">
-          <AlertTriangle className="size-6" />
+    <div className="flex min-h-0 items-start border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-transparent py-4">
+      <div className="flex max-w-3xl items-start gap-3 text-left">
+        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[14px] border border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] bg-transparent text-[var(--danger-text)]">
+          <AlertTriangle className="size-4" />
         </div>
-        <div className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--danger-text)]">{text.errorEyebrow}</div>
-        <div className="mt-2 text-2xl font-semibold text-[var(--danger-text)]">{title ?? text.errorTitle}</div>
-        <div className="mt-3 text-sm leading-7 text-[var(--danger-text)]">{description ?? text.errorDescription}</div>
-        {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
+        <div>
+          <div className="theme-kicker text-[11px] font-medium text-[var(--danger-text)]">{text.errorEyebrow}</div>
+          <div className="mt-1 text-base font-semibold text-[var(--danger-text)]">{title ?? text.errorTitle}</div>
+          <div className="mt-1 text-sm leading-6 text-[var(--danger-text)]">{description ?? text.errorDescription}</div>
+          {action ? <div className="mt-3 flex">{action}</div> : null}
+        </div>
       </div>
     </div>
   );

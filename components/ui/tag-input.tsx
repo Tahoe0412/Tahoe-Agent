@@ -60,7 +60,7 @@ export function TagInput({
   return (
     <div
       className={cn(
-        "theme-input flex min-h-[48px] flex-wrap items-center gap-2 rounded-[18px] px-3 py-2 text-sm",
+        "theme-input flex min-h-[48px] flex-wrap items-center gap-2 rounded-[14px] px-3 py-2 text-sm",
         className
       )}
       onClick={() => inputRef.current?.focus()}
@@ -68,7 +68,7 @@ export function TagInput({
       {value.map((tag, index) => (
         <span
           key={index}
-          className="theme-pill flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+          className="theme-pill flex items-center gap-1 rounded-[14px] px-2.5 py-1 text-xs font-medium"
         >
           {tag}
           <span

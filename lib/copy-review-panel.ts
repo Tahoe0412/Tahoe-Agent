@@ -18,6 +18,25 @@ export type AudienceReviewer = {
   verdict: string;
 };
 
+const reviewerDisplay: Record<AudienceReviewerId, { label: string; persona: string }> = {
+  feed_scanner: {
+    label: "小夏",
+    persona: "刷信息流很快的普通读者，只看第一屏有没有停下来的理由。",
+  },
+  skeptical_reader: {
+    label: "老周",
+    persona: "天然怀疑的理性读者，只相信具体事实、来源和逻辑链。",
+  },
+  editor: {
+    label: "阿岚",
+    persona: "挑剔编辑，专门看结构、节奏、重复度和表达完成度。",
+  },
+  sharer: {
+    label: "小满",
+    persona: "愿意转发给朋友的读者，只在有洞察、记忆点或情绪价值时分享。",
+  },
+};
+
 export type AudiencePanelReview = {
   averageScore: number;
   styleFitScore: number;
@@ -48,8 +67,10 @@ export function normalizeAudiencePanelReview(value: unknown): AudiencePanelRevie
 
           return {
             id,
-            label: typeof review.label === "string" ? review.label.trim() : "",
-            persona: typeof review.persona === "string" ? review.persona.trim() : "",
+            label: reviewerDisplay[id].label,
+            persona: typeof review.persona === "string" && review.persona.trim()
+              ? review.persona.trim()
+              : reviewerDisplay[id].persona,
             score: clampScore(review.score),
             likes: normalizeStringList(review.likes),
             concerns: normalizeStringList(review.concerns),
@@ -162,10 +183,10 @@ export function buildAudiencePanelPrompt(params: {
       ...calibrationNotes.map((item) => `- ${item}`),
       "",
       "请用 4 位观众评分：",
-      "- feed_scanner：刷信息流很快的人，只看第一屏值不值得停下。",
-      "- skeptical_reader：天然怀疑的人，只相信具体事实、证据和逻辑。",
-      "- editor：挑剔编辑，只看结构、语言、重复度和表达完成度。",
-      "- sharer：愿意转发给朋友的人，只在有洞察、记忆点或情绪价值时才会分享。",
+      "- feed_scanner：label 固定写“小夏”。她刷信息流很快，只看第一屏值不值得停下。",
+      "- skeptical_reader：label 固定写“老周”。他天然怀疑，只相信具体事实、证据和逻辑。",
+      "- editor：label 固定写“阿岚”。她是挑剔编辑，只看结构、语言、重复度和表达完成度。",
+      "- sharer：label 固定写“小满”。她愿意转发给朋友，但只在有洞察、记忆点或情绪价值时分享。",
       "",
       "输出要求：",
       "- averageScore：4 位评分平均分（0-100）",
@@ -174,6 +195,7 @@ export function buildAudiencePanelPrompt(params: {
       "- calibrationSummary：一句话总结这篇稿件与高质量中文媒体写法的距离",
       "- overallVerdict：一句话说明这篇稿件当前最核心的判断",
       "- reviewers：固定输出 4 位，每位包含 id、label、persona、score、likes、concerns、nextAction、verdict",
+      "- 4 位 reviewer 的 label 必须分别是：小夏、老周、阿岚、小满。不要写成“快刷读者”“怀疑者”这类角色名。",
       "- likes / concerns 各写 1-3 条，必须具体，不要写空话。",
       "- 如果稿件像 AI 摘要、通稿或咨询报告，即使事实完整，styleFitScore 通常不得高于 76。",
       "- 如果没有核心隐喻、作者判断或可转述金句，sharer 评分通常不得高于 78。",

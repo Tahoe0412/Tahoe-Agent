@@ -154,6 +154,7 @@ export class WorkspaceQueryService {
         content_line: intent.contentLine,
         output_type: intent.outputType,
         project_tags: (((project.metadata as Record<string, unknown> | null)?.project_tags as string[] | undefined) ?? []).slice(0, 12),
+        fast_package_content_line: (((project.metadata as Record<string, unknown> | null)?.fast_package as Record<string, unknown> | undefined)?.content_line as string | undefined) ?? null,
         is_pinned: ((project.metadata as Record<string, unknown> | null)?.is_pinned as boolean | undefined) ?? false,
         last_opened_at: ((project.metadata as Record<string, unknown> | null)?.last_opened_at as string | undefined) ?? null,
         brand_profile_id: project.brand_profile_id,
@@ -284,6 +285,8 @@ export class WorkspaceQueryService {
     const intent = resolveProjectIntentFromMetadata(
       (project.metadata as Record<string, unknown> | null) ?? undefined,
     );
+    const metadata = (project.metadata as Record<string, unknown> | null) ?? {};
+    const rawFastPackage = (metadata.fast_package as Record<string, unknown> | undefined) ?? null;
     const workspaceMode = intent.workspaceMode;
 
     const dashboardMetrics = [
@@ -493,6 +496,14 @@ export class WorkspaceQueryService {
 
     return toClientSafe({
       project,
+      fastPackage: rawFastPackage
+        ? {
+            contentLine: typeof rawFastPackage.content_line === "string" ? rawFastPackage.content_line : null,
+            editorialDirection: typeof rawFastPackage.editorial_direction === "string" ? rawFastPackage.editorial_direction : null,
+            packagingStatus: typeof rawFastPackage.packaging_status === "string" ? rawFastPackage.packaging_status : null,
+            generatedAt: typeof rawFastPackage.generated_at === "string" ? rawFastPackage.generated_at : null,
+          }
+        : null,
       workspaceMode,
       contentLine: intent.contentLine,
       outputType: intent.outputType,

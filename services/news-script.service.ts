@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { canUseModelRoute } from "@/lib/model-routing";
 import { generateStructuredJson } from "@/lib/openai-json";
 import { type NewsItemForPrompt, type TrendItemForPrompt } from "@/lib/news-script-prompt";
-import { buildMarsCitizenNarrativePrompt } from "@/lib/mars-citizen-prompt";
+import { buildOwnedMediaNarrativePrompt } from "@/lib/mars-citizen-prompt";
 import { buildAdScriptPrompt } from "@/lib/ad-script-prompt";
 import {
   audiencePanelReviewJsonSchema,
@@ -22,6 +22,11 @@ import {
   type NewsScriptGeneratorRegistry,
 } from "@/services/news-script-generator-registry";
 import { AppSettingsService } from "@/services/app-settings.service";
+import {
+  getOwnedMediaDirectionConfig,
+  isOwnedMediaEditorialDirection,
+  type OwnedMediaEditorialDirection,
+} from "@/lib/owned-media-directions";
 
 function toJson(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
@@ -93,6 +98,8 @@ export class NewsScriptService {
     newsItems: NewsItemInput[];
     contentLine?: string;
     outputType?: string;
+    editorialDirection?: OwnedMediaEditorialDirection;
+    strictModel?: boolean;
   }): Promise<{ projectId: string; scriptId: string; title: string }> {
     const { searchQuery, newsItems } = input;
     const intent = resolveProjectIntent({
@@ -107,8 +114,11 @@ export class NewsScriptService {
     const outputType = assertSupportedNewsScriptOutputType(intent.outputType);
 
     // 1. Create a project for this script
+    const editorialDirection = isOwnedMediaEditorialDirection(input.editorialDirection)
+      ? input.editorialDirection
+      : "AI快讯";
     const projectTitle = intent.contentLine === "MARS_CITIZEN"
-      ? `${searchQuery} — 火星公民科技快讯`
+      ? `${searchQuery} — ${editorialDirection}`
       : `${searchQuery} — 商业内容`;
 
     const project = await prisma.project.create({
@@ -121,6 +131,7 @@ export class NewsScriptService {
           content_line: intent.contentLine,
           output_type: intent.outputType,
           workspace_mode: intent.workspaceMode,
+          ...(intent.contentLine === "MARS_CITIZEN" ? { editorial_direction: editorialDirection } : {}),
         }),
       },
     });
@@ -156,6 +167,8 @@ export class NewsScriptService {
         trendPromptItems,
         contentLine: intent.contentLine,
         outputType,
+        editorialDirection,
+        strictModel: input.strictModel,
       });
     }
 
@@ -174,11 +187,13 @@ export class NewsScriptService {
   // ---------------------------------------------------------------------------
   private async generateNarrativeScript(params: NarrativeNewsScriptGenerationInput) {
     const { project, searchQuery, newsItems, factPromptItems, trendPromptItems, contentLine, outputType } = params;
+    const direction = getOwnedMediaDirectionConfig(params.editorialDirection);
 
-    const { systemPrompt, userPrompt } = buildMarsCitizenNarrativePrompt(
+    const { systemPrompt, userPrompt } = buildOwnedMediaNarrativePrompt(
       factPromptItems,
       trendPromptItems,
       searchQuery,
+      direction.label,
     );
 
     let generatedScript: GeneratedNarrative;
@@ -200,7 +215,7 @@ export class NewsScriptService {
         zodSchema: generatedNarrativeSchema as never,
         systemPrompt,
         userPrompt,
-        routeKey: "SCRIPT_REWRITE",
+        routeKey: params.strictModel ? "PROMOTIONAL_COPY" : "SCRIPT_REWRITE",
         preprocess: (raw: unknown) => {
           if (typeof raw === "string") {
             return {
@@ -216,16 +231,22 @@ export class NewsScriptService {
         },
       });
     } catch (error) {
+      if (params.strictModel) {
+        await prisma.project.delete({ where: { id: project.id } }).catch((cleanupError) => {
+          console.warn("[news-script] Failed to clean up strict narrative project after LLM failure:", cleanupError);
+        });
+        throw error;
+      }
       const fallbackText = newsItems
         .map((item, i) => `${i + 1}. 【${item.source}】${item.title}\n${item.snippet}`)
         .join("\n\n");
 
       generatedScript = {
-        title: `${searchQuery} — 科技快讯`,
-        opening: `今天关于"${searchQuery}"有 ${newsItems.length} 条科技动态值得关注。`,
+        title: `${searchQuery} — ${direction.label}`,
+        opening: `今天关于"${searchQuery}"有 ${newsItems.length} 条动态值得关注。`,
         body: fallbackText,
-        closing: "以上就是今天的科技快讯，关注「火星公民」获取更多前沿资讯。",
-        full_text: `今天关于"${searchQuery}"有 ${newsItems.length} 条科技动态值得关注。\n\n${fallbackText}\n\n以上就是今天的科技快讯，关注「火星公民」获取更多前沿资讯。`,
+        closing: `以上就是今天的${direction.label}观察。`,
+        full_text: `今天关于"${searchQuery}"有 ${newsItems.length} 条动态值得关注。\n\n${fallbackText}\n\n以上就是今天的${direction.label}观察。`,
         estimated_duration_sec: 90,
       };
       console.warn("[news-script] LLM failed, using narrative fallback:", error);
@@ -246,6 +267,7 @@ export class NewsScriptService {
         structured_output: toJson({
           content_line: contentLine,
           output_type: outputType,
+          editorial_direction: direction.label,
           title: generatedScript.title,
           opening: generatedScript.opening,
           body: generatedScript.body,
@@ -257,6 +279,7 @@ export class NewsScriptService {
           origin: "mars_citizen_narrative",
           content_line: contentLine,
           output_type: outputType,
+          editorial_direction: direction.label,
           search_query: searchQuery,
           news_items: newsItems,
           generated_at: new Date().toISOString(),
@@ -267,6 +290,7 @@ export class NewsScriptService {
     void this.enrichNarrativeScriptReview({
       scriptId: script.id,
       topic: searchQuery,
+      editorialDirection: direction.label,
       title: generatedScript.title,
       opening: generatedScript.opening,
       body: generatedScript.body,
@@ -392,6 +416,7 @@ export class NewsScriptService {
   private async enrichNarrativeScriptReview(params: {
     scriptId: string;
     topic: string;
+    editorialDirection?: OwnedMediaEditorialDirection;
     title: string;
     opening: string;
     body: string;

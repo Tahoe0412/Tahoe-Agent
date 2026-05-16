@@ -13,7 +13,7 @@ interface StructuredJsonParams<T> {
   routeKey?: ModelRouteKey;
   preprocess?: (value: unknown) => unknown;
   temperature?: number;
-  /** Per-call timeout in milliseconds. Defaults to 120 000 (2 minutes). */
+  /** Per-call timeout in milliseconds. Defaults to 120 000 (2 minutes), or a longer local Qwen timeout for localhost endpoints. */
   timeoutMs?: number;
 }
 
@@ -60,6 +60,20 @@ function isLocalUrl(value: string) {
   }
 }
 
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+function formatTimeout(ms: number) {
+  const seconds = Math.round(ms / 1000);
+  return seconds >= 60 ? `${Math.round(seconds / 60)} 分钟` : `${seconds} 秒`;
+}
+
+function localQwenTimeoutMs() {
+  const qwenFallback = envNumber("QWEN_TIMEOUT_MS", 600_000, 30_000, 1_800_000);
+  return envNumber("LOCAL_QWEN_TIMEOUT_MS", qwenFallback, 30_000, 1_800_000);
+}
+
 function normalizeChatCompletionsUrl(value: string) {
   const trimmed = value.trim().replace(/\/+$/, "");
   if (trimmed.endsWith("/chat/completions")) {
@@ -89,6 +103,7 @@ function parseJsonContent(content: string, label: string) {
     const arrayCandidate = arrayStart >= 0 && arrayEnd > arrayStart ? cleaned.slice(arrayStart, arrayEnd + 1) : "";
     const candidate = objectCandidate || arrayCandidate;
     if (!candidate) {
+      console.warn(`[openai-json] ${label} returned non-JSON preview:`, cleaned.slice(0, 1000));
       throw new Error(`${label} returned non-JSON content.`);
     }
     return JSON.parse(candidate);
@@ -119,8 +134,8 @@ async function requestOpenAI<T>({
   timeoutMs,
   strictJsonSchema,
 }: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string; strictJsonSchema?: boolean }) {
-  const effectiveTimeout = timeoutMs ?? 120_000;
   const localEndpoint = isLocalUrl(baseUrl);
+  const effectiveTimeout = timeoutMs ?? (localEndpoint ? localQwenTimeoutMs() : 120_000);
   const promptOnlyJson = strictJsonSchema === false || localEndpoint;
   const effectiveTemperature = localEndpoint
     ? envNumber("QWEN_TEMPERATURE", temperature, 0, 1.5)
@@ -129,6 +144,7 @@ async function requestOpenAI<T>({
   const qwenMaxTokens = localEndpoint ? Math.round(envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768)) : null;
   const userContent = promptOnlyJson
     ? [
+        ...(localEndpoint ? ["/no_think"] : []),
         userPrompt,
         "",
         `Return valid JSON only for schema "${schemaName}".`,
@@ -138,6 +154,49 @@ async function requestOpenAI<T>({
     : userPrompt;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+  const requestBody = {
+    model,
+    temperature: effectiveTemperature,
+    ...(qwenTopP ? { top_p: qwenTopP } : {}),
+    ...(qwenMaxTokens ? { max_tokens: qwenMaxTokens } : {}),
+    messages: [
+      {
+        role: "system",
+        content: localEndpoint
+          ? [
+              "/no_think",
+              "不要输出思考过程。",
+              "不要解释。",
+              "直接输出满足要求的 JSON。",
+              systemPrompt,
+            ].join("\n")
+          : systemPrompt,
+      },
+      { role: "user", content: userContent },
+    ],
+    ...(localEndpoint
+      ? {
+          reasoning_effort: "none",
+          enable_thinking: false,
+          chat_template_kwargs: {
+            enable_thinking: false,
+          },
+        }
+      : {}),
+    ...(promptOnlyJson
+      ? {}
+      : {
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: schemaName,
+              strict: true,
+              schema,
+            },
+          },
+        }),
+  };
+
   let response: Response;
   try {
     response = await fetch(baseUrl, {
@@ -147,29 +206,14 @@ async function requestOpenAI<T>({
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        temperature: effectiveTemperature,
-        ...(qwenTopP ? { top_p: qwenTopP } : {}),
-        ...(qwenMaxTokens ? { max_tokens: qwenMaxTokens } : {}),
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        ...(promptOnlyJson
-          ? {}
-          : {
-              response_format: {
-                type: "json_schema",
-                json_schema: {
-                  name: schemaName,
-                  strict: true,
-                  schema,
-                },
-              },
-            }),
-      }),
+      body: JSON.stringify(requestBody),
     });
+  } catch (error) {
+    if (isAbortError(error)) {
+      const providerLabel = localEndpoint ? "本地 Qwen" : "OpenAI";
+      throw new Error(`${providerLabel}(${model}) 生成超时（${formatTimeout(effectiveTimeout)}）。如果正在生成长文包，请调高 LOCAL_QWEN_TIMEOUT_MS 或换更快的模型/更短输入后重试。`);
+    }
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -180,12 +224,71 @@ async function requestOpenAI<T>({
   }
 
   const payload = (await response.json()) as OpenAIChatCompletionResponse;
-  const content = payload.choices?.[0]?.message?.content;
+  let content = payload.choices?.[0]?.message?.content;
+  const reasoningContent = (payload.choices?.[0]?.message as { reasoning_content?: unknown } | undefined)?.reasoning_content;
+  if (!content && localEndpoint && typeof reasoningContent === "string" && reasoningContent.trim()) {
+    console.warn(`[openai-json] Empty content from ${model}; retrying local Qwen with stricter no-thinking prompt.`);
+    const retryResponse = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        ...requestBody,
+        max_tokens: qwenMaxTokens ?? 32768,
+        reasoning_effort: "none",
+        enable_thinking: false,
+        chat_template_kwargs: { enable_thinking: false },
+        messages: [
+          {
+            role: "system",
+            content: [
+              "/no_think",
+              "你是一个 JSON 生成器。",
+              "不要输出思考过程。",
+              "不要解释。",
+              "只输出一个满足 schema 的 JSON 对象。",
+            ].join("\n"),
+          },
+          {
+            role: "user",
+            content: [
+              "/no_think",
+              systemPrompt,
+              userContent,
+              `Return valid JSON only for schema "${schemaName}".`,
+              "Do not include markdown fences or commentary.",
+              `JSON schema reference:\n${JSON.stringify(schema)}`,
+            ].join("\n\n"),
+          },
+        ],
+      }),
+    });
+    if (retryResponse.ok) {
+      const retryPayload = (await retryResponse.json()) as OpenAIChatCompletionResponse;
+      content = retryPayload.choices?.[0]?.message?.content;
+    }
+  }
   if (!content) {
+    console.warn(
+      `[openai-json] Empty content from ${model}.`,
+      JSON.stringify(payload.choices?.[0] ?? {}).slice(0, 1000),
+    );
     throw new Error(`OpenAI(${model}) returned an empty response.`);
   }
 
-  const parsed = parseJsonContent(content, `OpenAI(${model})`);
+  let parsed: unknown;
+  try {
+    parsed = parseJsonContent(content, `OpenAI(${model})`);
+  } catch (error) {
+    if (localEndpoint && schemaName === "mars_citizen_narrative" && content.trim().length > 50) {
+      console.warn(`[openai-json] Falling back to raw local Qwen narrative text for ${schemaName}.`);
+      parsed = content;
+    } else {
+      throw error;
+    }
+  }
   const preprocessed = preprocess ? preprocess(parsed) : parsed;
   if (zodSchema) {
     const result = zodSchema.safeParse(preprocessed);
@@ -245,6 +348,11 @@ async function requestGemini<T>({
         },
       }),
     });
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error(`Gemini(${model}) 生成超时（${formatTimeout(effectiveTimeout2)}）。请稍后重试，或为这次调用配置更长 timeoutMs。`);
+    }
+    throw error;
   } finally {
     clearTimeout(timeoutId2);
   }

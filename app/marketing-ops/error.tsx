@@ -25,7 +25,7 @@ export default function MarketingOpsError({
       </p>
       <button
         onClick={reset}
-        className="mt-6 rounded-2xl bg-[var(--accent-strong)] px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+        className="mt-6 rounded-md bg-[var(--accent-strong)] px-6 py-2.5 text-sm font-medium text-[var(--text-inverse)] transition hover:opacity-90"
       >
         重新加载
       </button>

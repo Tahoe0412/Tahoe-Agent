@@ -242,27 +242,27 @@ export function BrandProfileWorkbench({
                 key={profile.id}
                 type="button"
                 onClick={() => setSelectedProfileId(profile.id)}
-                className={`w-full rounded-[22px] border p-4 text-left transition ${
-                  profile.id === activeProfile?.id ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
+                className={`w-full rounded-md border p-4 text-left transition ${
+                  profile.id === activeProfile?.id ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-base font-semibold">{profile.brand_name}</div>
-                    <div className={`mt-1 text-xs ${profile.id === activeProfile?.id ? "text-white/72" : "text-[var(--text-2)]"}`}>{getStageLabel(profile.brand_stage)}</div>
+                    <div className={`mt-1 text-xs ${profile.id === activeProfile?.id ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{getStageLabel(profile.brand_stage)}</div>
                   </div>
-                  {projectId && activeBrandProfileId === profile.id ? <span className="theme-chip-ok rounded-full px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
+                  {projectId && activeBrandProfileId === profile.id ? <span className="theme-chip-ok rounded-sm px-2.5 py-1 text-xs font-medium">当前项目</span> : null}
                 </div>
-                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${profile.id === activeProfile?.id ? "text-white/84" : "text-[var(--text-2)]"}`}>{profile.brand_positioning}</div>
+                <div className={`mt-3 line-clamp-3 text-sm leading-6 ${profile.id === activeProfile?.id ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>{profile.brand_positioning}</div>
               </button>
             ))}
           </div>
 
           <div className="space-y-4">
-            <div className="theme-panel-muted rounded-[22px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">先填最关键的品牌信息</div>
-              <div className="mt-4 rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-3)]">方向 preset</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">先填最关键的品牌信息</div>
+              <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">方向 preset</div>
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                   {directionPresets.map((preset) => {
                     const active = selectedPresetId === preset.id;
@@ -271,7 +271,7 @@ export function BrandProfileWorkbench({
                         key={preset.id}
                         type="button"
                         onClick={() => applyDirectionPreset(preset.id)}
-                        className={`rounded-2xl border px-4 py-4 text-left transition ${
+                        className={`rounded-md border px-4 py-4 text-left transition ${
                           active
                             ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                             : "border-[var(--border-soft)] bg-[var(--surface-muted)] hover:border-[var(--border)] hover:bg-[var(--surface-solid)]"
@@ -285,11 +285,11 @@ export function BrandProfileWorkbench({
                 </div>
               </div>
               <div className="mt-4 grid gap-4">
-                <input value={brandName} onChange={(event) => setBrandName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="品牌名" />
-                <textarea value={positioning} onChange={(event) => setPositioning(event.target.value)} rows={4} className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7" placeholder="一句话写清品牌是谁、想占据什么认知位置" />
+                <input value={brandName} onChange={(event) => setBrandName(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="品牌名" />
+                <textarea value={positioning} onChange={(event) => setPositioning(event.target.value)} rows={4} className="theme-input rounded-md px-4 py-3 text-sm leading-7" placeholder="一句话写清品牌是谁、想占据什么认知位置" />
                 <div className="grid gap-4 md:grid-cols-2">
-                  <input value={voice} onChange={(event) => setVoice(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="品牌语气（可选），例如克制、可信、专业" />
-                  <select value={stage} onChange={(event) => setStage(event.target.value as (typeof stages)[number]["value"])} className="theme-input rounded-[16px] px-4 py-3 text-sm">
+                  <input value={voice} onChange={(event) => setVoice(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="品牌语气（可选），例如克制、可信、专业" />
+                  <select value={stage} onChange={(event) => setStage(event.target.value as (typeof stages)[number]["value"])} className="theme-input rounded-md px-4 py-3 text-sm">
                     {stages.map((item) => (
                       <option key={item.value} value={item.value}>
                         {item.label}
@@ -301,7 +301,7 @@ export function BrandProfileWorkbench({
                   <div className="text-xs font-medium text-[var(--text-3)]">主平台（可多选）</div>
                   <div className="flex flex-wrap gap-2">
                     {surfaces.map((surface) => (
-                      <button key={surface} type="button" onClick={() => toggleSurface(surface)} className={`rounded-full border px-3 py-1.5 text-xs transition ${platformPriority.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
+                      <button key={surface} type="button" onClick={() => toggleSurface(surface)} className={`rounded-sm border px-3 py-1.5 text-xs transition ${platformPriority.includes(surface) ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]" : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)]"}`}>
                         {getPlatformSurfaceMeta(surface).label}
                       </button>
                     ))}
@@ -318,7 +318,7 @@ export function BrandProfileWorkbench({
             </div>
 
             {activeProfile ? (
-              <div className="theme-panel-muted rounded-[22px] p-4">
+              <div className="theme-panel-muted rounded-md p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-[var(--text-1)]">{activeProfile.brand_name}</div>
@@ -332,21 +332,21 @@ export function BrandProfileWorkbench({
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {activeProfile.platform_priority.map((item) => (
-                    <span key={item} className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getPlatformSurfaceMeta(item as PlatformSurface).label}</span>
+                    <span key={item} className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{getPlatformSurfaceMeta(item as PlatformSurface).label}</span>
                   ))}
                 </div>
-                <Disclosure className="mt-4 rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] p-4" summary="继续补充内容方向（可选）" defaultOpen={false}>
+                <Disclosure className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-4" summary="继续补充内容方向（可选）" defaultOpen={false}>
                   <div className="grid gap-3 pt-3">
-                    <input value={pillarName} onChange={(event) => setPillarName(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="内容方向名称，例如品牌故事型" />
+                    <input value={pillarName} onChange={(event) => setPillarName(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="内容方向名称，例如品牌故事型" />
                     <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
-                      <select value={pillarType} onChange={(event) => setPillarType(event.target.value as (typeof pillarTypes)[number])} className="theme-input rounded-[16px] px-4 py-3 text-sm">
+                      <select value={pillarType} onChange={(event) => setPillarType(event.target.value as (typeof pillarTypes)[number])} className="theme-input rounded-md px-4 py-3 text-sm">
                         {pillarTypes.map((item) => (
                           <option key={item} value={item}>
                             {getPillarTypeLabel(item)}
                           </option>
                         ))}
                       </select>
-                      <input value={pillarSummary} onChange={(event) => setPillarSummary(event.target.value)} className="theme-input rounded-[16px] px-4 py-3 text-sm" placeholder="这类内容主要承担什么营销作用" />
+                      <input value={pillarSummary} onChange={(event) => setPillarSummary(event.target.value)} className="theme-input rounded-md px-4 py-3 text-sm" placeholder="这类内容主要承担什么营销作用" />
                     </div>
                     <TagInput value={pillarTopics} onChange={setPillarTopics} placeholder="输入推荐选题方向后按回车" />
                     <div className="flex items-center gap-3">
@@ -370,28 +370,28 @@ export function BrandProfileWorkbench({
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{activeProfile.brand_positioning}</div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="theme-panel-muted rounded-[20px] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">品牌阶段</div>
+              <div className="theme-panel-muted rounded-md p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">品牌阶段</div>
                 <div className="mt-3 text-lg font-semibold text-[var(--text-1)]">{getStageLabel(activeProfile.brand_stage)}</div>
               </div>
-              <div className="theme-panel-muted rounded-[20px] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">内容支柱</div>
+              <div className="theme-panel-muted rounded-md p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">内容支柱</div>
                 <div className="mt-3 text-lg font-semibold text-[var(--text-1)]">{activeProfile.content_pillars.length}</div>
               </div>
             </div>
             <KeywordPoolEditor profileId={activeProfile.id} initialKeywords={activeProfile.keyword_pool} onSaved={() => router.refresh()} />
-            <div className="theme-panel-muted rounded-[20px] p-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">禁用表达</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">禁用表达</div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {activeProfile.forbidden_phrases.length ? activeProfile.forbidden_phrases.map((item) => <span key={item} className="theme-chip-danger rounded-full px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">当前未设置。</span>}
+                {activeProfile.forbidden_phrases.length ? activeProfile.forbidden_phrases.map((item) => <span key={item} className="theme-chip-danger rounded-sm px-2.5 py-1 text-xs font-medium">{item}</span>) : <span className="text-sm text-[var(--text-2)]">当前未设置。</span>}
               </div>
             </div>
             <div className="space-y-3">
               {activeProfile.content_pillars.map((pillar) => (
-                <div key={pillar.id} className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+                <div key={pillar.id} className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm font-semibold text-[var(--text-1)]">{pillar.pillar_name}</div>
-                    <span className="theme-pill rounded-full px-2.5 py-1 text-xs font-medium">{getPillarTypeLabel(pillar.pillar_type)}</span>
+                    <span className="theme-pill rounded-sm px-2.5 py-1 text-xs font-medium">{getPillarTypeLabel(pillar.pillar_type)}</span>
                   </div>
                   <div className="mt-2 text-sm text-[var(--text-2)]">这是这个品牌的一个主要内容方向，可继续扩展更多选题。</div>
                 </div>
@@ -399,7 +399,7 @@ export function BrandProfileWorkbench({
             </div>
           </div>
         ) : (
-          <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
+          <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-5 text-sm leading-7 text-[var(--text-2)]">
             先创建一个品牌档案，再把它绑定到具体项目。之后 brief、平台改写、合规检查都可以继承这层品牌约束。
           </div>
         )}
@@ -433,7 +433,7 @@ function KeywordPoolEditor({
       });
       const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
       if (!payload.success) throw new Error(payload.error?.detail || payload.error?.message || "保存失败");
-      setFeedback("✅ 关键词已保存");
+      setFeedback("关键词已保存");
       onSaved();
     } catch (err) {
       setFeedback(err instanceof Error ? err.message : "保存失败");
@@ -443,8 +443,8 @@ function KeywordPoolEditor({
   }
 
   return (
-    <div className="theme-panel-muted rounded-[20px] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">选题关键词池</div>
+    <div className="theme-panel-muted rounded-md p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">选题关键词池</div>
       <div className="mt-3">
         <TagInput value={keywords} onChange={setKeywords} placeholder="输入关键词后按回车，例如 SpaceX、火星移民、AI" />
       </div>

@@ -30,9 +30,9 @@ export function TopicRankingList({
   // Error state
   if (error) {
     return (
-      <div className="rounded-[22px] border border-red-200 bg-red-50 p-6 text-center dark:border-red-900/40 dark:bg-red-950/20">
-        <div className="text-sm font-medium text-red-600 dark:text-red-400">搜索出错</div>
-        <div className="mt-1 text-xs text-red-500/80 dark:text-red-400/60">{error}</div>
+      <div className="border-y border-[color:color-mix(in_srgb,var(--danger-text)_24%,transparent)] py-5 text-center">
+        <div className="text-sm font-medium text-[var(--danger-text)]">搜索出错</div>
+        <div className="mt-1 text-xs text-[var(--danger-text)]">{error}</div>
       </div>
     );
   }

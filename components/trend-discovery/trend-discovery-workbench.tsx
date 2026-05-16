@@ -51,7 +51,7 @@ export function TrendDiscoveryWorkbench({
   return (
     <div className="space-y-6">
       {/* Search bar */}
-      <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-6">
+      <div className="border-y border-[var(--border)] py-5">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <div className="text-lg font-semibold text-[var(--text-1)]">热点发现</div>
@@ -72,7 +72,7 @@ export function TrendDiscoveryWorkbench({
                   void handleSearch(brand.keywords.join(" "), ["YOUTUBE", "X"]);
                 }
               }}
-              className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-2)]"
+              className="shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-2)]"
             >
               {brandProfiles.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -113,7 +113,7 @@ export function TrendDiscoveryWorkbench({
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-center">
+    <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-center">
       <div className="text-xl font-bold text-[var(--text-1)]">{value}</div>
       <div className="mt-0.5 text-xs text-[var(--text-3)]">{label}</div>
     </div>

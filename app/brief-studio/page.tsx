@@ -66,7 +66,7 @@ export default async function BriefStudioPage({
         />
 
         {workspace && outputLabel ? (
-          <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
+          <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-5 py-4 text-sm leading-7 text-[var(--text-2)]">
             {locale === "en"
               ? `Current target output is ${outputLabel}. Treat Brief Studio as optional context, not a mandatory front door.`
               : `当前目标产物是「${outputLabel}」。把这里当成补充上下文的地方，而不是所有项目的必经入口。`}
@@ -81,7 +81,7 @@ export default async function BriefStudioPage({
         />
 
         {recentProjectsUnavailable && !projectId ? (
-          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+          <div className="border-y border-[color:color-mix(in_srgb,var(--warning-text)_24%,transparent)] bg-transparent px-0 py-3 text-sm leading-7 text-[var(--warning-text)]">
             {locale === "en"
               ? "The project list is temporarily unavailable, but Brief Studio will be ready once workspace data recovers."
               : "当前项目列表暂时不可用，但创意任务单页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}

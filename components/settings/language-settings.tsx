@@ -48,9 +48,9 @@ export function LanguageSettings({ initialLocale }: { initialLocale: Locale }) {
               key={option.value}
               type="button"
               onClick={() => updateLocale(option.value)}
-              className={`rounded-2xl border p-4 text-left transition-all ${
+              className={`rounded-md border p-4 text-left transition ${
                 active
-                  ? "border-[var(--border-selected)] bg-[var(--surface-selected)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  ? "border-[var(--border-selected)] bg-[var(--surface-selected)]"
                   : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)] hover:border-[var(--border)]"
               }`}
             >
@@ -60,7 +60,7 @@ export function LanguageSettings({ initialLocale }: { initialLocale: Locale }) {
           );
         })}
       </div>
-      <div className="theme-panel-muted rounded-[18px] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-md px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         {footer}
       </div>
     </div>

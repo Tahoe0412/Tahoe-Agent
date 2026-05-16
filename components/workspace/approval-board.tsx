@@ -182,29 +182,29 @@ export function ApprovalBoard({
                 key={stage}
                 type="button"
                 onClick={() => syncStage(stage)}
-                className={`w-full rounded-[22px] border p-4 text-left transition ${
+                className={`w-full rounded-md border p-4 text-left transition ${
                   stage === activeStage
-                    ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]"
+                    ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]"
                     : "border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-solid)]"
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold tracking-[0.04em]">{stageLabel(stage)}</div>
                   <span
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
+                    className={`rounded-sm border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
                       stage === activeStage
-                        ? "border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.1)] text-[var(--text-inverse)]"
+                        ? "border-[var(--border)] bg-[var(--accent-soft)] text-[var(--text-1)]"
                         : toneForStatus(item?.approval_status ?? "PENDING")
                     }`}
                   >
                     {statusLabel(item?.approval_status ?? "PENDING")}
                   </span>
                 </div>
-                <div className={`mt-2 text-xs ${stage === activeStage ? "text-white/72" : "text-[var(--text-2)]"}`}>
+                <div className={`mt-2 text-xs ${stage === activeStage ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                   v{item?.target_version ?? versionHints[stage] ?? 1}
                   {item?.reviewer_label ? ` · ${item.reviewer_label}` : ""}
                 </div>
-                <div className={`mt-3 line-clamp-2 text-sm leading-6 ${stage === activeStage ? "text-white/84" : "text-[var(--text-2)]"}`}>
+                <div className={`mt-3 line-clamp-2 text-sm leading-6 ${stage === activeStage ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>
                   {item?.decision_summary ?? stageDescription(stage)}
                 </div>
               </button>
@@ -213,7 +213,7 @@ export function ApprovalBoard({
           </div>
 
           <Disclosure
-            className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-muted)] p-4"
+            className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4"
             summaryClassName="text-sm font-medium text-[var(--text-1)]"
             contentClassName="mt-3 space-y-3"
             title="制作与交付阶段"
@@ -225,25 +225,25 @@ export function ApprovalBoard({
                   key={stage}
                   type="button"
                   onClick={() => syncStage(stage)}
-                  className={`w-full rounded-[18px] border px-4 py-4 text-left transition ${
+                  className={`w-full rounded-md border px-4 py-4 text-left transition ${
                     stage === activeStage
-                      ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]"
+                      ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]"
                       : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm font-semibold">{stageLabel(stage)}</div>
                     <span
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                      className={`rounded-sm border px-2.5 py-1 text-[11px] font-semibold ${
                         stage === activeStage
-                          ? "border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.1)] text-[var(--text-inverse)]"
+                          ? "border-[var(--border)] bg-[var(--accent-soft)] text-[var(--text-1)]"
                           : toneForStatus(item?.approval_status ?? "PENDING")
                       }`}
                     >
                       {statusLabel(item?.approval_status ?? "PENDING")}
                     </span>
                   </div>
-                  <div className={`mt-2 text-sm leading-6 ${stage === activeStage ? "text-white/84" : "text-[var(--text-2)]"}`}>
+                  <div className={`mt-2 text-sm leading-6 ${stage === activeStage ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>
                     {item?.decision_summary ?? stageDescription(stage)}
                   </div>
                 </button>
@@ -252,16 +252,16 @@ export function ApprovalBoard({
           </Disclosure>
         </div>
 
-        <div className="theme-panel-muted space-y-4 rounded-[24px] p-5">
+        <div className="theme-panel-muted space-y-4 rounded-md p-5">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">当前阶段</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">当前阶段</div>
             <div className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-1)]">{stageLabel(activeStage)}</div>
             <div className="mt-2 text-sm text-[var(--text-2)]">当前目标版本：v{activeApproval?.target_version ?? versionHints[activeStage] ?? 1}</div>
             <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{stageDescription(activeStage)}</div>
           </div>
 
           <div className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">快速操作</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">快速操作</span>
             <div className="flex flex-wrap gap-3">
               <Button type="button" onClick={() => void quickSaveApproval("APPROVED")} disabled={pending}>
                 {pending && status === "APPROVED" ? "保存中..." : "通过当前阶段"}
@@ -277,11 +277,11 @@ export function ApprovalBoard({
 
           {showAdvancedStatus ? (
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">高级状态</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">高级状态</span>
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value as (typeof statuses)[number])}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                className="theme-input rounded-md px-4 py-3 text-sm"
               >
                 {statuses.map((item) => (
                   <option key={item} value={item}>
@@ -293,22 +293,22 @@ export function ApprovalBoard({
           ) : null}
 
           <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">审批人</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">审批人</span>
             <input
               value={reviewerLabel}
               onChange={(event) => setReviewerLabel(event.target.value)}
-              className="theme-input rounded-[16px] px-4 py-3 text-sm"
+              className="theme-input rounded-md px-4 py-3 text-sm"
               placeholder="例如 策略负责人"
             />
           </label>
 
           <label className="grid gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">结论说明</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">结论说明</span>
             <textarea
               value={decisionSummary}
               onChange={(event) => setDecisionSummary(event.target.value)}
               rows={5}
-              className="theme-input rounded-[18px] px-4 py-3 text-sm leading-7"
+              className="theme-input rounded-md px-4 py-3 text-sm leading-7"
               placeholder="记录为什么通过、为什么要求修改，以及下一步动作。"
             />
           </label>

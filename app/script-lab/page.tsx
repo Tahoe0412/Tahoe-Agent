@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyPanel, ErrorPanel } from "@/components/ui/state-panel";
 import { ProjectContext } from "@/components/workspace/project-context";
+import { DailyRunPackagingNotice } from "@/components/workspace/daily-run-packaging-notice";
 import { buildProjectContextProject } from "@/lib/build-project-context";
 import { PageStateView } from "@/components/workspace/page-state";
 import { NextStepLink } from "@/components/workspace/next-step-link";
@@ -30,11 +31,20 @@ export default async function ScriptLabPage({
   const recentProjectsUnavailable = recentProjectsResult.status === "rejected";
   const workspaceLoadFailed = workspaceResult.status === "rejected";
   const loadFailed = Boolean(projectId) && workspaceLoadFailed;
+  const isOwnedMediaPackage = workspace?.fastPackage?.contentLine === "OWNED_MEDIA";
+  const isOwnedMediaLine = isOwnedMediaPackage || workspace?.contentLine === "MARS_CITIZEN";
+  const hasTitlePack = Boolean(workspace?.marsOutputs.latestVideoTitlePack);
+  const hasPublishCopy = Boolean(workspace?.marsOutputs.latestPublishCopy);
+  const hasImageBrief = Boolean(workspace?.scriptLabRows.length);
   const routesToStoryboard =
     workspace?.outputType === "STORYBOARD_SCRIPT" ||
     workspace?.outputType === "AD_STORYBOARD";
   const nextHref =
-    routesToStoryboard
+    isOwnedMediaLine
+      ? projectId
+        ? `/script-lab?projectId=${projectId}#publish-copy`
+        : "/script-lab"
+      : routesToStoryboard
       ? projectId
         ? `/scene-planner?projectId=${projectId}`
         : "/scene-planner"
@@ -42,7 +52,11 @@ export default async function ScriptLabPage({
         ? `/marketing-ops?projectId=${projectId}`
         : "/marketing-ops";
   const nextLabel =
-    routesToStoryboard
+    isOwnedMediaLine
+      ? locale === "en"
+        ? "Next: Publish copy"
+        : "下一步：发布文案"
+      : routesToStoryboard
       ? locale === "en"
         ? "Next: Image Brief"
         : "下一步：配图说明"
@@ -55,8 +69,12 @@ export default async function ScriptLabPage({
       <div className="space-y-6 xl:space-y-5">
         <PageHeader
           eyebrow={text.pages.script.eyebrow}
-          title={text.pages.script.title}
-          description={text.pages.script.description}
+          title={locale === "en" ? "Final Edit" : "成稿编辑"}
+          description={
+            locale === "en"
+              ? "Check the draft, settle the title, and collect publish copy before release."
+              : "核正文、定标题、收发布文案和配图说明；确认后就能发布。"
+          }
           locale={locale}
           action={projectId ? <NextStepLink href={nextHref} label={nextLabel} /> : null}
         />
@@ -68,16 +86,16 @@ export default async function ScriptLabPage({
         />
 
         {recentProjectsUnavailable && !projectId ? (
-          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+          <div className="border-y border-[color:color-mix(in_srgb,var(--warning-text)_24%,transparent)] bg-transparent px-0 py-3 text-sm leading-7 text-[var(--warning-text)]">
             {locale === "en"
-              ? "The project list is temporarily unavailable, but Script Lab will be ready once workspace data recovers."
-              : "当前项目列表暂时不可用，但脚本实验台页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}
+              ? "The project list is temporarily unavailable, but Final Edit will be ready once workspace data recovers."
+              : "当前项目列表暂时不可用，但成稿编辑页本身已可访问，等工作区数据恢复后即可继续选择项目。"}
           </div>
         ) : null}
 
         {loadFailed ? (
           <ErrorPanel
-            title={locale === "en" ? "Script Lab Is Temporarily Unavailable" : "脚本实验台暂时不可用"}
+            title={locale === "en" ? "Final Edit Is Temporarily Unavailable" : "成稿编辑暂时不可用"}
             description={
               locale === "en"
                 ? "Workspace data could not be loaded just now. Refresh the page or switch projects after the server recovers."
@@ -88,10 +106,10 @@ export default async function ScriptLabPage({
         ) : state && state !== "ready" ? (
           <PageStateView state={state} locale={locale} />
         ) : !projectId ? (
-          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view real script lab data." : "请先选择项目，再查看真实脚本实验数据。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
+          <EmptyPanel title={locale === "en" ? "Select a Project" : "等待选择项目"} description={locale === "en" ? "Select a project first to view final-edit data." : "请先选择项目，再查看成稿编辑内容。"} action={<NextStepLink href="/" label={locale === "en" ? "Back to Dashboard" : "先回总览选项目"} />} />
         ) : !workspace ? (
           <ErrorPanel
-            title={locale === "en" ? "Script Data Unavailable" : "无法读取脚本实验数据"}
+            title={locale === "en" ? "Edit Data Unavailable" : "无法读取成稿编辑内容"}
             description={
               locale === "en"
                 ? "The project could not be found, or this output has not been prepared yet."
@@ -100,14 +118,25 @@ export default async function ScriptLabPage({
             action={<NextStepLink href={`/?projectId=${projectId}`} label={locale === "en" ? "Back to Dashboard" : "返回总览页"} />}
           />
         ) : workspace.scriptLabRows.length === 0 && workspace.latestScriptPreview ? (
-          <ScriptPreviewPanel script={workspace.latestScriptPreview} locale={locale} />
+          <>
+            <DailyRunPackagingNotice
+              isOwnedMediaPackage={isOwnedMediaPackage}
+              packagingIncomplete
+              packagingStatus={workspace.fastPackage?.packagingStatus}
+              hasTitlePack={hasTitlePack}
+              hasPublishCopy={hasPublishCopy}
+              hasImageBrief={hasImageBrief}
+              locale={locale}
+            />
+            <ScriptPreviewPanel script={workspace.latestScriptPreview} locale={locale} />
+          </>
         ) : workspace.scriptLabRows.length === 0 ? (
           <EmptyPanel
             title={locale === "en" ? "No Script Draft Yet" : "还没有可打磨的脚本"}
             description={
               locale === "en"
-                ? "Start by generating the first script draft for this project, then come back here to refine scenes and packaging."
-                : "先为这个项目生成第一版脚本，再回到这里继续打磨 scene 和发布包装。"
+                ? "Start by generating the first draft for this project, then come back here for the final edit."
+                : "先为这个项目生成第一版正文，再回到这里做最后轻改。"
             }
             action={
               <NextStepLink
@@ -122,6 +151,9 @@ export default async function ScriptLabPage({
             rows={workspace.scriptLabRows}
             marsOutputs={workspace.marsOutputs}
             latestDraftPreview={workspace.latestScriptPreview}
+            isOwnedMediaPackage={isOwnedMediaPackage}
+            fastPackageStatus={workspace.fastPackage?.packagingStatus}
+            locale={locale}
           />
         )}
       </div>

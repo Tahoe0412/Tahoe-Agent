@@ -24,7 +24,7 @@ export function TodayRecentProjects({
   const t = locale === "zh";
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-6 shadow-sm">
+    <section className="border-y border-[var(--border)] py-5">
       <div className="mb-4 flex items-center gap-3">
         <Clock className="size-5 text-[var(--text-3)]" />
         <h3 className="text-base font-semibold text-[var(--text-1)]">
@@ -36,7 +36,7 @@ export function TodayRecentProjects({
           <button
             key={project.id}
             onClick={() => onProjectClick(project.id)}
-            className="group flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-sm"
+            className="group flex items-start gap-3 border-t border-[var(--border)] py-4 text-left transition hover:text-[var(--text-1)]"
           >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-[var(--text-1)]">
@@ -48,7 +48,7 @@ export function TodayRecentProjects({
             </div>
             <span
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                "shrink-0 rounded-sm px-2 py-0.5 text-[10px] font-semibold",
                 project.status === "DONE"
                   ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                   : "bg-[var(--accent-soft)] text-[var(--accent)]"

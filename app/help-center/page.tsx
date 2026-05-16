@@ -46,7 +46,7 @@ export default async function HelpCenterPage({
     step4: zh ? "4. 从热度卡片点「+ 选题参考」加入趋势信号" : "4. Click '+ Topic Reference' on trend cards to add trend signals",
     step5: zh ? "5. 在底部素材篮子确认后，点「生成脚本」" : "5. Review the material basket, then click 'Generate Script'",
     step6: zh ? "6. 系统会自动生成脚本并拆分为镜头（ScriptScene）" : "6. The system generates a script and splits it into scenes automatically",
-    step7: zh ? "7. 在脚本实验台预览和编辑，之后进入分镜、素材和生成执行" : "7. Preview and edit in Script Lab, then move to storyboard, assets, and rendering",
+    step7: zh ? "7. 在成稿编辑里轻改正文和标题，之后进入配图 brief 与出图台" : "7. Edit in Final Edit, then move to Image Brief and Image Desk",
     currentIntent: (line: string, output: string) => zh ? `当前项目属于「${line}」，目标产物是「${output}」。` : `Current project belongs to "${line}" and targets "${output}".`,
     noProjectYet: zh ? "还没有选定项目。" : "No project selected yet.",
     shortestPath: zh
@@ -121,10 +121,10 @@ export default async function HelpCenterPage({
       ? [
           "在今日工作台勾选素材 → 点「生成脚本」",
           "系统创建 Project + 调用 LLM 生成脚本（事实素材写主体，选题参考影响角度）",
-          "脚本生成后自动跳转到脚本实验台",
-          "后台异步调用 LLM 拆分为多个 ScriptScene（镜头）",
-          "拆分完成后刷新脚本实验台即可看到镜头列表",
-          "后续进入分镜编排 → 素材准备 → 生成执行",
+          "脚本生成后自动跳转到成稿编辑",
+          "后台异步补齐配图 brief 所需的图文条目",
+          "补齐完成后刷新成稿编辑即可看到配图状态",
+          "后续进入配图 brief → 出图台",
         ]
       : [
           "Select materials in Today → click 'Generate Script'",
@@ -148,7 +148,7 @@ export default async function HelpCenterPage({
       : "Trend references only influence framing — they can't serve as factual basis. Select at least 1 news/CN evidence item.",
     faq3Q: zh ? "脚本拆分（Scene Split）失败了怎么办？" : "What if scene split fails?",
     faq3A: zh
-      ? "脚本实验台会显示拆分状态。如果状态为「失败」，可以重新调用拆分接口（POST /api/scripts/:id/split-scenes），使用 force: true 强制重新拆分。"
+      ? "成稿编辑会显示拆分状态。如果状态为「失败」，可以重新调用拆分接口（POST /api/scripts/:id/split-scenes），使用 force: true 强制重新拆分。"
       : "Script Lab shows split status. If 'failed', re-call the split API (POST /api/scripts/:id/split-scenes) with force: true.",
     faq4Q: zh ? "为什么我找不到某个模块？" : "Why can't I find a certain module?",
     faq4A: zh
@@ -168,14 +168,14 @@ export default async function HelpCenterPage({
 
   const pageGuideItems: [string, string][] = zh
     ? [
-        ["今日工作台", "每天的起点。搜索热点、收集素材、生成脚本，一页搞定。"],
+        ["今日选题", "每天的起点。搜索热点、定三个题、生成三篇可发布图文。"],
         ["总览", "看当前项目、推荐下一步，并决定是继续还是新建。"],
         ["创意任务单", "把目标、核心表达和 CTA 先写清楚。"],
         ["趋势研究", "深入分析趋势主题、证据链和可生产性评分。"],
-        ["脚本实验台", "预览、编辑 AI 生成的脚本，查看自动拆分的镜头（ScriptScene）列表。"],
-        ["分镜编排", "判断镜头能不能开工、缺什么素材，安排分镜。"],
-        ["图片与视频生成", "把提示词、镜头、素材和生成任务串成工作流。"],
-        ["宣传文案与运营", "先生成主稿，再增强、派生平台稿、做合规检查。"],
+        ["成稿编辑", "轻改正文、标题和发布文案，确认文章能发。"],
+        ["配图 brief", "判断每张图能不能开工、缺什么素材。"],
+        ["出图台", "把提示词、参考图、素材和图片任务串成工作流。"],
+        ["运营文案", "先生成主稿，再增强、派生平台稿、做合规检查。"],
         ["品牌档案", "沉淀品牌 voice、禁用表达和内容支柱。"],
         ["行业模板", "沉淀行业边界、竞品关键词和风险词。"],
         ["项目中心", "统一搜索、筛选、置顶和归档多个项目。"],
@@ -219,7 +219,7 @@ export default async function HelpCenterPage({
         {/* ── Getting Started ── */}
         <PanelCard title={ui.gettingStartedTitle} description={ui.gettingStartedDesc}>
           <div className="space-y-4 text-sm leading-7 text-[var(--text-2)]">
-            <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md bg-[var(--surface-muted)] p-4">
               {ui.step1}<br />
               {ui.step2}<br />
               {ui.step3}<br />
@@ -233,10 +233,10 @@ export default async function HelpCenterPage({
               {ui.shortestPath}
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/today" className="rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-2 text-sm font-medium text-[var(--accent-strong)]">
+              <Link href="/today" className="rounded-sm border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-2 text-sm font-medium text-[var(--accent-strong)]">
                 {ui.goToToday}
               </Link>
-              <Link href={projectId ? `/?projectId=${projectId}` : "/"} className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
+              <Link href={projectId ? `/?projectId=${projectId}` : "/"} className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
                 {ui.backToOverview}
               </Link>
             </div>
@@ -247,8 +247,8 @@ export default async function HelpCenterPage({
         <PanelCard title={ui.todayTitle} description={ui.todayDesc}>
           <div className="grid gap-3 md:grid-cols-2">
             {ui.todayFeatures.map((feature) => (
-              <div key={feature} className="flex items-start gap-2 rounded-xl bg-[var(--surface-muted)] p-3">
-                <span className="mt-1 size-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
+              <div key={feature} className="flex items-start gap-2 rounded-md bg-[var(--surface-muted)] p-3">
+                <span className="mt-1 size-1.5 shrink-0 rounded-sm bg-[var(--accent)]" />
                 <span className="text-sm leading-6 text-[var(--text-2)]">{feature}</span>
               </div>
             ))}
@@ -258,12 +258,12 @@ export default async function HelpCenterPage({
         {/* ── Material Roles ── */}
         <PanelCard title={ui.rolesTitle} description={ui.rolesDesc}>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <div className="text-base font-semibold text-emerald-700 dark:text-emerald-400">{ui.factLabel}</div>
+            <div className="rounded-md border border-[color:color-mix(in_srgb,var(--ok-text)_20%,transparent)] bg-transparent p-4">
+              <div className="text-base font-semibold text-[var(--ok-text)]">{ui.factLabel}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.factDesc}</div>
             </div>
-            <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
-              <div className="text-base font-semibold text-violet-700 dark:text-violet-400">{ui.trendLabel}</div>
+            <div className="rounded-md border border-[color:color-mix(in_srgb,var(--plum)_20%,transparent)] bg-transparent p-4">
+              <div className="text-base font-semibold text-[var(--plum)]">{ui.trendLabel}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.trendDesc}</div>
             </div>
           </div>
@@ -273,8 +273,8 @@ export default async function HelpCenterPage({
         <PanelCard title={ui.scriptPipelineTitle} description={ui.scriptPipelineDesc}>
           <div className="space-y-2">
             {ui.pipelineSteps.map((step, i) => (
-              <div key={step} className="flex items-start gap-3 rounded-xl bg-[var(--surface-muted)] p-3">
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
+              <div key={step} className="flex items-start gap-3 rounded-md bg-[var(--surface-muted)] p-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
                   {i + 1}
                 </span>
                 <span className="text-sm leading-6 text-[var(--text-2)]">{step}</span>
@@ -286,15 +286,15 @@ export default async function HelpCenterPage({
         {/* ── Business Lines ── */}
         <PanelCard title={ui.workModesTitle} description={ui.workModesDesc}>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md bg-[var(--surface-muted)] p-4">
               <div className="text-base font-semibold text-[var(--text-1)]">{ui.shortVideoLabel}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.shortVideoDesc}</div>
             </div>
-            <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md bg-[var(--surface-muted)] p-4">
               <div className="text-base font-semibold text-[var(--text-1)]">{ui.copywritingLabel}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.copywritingDesc}</div>
             </div>
-            <div className="rounded-xl bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md bg-[var(--surface-muted)] p-4">
               <div className="text-base font-semibold text-[var(--text-1)]">{ui.promotionLabel}</div>
               <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.promotionDesc}</div>
             </div>
@@ -305,7 +305,7 @@ export default async function HelpCenterPage({
         <PanelCard title={ui.pageGuideTitle} description={ui.pageGuideDesc}>
           <div className="grid gap-4 md:grid-cols-3">
             {pageGuideItems.map(([title, desc]) => (
-              <div key={title} className="rounded-xl bg-[var(--surface-muted)] p-4">
+              <div key={title} className="rounded-md bg-[var(--surface-muted)] p-4">
                 <div className="text-base font-semibold text-[var(--text-1)]">{title}</div>
                 <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{desc}</div>
               </div>
@@ -315,7 +315,7 @@ export default async function HelpCenterPage({
 
         {/* ── FAQ ── */}
         <Disclosure
-          className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-5"
+          className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] p-5"
           summaryClassName="text-sm font-medium text-[var(--text-1)]"
           contentClassName="mt-4 space-y-6"
           title={ui.faqTitle}
@@ -347,10 +347,10 @@ export default async function HelpCenterPage({
         {/* ── Changelog ── */}
         <PanelCard title={ui.changelogTitle} description={ui.changelogDesc}>
           <div className="flex flex-wrap gap-3">
-            <Link href="/settings" className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
+            <Link href="/settings" className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
               {ui.goToSettings}
             </Link>
-            <a href="/api/health" target="_blank" rel="noreferrer" className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
+            <a href="/api/health" target="_blank" rel="noreferrer" className="rounded-sm border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text-2)]">
               {ui.healthCheck}
             </a>
           </div>

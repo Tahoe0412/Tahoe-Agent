@@ -113,9 +113,9 @@ export function ProjectForm({
     ? {
         created: (id: string) => `Project ${id} created. You can continue with live connectors and model workflows next.`,
         requestFailed: "Request failed.",
-        eyebrow: "Start a New Project",
-        title: "Fill these first",
-        description: "Direction, current topic, raw material.",
+        eyebrow: "New Project",
+        title: "Name this round",
+        description: "Choose a direction, write the topic, paste the useful source material.",
         flowShortVideo: "Topic research -> master draft -> image brief -> publish packaging",
         flowCopy: "Brief -> master copy -> channel adaptation -> compliance",
         flowPromo: "Brief -> campaign message -> compliance -> review",
@@ -139,9 +139,10 @@ export function ProjectForm({
         projectNamePlaceholder: "Leave blank to use the topic as the project name",
         projectTopic: "Topic",
         projectTopicPlaceholder: modeMeta.topicDefault,
-        currentTopicLabel: "Current topic",
+        currentTopicLabel: "Current topic (can be filled later)",
         currentTopicPlaceholder: "For example: Should product teams rebuild workflows around AI agents now?",
-        currentTopicHint: "The direction is your column. This field is the specific topic for this round.",
+        currentTopicHint: "If you do not have a topic yet, start from Daily Run: collect source items first, then let Tahoe suggest the angle.",
+        researchFirstCta: "Find topics in Daily Run",
         projectIntro: "Project Overview",
         projectIntroPlaceholder: "Write the operating context: who this is for, why this topic matters now, and what kind of deliverable should come out.",
         coreIdea: "Core Message",
@@ -163,9 +164,9 @@ export function ProjectForm({
     : {
         created: (id: string) => `已创建项目 ${id}，可继续接入真实平台采集与模型编排。`,
         requestFailed: "请求失败",
-        eyebrow: "开始新项目",
-        title: "先填这几项",
-        description: "方向、本期题目、素材底稿。",
+        eyebrow: "新项目",
+        title: "写本期题目",
+        description: "选方向、写题目、贴有用素材即可。",
         flowShortVideo: "选题研究 -> 主稿生成 -> 配图说明 -> 发布包装",
         flowCopy: "任务单 -> 改写 -> 平台适配 -> 合规",
         flowPromo: "任务单 -> 推广表达 -> 合规 -> 复盘优化",
@@ -189,9 +190,10 @@ export function ProjectForm({
         projectNamePlaceholder: "可以留空，系统会默认用主题来命名项目",
         projectTopic: "选题主题",
         projectTopicPlaceholder: modeMeta.topicDefault,
-        currentTopicLabel: "本期题目",
+        currentTopicLabel: "本期题目（可后补）",
         currentTopicPlaceholder: "例如：OpenAI 最新 Agent 发布后，产品团队现在该不该重做工作流？",
-        currentTopicHint: "方向是长期定位；这里写的是这一篇真正要讨论的具体问题。",
+        currentTopicHint: "如果你还没想好题目，先去今日选题搜新闻/信号，选几条事实后让系统生成题目和角度。",
+        researchFirstCta: "去今日选题找题目",
         projectIntro: "项目介绍",
         projectIntroPlaceholder: "把背景交代清楚：这轮为什么做、给谁看、最后要形成什么交付。",
         coreIdea: "核心想法",
@@ -248,6 +250,7 @@ export function ProjectForm({
   const topicLabel = isOwnedMedia ? ui.currentTopicLabel : ui.projectTopic;
   const topicPlaceholder = isOwnedMedia ? ui.currentTopicPlaceholder : ui.projectTopicPlaceholder;
   const topicHint = isOwnedMedia ? ui.currentTopicHint : null;
+  const selectedPreset = ownedMediaPresets.find((preset) => preset.id === selectedOwnedMediaPreset) ?? null;
 
   function applyOwnedMediaPreset(preset: (typeof ownedMediaPresets)[number]) {
     setSelectedOwnedMediaPreset(preset.id);
@@ -267,7 +270,7 @@ export function ProjectForm({
         title: titleInput,
         topic: topicInput,
       }),
-      topic: topicInput,
+      topic: topicInput.trim() || titleInput.trim() || selectedPreset?.label || modeMeta.topicDefault,
       sourceScript: sourceScriptInput,
       projectIntroduction: projectIntroductionInput,
       coreIdea: coreIdeaInput,
@@ -314,7 +317,7 @@ export function ProjectForm({
     >
       {!isCompact ? (
         <div className="space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-3)]">{ui.eyebrow}</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.eyebrow}</div>
           <div className="text-2xl font-semibold tracking-tight text-[var(--text-1)]">{ui.title}</div>
           <div className="max-w-3xl text-sm leading-7 text-[var(--text-2)]">
             {ui.description}
@@ -335,7 +338,7 @@ export function ProjectForm({
 
       {isOwnedMedia ? (
         <div className="border-y border-[var(--border)] py-5">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.presetTitle}</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.presetTitle}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{ui.presetDesc}</div>
           <div className="mt-4 grid border-t border-[var(--border)] md:grid-cols-3">
             {ownedMediaPresets.map((preset) => {
@@ -368,7 +371,7 @@ export function ProjectForm({
           isCompact ? "px-0" : "px-0",
         )}
       >
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.summaryTitle}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.summaryTitle}</div>
         <div className="flex flex-wrap items-center gap-2">
           <span className={cn("inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium", intent.contentLine === "MARS_CITIZEN" ? "theme-chip-ok" : "border-[var(--border)] bg-transparent text-[var(--text-2)]")}>
             <contentLineMeta.icon className="mr-1.5 h-3.5 w-3.5" />
@@ -383,7 +386,7 @@ export function ProjectForm({
         </div>
         <div className="mt-3 text-sm leading-7 text-[var(--text-2)]">{contentLineMeta.description}</div>
         <div className="mt-3 border-t border-[var(--border-soft)] pt-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.summaryNoteLabel}</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.summaryNoteLabel}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{flowLine}</div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--text-3)]">
@@ -396,7 +399,7 @@ export function ProjectForm({
       </div>
 
       <div className="border-y border-[var(--border)] py-5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.qualityTitle}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.qualityTitle}</div>
         <div className="mt-4 divide-y divide-[var(--border-soft)]">
           {qualityChecklist.map((item, index) => (
             <div key={item} className="flex items-start gap-3 py-3">
@@ -460,13 +463,20 @@ export function ProjectForm({
             placeholder={topicPlaceholder}
             className="theme-input w-full rounded-md px-4 py-3 text-sm"
           />
-          {topicHint ? <div className="text-sm text-[var(--text-2)]">{topicHint}</div> : null}
+          {topicHint ? (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-2)]">
+              <span>{topicHint}</span>
+              <a href="/daily-run" className="font-medium text-[var(--accent-strong)] hover:underline">
+                {ui.researchFirstCta}
+              </a>
+            </div>
+          ) : null}
         </label>
       </div>
 
       {isOwnedMedia ? (
         <div className="border-y border-[var(--border)] py-5">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-3)]">{ui.writingContextTitle}</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.writingContextTitle}</div>
           <div className="mt-4 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
             <label className="block space-y-2">
               <span className="text-sm font-medium text-[var(--text-2)]">{ui.projectIntro}</span>

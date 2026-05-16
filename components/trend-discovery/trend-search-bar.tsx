@@ -53,7 +53,7 @@ export function TrendSearchBar({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="输入关键词搜索热点话题，例如：SpaceX 星舰、AI 视频生成..."
           disabled={loading}
-          className="h-12 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] pl-11 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-soft)] disabled:opacity-60"
+          className="h-12 w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] pl-11 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-soft)] disabled:opacity-60"
         />
       </div>
 
@@ -67,7 +67,7 @@ export function TrendSearchBar({
               type="button"
               onClick={() => togglePlatform(opt.value)}
               disabled={loading}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition ${
                 active
                   ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)]"
                   : "border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-3)] hover:text-[var(--text-2)]"
@@ -81,7 +81,7 @@ export function TrendSearchBar({
         <button
           type="submit"
           disabled={loading || !query.trim() || platforms.length === 0}
-          className="ml-auto inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-5 py-2 text-sm font-medium text-white shadow-[0_12px_28px_rgba(75,143,106,0.16)] transition hover:-translate-y-0.5 hover:brightness-[1.03] disabled:opacity-50 disabled:hover:translate-y-0"
+          className="ml-auto inline-flex items-center gap-2 rounded-md bg-[var(--accent-strong)] px-5 py-2 text-sm font-medium text-[var(--text-inverse)] transition hover:bg-[var(--accent)] disabled:opacity-50"
         >
           {loading ? (
             <>

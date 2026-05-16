@@ -13,10 +13,15 @@ type SettingsPayload = {
   deepseekApiKey: string | null;
   qwenApiKey: string | null;
   qwenBaseUrl: string | null;
+  hasOpenaiApiKey: boolean;
+  hasGeminiApiKey: boolean;
+  hasDeepseekApiKey: boolean;
+  hasQwenApiKey: boolean;
   llmRouting: Record<ModelRouteKey, { provider: "OPENAI" | "GEMINI" | "DEEPSEEK" | "QWEN"; model: string }>;
   newsSearchProvider: "MOCK" | "GOOGLE";
   newsSearchMockMode: boolean;
   googleSearchApiKey: string | null;
+  hasGoogleSearchApiKey: boolean;
   googleSearchCx: string | null;
   appBaseUrl: string | null;
 };
@@ -79,11 +84,16 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const hasOpenaiKey = initial.hasOpenaiApiKey || Boolean(form.openai_api_key.trim());
+  const hasGeminiKey = initial.hasGeminiApiKey || Boolean(form.gemini_api_key.trim());
+  const hasDeepseekKey = initial.hasDeepseekApiKey || Boolean(form.deepseek_api_key.trim());
+  const hasQwenKey = initial.hasQwenApiKey || Boolean(form.qwen_api_key.trim()) || Boolean(initial.qwenBaseUrl);
+  const hasGoogleSearchKey = initial.hasGoogleSearchApiKey || Boolean(form.google_search_api_key.trim());
   const providerStatus = [
-    { key: "OPENAI", label: "OpenAI", ready: Boolean(form.openai_api_key.trim()) },
-    { key: "GEMINI", label: "Gemini", ready: Boolean(form.gemini_api_key.trim()) },
-    { key: "DEEPSEEK", label: "DeepSeek", ready: Boolean(form.deepseek_api_key.trim()) },
-    { key: "QWEN", label: "Qwen / 通义千问", ready: Boolean(form.qwen_api_key.trim() || initial.qwenBaseUrl) },
+    { key: "OPENAI", label: "OpenAI", ready: hasOpenaiKey },
+    { key: "GEMINI", label: "Gemini", ready: hasGeminiKey },
+    { key: "DEEPSEEK", label: "DeepSeek", ready: hasDeepseekKey },
+    { key: "QWEN", label: "Qwen / 通义千问", ready: hasQwenKey },
   ] as const;
 
   function updateMainProvider(provider: LlmProvider) {
@@ -123,6 +133,21 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     return modelLabelMap[model] ?? model;
   }
 
+  function providerHasCredential(provider: LlmProvider) {
+    if (provider === "OPENAI") return hasOpenaiKey;
+    if (provider === "GEMINI") return hasGeminiKey;
+    if (provider === "DEEPSEEK") return hasDeepseekKey;
+    return hasQwenKey;
+  }
+
+  function keyValueForSave(value: string, hasExisting: boolean) {
+    const trimmed = value.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+    return hasExisting ? undefined : null;
+  }
+
   const mainModelOptions = providerModelOptions[form.llm_provider];
 
   async function save() {
@@ -135,7 +160,14 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        openai_api_key: keyValueForSave(form.openai_api_key, initial.hasOpenaiApiKey),
+        gemini_api_key: keyValueForSave(form.gemini_api_key, initial.hasGeminiApiKey),
+        deepseek_api_key: keyValueForSave(form.deepseek_api_key, initial.hasDeepseekApiKey),
+        qwen_api_key: keyValueForSave(form.qwen_api_key, initial.hasQwenApiKey),
+        google_search_api_key: keyValueForSave(form.google_search_api_key, initial.hasGoogleSearchApiKey),
+      }),
     });
 
     const payload = (await response.json()) as { success: boolean; error?: { message?: string; detail?: string } };
@@ -145,7 +177,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
       return;
     }
 
-    setMessage("设置已保存。重启 dev server 后，新的 provider / key 会立即生效。");
+    setMessage("设置已保存。已保存的密钥不会回显；空白密钥框会保留原值。");
     setPending(false);
   }
 
@@ -153,8 +185,8 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {providerStatus.map((provider) => (
-          <div key={provider.key} className="theme-panel-muted rounded-xl p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">{provider.label}</div>
+          <div key={provider.key} className="theme-panel-muted rounded-md p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{provider.label}</div>
             <div className={`mt-3 text-sm font-medium ${provider.ready ? "text-[var(--ok-text)]" : "text-[var(--danger-text)]"}`}>
               {provider.ready ? "已检测到可用 key" : "未检测到 key"}
             </div>
@@ -162,7 +194,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         ))}
       </div>
 
-      <label className="theme-panel-muted flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--text-2)]">
+      <label className="theme-panel-muted flex items-center gap-3 rounded-md px-4 py-3 text-sm text-[var(--text-2)]">
         <input
           type="checkbox"
           checked={form.llm_mock_mode}
@@ -173,50 +205,54 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">OpenAI 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">OpenAI 密钥</span>
           <input
+            type="password"
             value={form.openai_api_key}
             onChange={(event) => setForm((current) => ({ ...current, openai_api_key: event.target.value }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="sk-..."
+            className="theme-input rounded-md px-4 py-3 text-sm"
+            placeholder={initial.hasOpenaiApiKey ? "已保存，输入新 key 可覆盖" : "sk-..."}
           />
-          <div className="text-xs text-[var(--text-3)]">{form.openai_api_key.trim() ? "已填写" : "未填写"}</div>
+          <div className="text-xs text-[var(--text-3)]">{hasOpenaiKey ? "已检测到可用 key" : "未填写"}</div>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Gemini 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Gemini 密钥</span>
           <input
+            type="password"
             value={form.gemini_api_key}
             onChange={(event) => setForm((current) => ({ ...current, gemini_api_key: event.target.value }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="AIza..."
+            className="theme-input rounded-md px-4 py-3 text-sm"
+            placeholder={initial.hasGeminiApiKey ? "已保存，输入新 key 可覆盖" : "AIza..."}
           />
-          <div className="text-xs text-[var(--text-3)]">{form.gemini_api_key.trim() ? "已填写" : "未填写"}</div>
+          <div className="text-xs text-[var(--text-3)]">{hasGeminiKey ? "已检测到可用 key" : "未填写"}</div>
         </label>
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">DeepSeek 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">DeepSeek 密钥</span>
           <input
+            type="password"
             value={form.deepseek_api_key}
             onChange={(event) => setForm((current) => ({ ...current, deepseek_api_key: event.target.value }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="sk-..."
+            className="theme-input rounded-md px-4 py-3 text-sm"
+            placeholder={initial.hasDeepseekApiKey ? "已保存，输入新 key 可覆盖" : "sk-..."}
           />
-          <div className="text-xs text-[var(--text-3)]">{form.deepseek_api_key.trim() ? "已填写" : "未填写"}</div>
+          <div className="text-xs text-[var(--text-3)]">{hasDeepseekKey ? "已检测到可用 key" : "未填写"}</div>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Qwen / 百炼 密钥</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Qwen / 百炼 密钥</span>
           <input
+            type="password"
             value={form.qwen_api_key}
             onChange={(event) => setForm((current) => ({ ...current, qwen_api_key: event.target.value }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="sk-..."
+            className="theme-input rounded-md px-4 py-3 text-sm"
+            placeholder={initial.hasQwenApiKey ? "已保存，输入新 key 可覆盖" : "sk-..."}
           />
-          <div className="text-xs text-[var(--text-3)]">{form.qwen_api_key.trim() ? "已填写" : "未填写"}</div>
+          <div className="text-xs text-[var(--text-3)]">{hasQwenKey ? "已检测到可用 key 或本地 Qwen" : "未填写"}</div>
         </label>
       </div>
 
-      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-md px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         本地 Qwen Base URL：
         <span className="font-mono text-[var(--text-1)]">{initial.qwenBaseUrl ?? "未配置"}</span>
         。如果你的 qwen3.6-35b 通过 LM Studio / Ollama / vLLM / SGLang 暴露 OpenAI-compatible 接口，请在
@@ -228,7 +264,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         。本字段只从环境变量读取，不能在页面内保存。
       </div>
 
-      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-md px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         本地如果是通过 `.env.local` 修改 API key，改完后必须重启 `npm run dev`。Next.js 不会在运行中自动重新读取这些环境变量。
       </div>
 
@@ -237,7 +273,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         <div className="text-sm leading-6 text-[var(--text-2)]">这里才是日常真正会生效的模型分配。不同步骤可以选各自最合适的模型。</div>
         <div className="grid gap-4">
           {modelRouteKeys.map((key) => (
-            <div key={key} className="theme-panel-muted grid gap-3 rounded-xl p-4 md:grid-cols-[0.95fr_0.7fr_1fr]">
+            <div key={key} className="theme-panel-muted grid gap-3 rounded-md p-4 md:grid-cols-[0.95fr_0.7fr_1fr]">
               <div>
                 <div className="text-sm font-medium text-[var(--text-1)]">
                   {{
@@ -260,7 +296,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
               <select
                 value={route.provider}
                 onChange={(event) => updateRouteProvider(key, event.target.value as LlmProvider)}
-                className="theme-input rounded-xl px-4 py-3 text-sm"
+                className="theme-input rounded-md px-4 py-3 text-sm"
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="GEMINI">Gemini</option>
@@ -288,7 +324,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                       },
                     }));
                   }}
-                  className="theme-input rounded-xl px-4 py-3 text-sm"
+                  className="theme-input rounded-md px-4 py-3 text-sm"
                 >
                   {routeOptions.map((model) => (
                     <option key={model} value={model}>
@@ -312,20 +348,16 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                         },
                       }))
                     }
-                    className="theme-input rounded-xl px-4 py-3 text-sm"
+                    className="theme-input rounded-md px-4 py-3 text-sm"
                     placeholder={getDefaultModelForProvider(route.provider)}
                   />
                 ) : null}
                 <div className="text-xs text-[var(--text-3)]">
-                  {!form.llm_mock_mode && route.provider === "OPENAI" && !form.openai_api_key.trim()
-                    ? "当前未填写 OpenAI key"
-                    : !form.llm_mock_mode && route.provider === "GEMINI" && !form.gemini_api_key.trim()
-                      ? "当前未填写 Gemini key"
-                      : !form.llm_mock_mode && route.provider === "DEEPSEEK" && !form.deepseek_api_key.trim()
-                        ? "当前未填写 DeepSeek key"
-                        : !form.llm_mock_mode && route.provider === "QWEN" && !form.qwen_api_key.trim() && !initial.qwenBaseUrl
-                          ? "当前未填写 Qwen key，也未配置 QWEN_BASE_URL"
-                          : `当前会使用 ${providerLabel(route.provider)} / ${modelLabel(route.model)}`}
+                  {!form.llm_mock_mode && !providerHasCredential(route.provider)
+                    ? route.provider === "QWEN" && !initial.qwenBaseUrl
+                      ? "当前未填写 Qwen key，也未配置 QWEN_BASE_URL"
+                      : `当前未填写 ${providerLabel(route.provider)} key`
+                    : `当前会使用 ${providerLabel(route.provider)} / ${modelLabel(route.model)}`}
                 </div>
               </div>
                   </>
@@ -336,7 +368,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         </div>
       </div>
 
-      <div className="theme-panel-muted rounded-xl p-4">
+      <div className="theme-panel-muted rounded-md p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-[var(--text-1)]">全局兜底模型（高级）</div>
@@ -352,11 +384,11 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         {showFallbackConfig ? (
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">兜底服务商</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">兜底服务商</span>
               <select
                 value={form.llm_provider}
                 onChange={(event) => updateMainProvider(event.target.value as LlmProvider)}
-                className="theme-input rounded-xl px-4 py-3 text-sm"
+                className="theme-input rounded-md px-4 py-3 text-sm"
               >
                 <option value="OPENAI">OpenAI</option>
                 <option value="GEMINI">Google Gemini</option>
@@ -366,7 +398,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
             </label>
 
             <div className="grid gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">兜底模型</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">兜底模型</span>
               <select
                 value={mainModelCustom ? "__custom__" : form.llm_model}
                 onChange={(event) => {
@@ -378,7 +410,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                   setMainModelCustom(false);
                   setForm((current) => ({ ...current, llm_model: value }));
                 }}
-                className="theme-input rounded-xl px-4 py-3 text-sm"
+                className="theme-input rounded-md px-4 py-3 text-sm"
               >
                 {mainModelOptions.map((model) => (
                   <option key={model} value={model}>
@@ -391,7 +423,7 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
                 <input
                   value={form.llm_model}
                   onChange={(event) => setForm((current) => ({ ...current, llm_model: event.target.value }))}
-                  className="theme-input rounded-xl px-4 py-3 text-sm"
+                  className="theme-input rounded-md px-4 py-3 text-sm"
                   placeholder={getDefaultModelForProvider(form.llm_provider)}
                 />
               ) : null}
@@ -403,11 +435,11 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">新闻搜索提供方</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">新闻搜索提供方</span>
           <select
             value={form.news_search_provider}
             onChange={(event) => setForm((current) => ({ ...current, news_search_provider: event.target.value as "MOCK" | "GOOGLE" }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
+            className="theme-input rounded-md px-4 py-3 text-sm"
           >
             <option value="MOCK">Mock</option>
             <option value="GOOGLE">Google Custom Search</option>
@@ -415,27 +447,29 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Google Search API Key</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Google Search API Key</span>
           <input
+            type="password"
             value={form.google_search_api_key}
             onChange={(event) => setForm((current) => ({ ...current, google_search_api_key: event.target.value }))}
-            className="theme-input rounded-xl px-4 py-3 text-sm"
-            placeholder="AIza..."
+            className="theme-input rounded-md px-4 py-3 text-sm"
+            placeholder={initial.hasGoogleSearchApiKey ? "已保存，输入新 key 可覆盖" : "AIza..."}
           />
+          <div className="text-xs text-[var(--text-3)]">{hasGoogleSearchKey ? "已检测到可用 key" : "未填写"}</div>
         </label>
       </div>
 
       <label className="grid gap-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">Google Search CX</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">Google Search CX</span>
         <input
           value={form.google_search_cx}
           onChange={(event) => setForm((current) => ({ ...current, google_search_cx: event.target.value }))}
-          className="theme-input rounded-xl px-4 py-3 text-sm"
+          className="theme-input rounded-md px-4 py-3 text-sm"
           placeholder="custom-search-engine-id"
         />
       </label>
 
-      <label className="theme-panel-muted flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--text-2)]">
+      <label className="theme-panel-muted flex items-center gap-3 rounded-md px-4 py-3 text-sm text-[var(--text-2)]">
         <input
           type="checkbox"
           checked={form.news_search_mock_mode}
@@ -445,11 +479,11 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
       </label>
 
       <label className="grid gap-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--text-3)]">应用地址</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">应用地址</span>
         <input
           value={form.app_base_url}
           onChange={(event) => setForm((current) => ({ ...current, app_base_url: event.target.value }))}
-          className="theme-input rounded-xl px-4 py-3 text-sm"
+          className="theme-input rounded-md px-4 py-3 text-sm"
           placeholder="http://localhost:3001"
         />
       </label>
@@ -462,22 +496,15 @@ export function SettingsForm({ initial }: { initial: SettingsPayload }) {
         {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
       </div>
 
-      <div className="theme-panel-muted rounded-xl px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+      <div className="theme-panel-muted rounded-md px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
         当前有效模型路径：
         {form.llm_mock_mode
           ? " LLM mock 模式已开启，真实模型不会被调用。"
           : ` 步骤模型路由优先；如果某一步没有单独配置，才会退回 ${providerLabel(form.llm_provider)} / ${modelLabel(form.llm_model)}。`}
-        {!form.llm_mock_mode && form.llm_provider === "OPENAI" && !form.openai_api_key.trim()
-          ? " 但当前没有填写 OpenAI key。"
-          : null}
-        {!form.llm_mock_mode && form.llm_provider === "GEMINI" && !form.gemini_api_key.trim()
-          ? " 但当前没有填写 Gemini key。"
-          : null}
-        {!form.llm_mock_mode && form.llm_provider === "DEEPSEEK" && !form.deepseek_api_key.trim()
-          ? " 但当前没有填写 DeepSeek key。"
-          : null}
-        {!form.llm_mock_mode && form.llm_provider === "QWEN" && !form.qwen_api_key.trim() && !initial.qwenBaseUrl
-          ? " 但当前没有填写 Qwen key，也没有配置 QWEN_BASE_URL。"
+        {!form.llm_mock_mode && !providerHasCredential(form.llm_provider)
+          ? form.llm_provider === "QWEN" && !initial.qwenBaseUrl
+            ? " 但当前没有填写 Qwen key，也没有配置 QWEN_BASE_URL。"
+            : ` 但当前没有填写 ${providerLabel(form.llm_provider)} key。`
           : null}
       </div>
     </div>

@@ -2,14 +2,14 @@ import { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/api-response";
 import { parseJsonBody, toErrorResponse } from "@/lib/http-error";
 import { appSettingsUpdateSchema } from "@/schemas/app-settings";
-import { AppSettingsService } from "@/services/app-settings.service";
+import { AppSettingsService, toClientAppSettings } from "@/services/app-settings.service";
 
 const service = new AppSettingsService();
 
 export async function GET() {
   try {
     const settings = await service.getEffectiveSettings();
-    return ok(settings);
+    return ok(toClientAppSettings(settings));
   } catch (error) {
     return fail("读取设置失败。", 500, error instanceof Error ? error.message : undefined);
   }
@@ -18,8 +18,9 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const body = appSettingsUpdateSchema.parse(await parseJsonBody(request));
-    const saved = await service.update(body);
-    return ok(saved);
+    await service.update(body);
+    const settings = await service.getEffectiveSettings();
+    return ok(toClientAppSettings(settings));
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       const detail = error.message.includes("invalid input value for enum")

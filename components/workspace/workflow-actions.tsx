@@ -60,7 +60,7 @@ export function WorkflowActions({
   const showFullWorkflow = isMarsCitizen || isStoryboardOutput;
 
   return (
-    <div className="theme-panel rounded-[24px] p-4">
+    <div className="theme-panel rounded-md p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-sm font-medium text-[var(--text-1)]">流程操作</div>

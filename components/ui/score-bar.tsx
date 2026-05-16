@@ -7,8 +7,8 @@ export function ScoreBar({ label, value, className }: { label: string; value: nu
         <span>{label}</span>
         <span>{value}</span>
       </div>
-      <div className="h-2 rounded-full bg-[var(--surface-muted)]">
-        <div className="h-2 rounded-full bg-[var(--surface-strong)]" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+      <div className="h-2 rounded-[14px] bg-[var(--surface-muted)]">
+        <div className="h-2 rounded-[14px] bg-[var(--surface-strong)]" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
       </div>
     </div>
   );

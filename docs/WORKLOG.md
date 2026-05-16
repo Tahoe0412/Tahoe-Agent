@@ -5,6 +5,130 @@
 
 ---
 
+## 2026-05-12 13:50 — Agent: Codex
+
+### Task: T-014 Daily Run Qwen three-article output
+
+**Changes**:
+- Ran the daily three-article output entirely through Tahoe platform APIs, using LM Studio local Qwen `qwen/qwen3.6-35b-a3b` for generation.
+- Used `/api/research/hot-topics` for current platform materials, then `/api/daily-run/fast-package` for each account lane.
+- Created today's local Script Lab projects:
+  - AI快讯: `cmp27ijyt0000s0rbdgpuvt61` — `OpenAI 推出 Daybreak：当 AI 从“聊天”转向“执行”，安全边界正在重构`
+  - 全球股市: `cmp27kqdy0007s0rbedoumpr3` — `美股正在给 AI 巨头做“压力测试”：当资本开支变成现金流焦虑`
+  - 消费时尚: `cmp27mgdl000es0rbmjksdfmu` — `香奈儿用1000朵茉莉换几滴香精：奢侈品正在悄悄剥离“炫耀”，转向“工艺”`
+- Kept this run scoped to the Daily Run owned-media lane: `generateStoryboard=false`, so it did not push work into Scene Planner / Render Lab image-brief flows.
+
+**Verification / Caveats**:
+- All three projects reached `fast_package.packaging_status: DONE` for title pack + publish copy.
+- `HEAD /script-lab?projectId=...` returned `200` for all three projects.
+- Dev server is running locally on `http://127.0.0.1:3001/`.
+
+---
+
+## 2026-04-30 17:10 — Agent: Codex
+
+### Task: T-014 Daily Run Qwen article generation
+
+**Changes**:
+- Ran three Daily Run article-package generations through LM Studio local Qwen (`qwen/qwen3.6-35b-a3b`) for the current owned-media directions.
+- Created local platform projects:
+  - AI快讯: `cmol95fyt0008s0j9ixzy9cxf` — `9秒清空生产库：当AI代理拥有“上帝权限”，谁在为效率买单？`
+  - 全球股市: `cmol9777a000rs0j9wtd4w52p` — `AI 资本支出分化：从“盲目扩张”到“现金流压力测试”`
+  - 消费时尚: `cmol98iss000ws0j9tfjdjk2y` — `奢侈品信仰松动：当“阶级门票”失效，年轻人开始拆解高溢价的谎言`
+- Updated local OpenAI-compatible Qwen requests to pass `reasoning_effort: "none"` and `/no_think`, which LM Studio accepts for this Qwen model.
+- Added a narrow local-Qwen fallback for `mars_citizen_narrative`: if Qwen writes a valid long article but fails to close the JSON envelope, Tahoe can still keep the raw narrative text instead of deleting the strict Daily Run project.
+
+**Verification / Caveats**:
+- Main drafts were generated successfully and are available in Script Lab.
+- Background packaging is only partially complete on local Qwen: title/publish-copy succeeded for some projects, while audience review, image brief, or title-pack retries can still fail with LM Studio `Context size has been exceeded`.
+- Dev server is running locally on `http://127.0.0.1:3001/`.
+
+---
+
+## 2026-04-29 22:59 — Agent: Codex
+
+### Task: T-014 Frontend refactor against DESIGN.md
+
+**Changes**:
+- Applied the new `DESIGN.md` direction to the shared frontend shell and the primary daily publishing path.
+- Set first-run theme behavior to light editorial mode instead of following system dark mode by default.
+- Tightened app shell, page header, panel, detail, tag, button, next-step, sidebar, and state-panel primitives toward lower-radius controls, fine dividers, and cooler ink-green/teal action styling.
+- Reworked Daily Run and Script Lab surface details so the main path stays `搜热点 -> 选题 -> 生成文章包 -> 成稿编辑`, with配图细节 and复核信息 remaining folded behind advanced/detail controls.
+- Adjusted the Script Lab header next action for owned-media/article projects so it jumps to the page's发布文案 section instead of sending the user to Marketing Ops.
+- Continued the pass across Script Lab's first-screen support components: compact project context, script preview,正文检查, source list, tag input, error notice, and mobile sidebar close controls now use the same low-radius / divider-first treatment.
+
+**Verification / Caveats**:
+- Verification is in progress in the current Codex turn: rerun lint/build, then preview `/daily-run` and `/script-lab?projectId=cmocc5cfq0034s0v59k0ot713`.
+- No API routes, Prisma schema, generation contracts, or model routing were changed.
+
+## 2026-04-29 22:45 — Agent: Codex
+
+### Task: T-014 DESIGN.md baseline and frontend-design skill install
+
+**Changes**:
+- Installed the third-party `frontend-design` Codex skill from `anthropics/skills` into `/Users/ztq0412/.codex/skills/frontend-design`.
+- Added project-root `DESIGN.md` so future UI work has a local, agent-readable design system file.
+- Used the `awesome-design-md` / `getdesign.md` approach as requested, but chose a Tahoe-specific direction rather than copying a brand: WIRED-style editorial density and broadsheet hierarchy, combined with Tahoe's own cool ink-green / teal palette.
+- Explicitly documented anti-patterns: Claude-like warm terracotta / parchment styling, generic AI dashboards, landing-page composition inside the app, and pure terminal-tool aesthetics.
+
+**Verification / Caveats**:
+- Confirmed `/Users/ztq0412/.codex/skills/frontend-design/SKILL.md` exists.
+- Did not run `npx getdesign@latest add wired`; the escalation reviewer rejected it because it would execute untrusted third-party npm code. The safer replacement is the manually authored local `DESIGN.md`.
+- Restart Codex before relying on the newly installed skill in future turns.
+
+## 2026-04-29 22:38 — Agent: Codex
+
+### Task: T-014 Naming and palette refinement
+
+**Changes**:
+- Reworked the global color tokens away from the warm paper / terracotta-brown baseline into a cooler editorial palette: porcelain off-white surfaces, deep ink-green sidebar, teal primary action color, and cobalt / plum / coral status accents.
+- Renamed the main creator path from system-console language into editorial workflow language: `今日选题`, `成稿编辑`, `配图 brief`, and `出图台`.
+- Updated Daily Run and Script Lab page headers, sidebar labels, next-step labels, project-form hints, and Help Center visible module names to match the new terminology.
+- Kept the change frontend-only: no API routes, Prisma schema, generation contracts, or model routing were changed.
+
+**Verification / Caveats**:
+- `npm run lint` passed with the same 10 existing warnings.
+- `npm run build` passed.
+- Restarted local dev server on `http://localhost:3004/` / `http://192.168.3.95:3004/`; browser preview confirmed `/daily-run` shows `今日选题` with the new cool palette and `/script-lab?projectId=cmocc5cfq0034s0v59k0ot713` shows `成稿编辑`.
+- Figma was requested as an option, but no Figma file or node was provided and no Figma MCP context was available in this session; this pass uses the existing Tahoe design system instead of importing a new design source.
+
+## 2026-04-29 22:30 — Agent: Codex
+
+### Task: T-014 Daily Run / Script Lab low-barrier publishing simplification
+
+**Changes**:
+- Simplified Daily Run from a process-control surface into a `今日三篇` publishing desk: compact goal strip, search-first layout, three account topic cards, unified `生成文章包` action, and folded recommendation reasons / source material / alternate topics.
+- Simplified Daily Run generation progress copy so users see `素材 -> 正文 -> 标题/文案/配图` without model names or backend implementation language.
+- Reframed Script Lab as `编辑文章包`, with draft/content review first and title / publish copy as the main editable package surfaces.
+- Collapsed system-heavy details by default: source material, audience scoring, artifact review notes, creative knowledge, extra title/copy fields, and image-brief internals.
+- Renamed remaining main-path image language toward `配图说明 / 配图细节`; technical scene/model terminology remains only inside advanced production detail.
+
+**Verification / Caveats**:
+- `npm run lint` passed with 10 existing warnings.
+- `npm run build` passed.
+- Restarted local dev server on `http://localhost:3004/` after build/dev cache interference; HTTP smoke tests returned `200` for `/daily-run` and `/script-lab?projectId=cmocc5cfq0034s0v59k0ot713`.
+- Browser preview confirmed Daily Run first screen now shows the compact `今日三篇` goal, search box, and account chips; Script Lab preview now folds long scoring/source details behind buttons.
+
+---
+
+## 2026-04-26 13:10 — Agent: Codex
+
+### Task: T-014 Frontend UI system-wide anti-card sweep
+
+**Changes**:
+- Extended the modern art museum / editorial production-desk direction beyond the homepage and Daily Run first pass.
+- Flattened shared UI primitives: page headers, panel cards, detail panels, state/error notices, tags, tag inputs, tables, and score display.
+- Removed or reduced old visual tells across Today, Trend Explorer, Script Lab, Scene Planner, Render Lab, Marketing Ops, Settings, Brand Profiles, Brief Studio, Industry Templates, Help Center, and secondary warning surfaces.
+- Replaced large rounded cards, gradients, dark selected panels, white translucent UI, hover-lift shadows, circular score rings, hard-coded red/emerald/violet/slate palettes, and over-letterspaced labels with tokenized dividers, low-radius controls, flat selected states, compact metadata, and calmer status lines.
+- Tightened the homepage/create-flow copy and Project Context typography so display fonts stay mostly at page-level hierarchy instead of dense workbench surfaces.
+- Kept backend APIs, database schema, persistence contracts, and generation logic untouched.
+
+**Verification / Caveats**:
+- `npm run lint` passed with the same 14 existing warnings.
+- `npm run build` passed.
+- Browser preview checked the key routes after restarting the dev server: homepage, Daily Run, Today, Trend Explorer, Script Lab, Scene Planner, Render Lab, and Marketing Ops.
+- Restarted local preview on `http://localhost:3000/` and confirmed the root route returns HTTP 200.
+
 ## 2026-04-26 12:05 — Agent: Codex
 
 ### Task: T-014 Frontend anti-card visual rewrite
@@ -1924,6 +2048,27 @@
 
 **Reason**:
 - After the first-run UX pass, the next issue was not only hidden validation blockers; it was that the page still taught strategy before it taught the first action. The homepage now prioritizes immediate task clarity over editorial framing.
+
+## 2026-04-29 23:35 — Agent: Codex
+
+### Task: iOS 18-inspired frontend visual refactor for Daily Run and Script Lab
+
+**Changes**:
+- Modified `app/globals.css` and `DESIGN.md` — replaced the warm/editorial token direction with an iOS 18-inspired grouped workspace baseline: system font stack, light gray canvas, translucent material surfaces, system-blue primary actions, iOS semantic status colors, and larger grouped radii.
+- Modified shared shell/components (`Button`, `Tag`, `PageHeader`, `PanelCard`, `DetailPanel`, `AppShell`, `DashboardSidebar`, state panels, tag/input helpers) so primary controls, tags, navigation rows, page titles, and panels follow the new material/pill/grouped treatment.
+- Modified Daily Run and Script Lab surfaces so the main daily path keeps the simplified creator workflow while adopting grouped cards, softer status strips, pill progress controls, and less Claude-like color/shape language.
+- Updated `docs/PROJECT_STATE.md` and `docs/TASKS.md`.
+
+**Reason**:
+- The user requested a style shift away from the Claude-like palette and toward iOS 18. This pass keeps Tahoe as a dense desktop publishing workbench while using iOS-style system color, typography, grouping, and material cues.
+
+**Validation**:
+- `npm run lint` passed with 10 existing warnings.
+- `npm run build` passed.
+- Started `npm run dev -- --port 3004` and verified `HEAD /daily-run`, `HEAD /script-lab?projectId=cmocc5cfq0034s0v59k0ot713`, and `GET /api/health` returned `200` / `database: ok`.
+- The dev server still logs the existing middleware instrumentation warning (`ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING`) during local requests, but the checked routes returned successfully.
+
+---
 
 ### Follow-up: Compress the create form itself
 

@@ -43,7 +43,7 @@ export default async function BrandProfilesPage({
           density="compact"
         />
         {recentProjectsUnavailable && !projectId ? (
-          <div className="rounded-[24px] border border-[color:color-mix(in_srgb,var(--warning-text)_26%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--warning-bg)_84%,var(--surface-solid)),rgba(255,255,255,0.28))] px-5 py-4 text-sm leading-7 text-[var(--warning-text)] shadow-[0_14px_34px_rgba(145,108,43,0.08)]">
+          <div className="border-y border-[color:color-mix(in_srgb,var(--warning-text)_24%,transparent)] bg-transparent px-0 py-3 text-sm leading-7 text-[var(--warning-text)]">
             {locale === "en"
               ? "The project list is temporarily unavailable, but Brand Profiles will be ready once workspace data recovers."
               : "当前项目列表暂时不可用，但品牌档案页面本身已可访问，等工作区数据恢复后即可继续选择项目。"}

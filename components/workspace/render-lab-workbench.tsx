@@ -231,7 +231,7 @@ function AssetPreviewCard({
   const title = asset.file_name || asset.asset_type || asset.id;
 
   return (
-    <div className="overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]">
+    <div className="overflow-hidden rounded-md border border-[var(--border)] bg-transparent">
       {kind === "image" && asset.file_url ? (
         <a href={asset.file_url} target="_blank" rel="noreferrer" className="block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -245,23 +245,23 @@ function AssetPreviewCard({
         </video>
       ) : null}
       <div className="p-4">
-        <div className="text-sm text-[var(--text-inverse)]">
+        <div className="text-sm text-[var(--text-1)]">
           {asset.file_url ? (
-            <a href={asset.file_url} target="_blank" rel="noreferrer" className="underline decoration-[rgba(255,255,255,0.2)] underline-offset-4">
+            <a href={asset.file_url} target="_blank" rel="noreferrer" className="underline decoration-[var(--border)] underline-offset-4">
               {title}
             </a>
           ) : (
             title
           )}
         </div>
-        <div className="mt-1 text-xs text-white/58">
+        <div className="mt-1 text-xs text-[var(--text-3)]">
           {asset.asset_type || (locale === "en" ? "Output asset" : "输出素材")}
           {asset.mime_type ? ` · ${asset.mime_type}` : ""}
           {kind === "image" ? ` · ${locale === "en" ? "image preview" : "图片预览"}` : ""}
           {kind === "video" ? ` · ${locale === "en" ? "video preview" : "视频预览"}` : ""}
         </div>
         {kind === "file" ? (
-          <div className="mt-3 rounded-2xl border border-dashed border-[rgba(255,255,255,0.12)] px-3 py-3 text-xs text-white/68">
+          <div className="mt-3 rounded-md border border-dashed border-[var(--border)] px-3 py-3 text-xs text-[var(--text-3)]">
             {locale === "en" ? "Preview is not available for this asset type yet. Open the file in a new tab." : "当前素材类型暂不支持内嵌预览，请点击文件链接在新标签页中查看。"}
           </div>
         ) : null}
@@ -606,7 +606,7 @@ export function RenderLabWorkbench({
                 value={sceneSearch}
                 onChange={(event) => setSceneSearch(event.target.value)}
                 placeholder={locale === "en" ? "Frame title, shot goal, prompt..." : "按标题、目标、提示词搜索"}
-                className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
               />
             </label>
             <label className="space-y-2 text-sm text-[var(--text-2)]">
@@ -614,7 +614,7 @@ export function RenderLabWorkbench({
               <select
                 value={sceneFilter}
                 onChange={(event) => setSceneFilter(event.target.value as "ALL" | "REFERENCED" | "PROMPT_READY")}
-                className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
               >
                 <option value="ALL">{locale === "en" ? "All rows" : "全部条目"}</option>
                 <option value="REFERENCED">{locale === "en" ? "With references" : "只看有参考"}</option>
@@ -624,9 +624,9 @@ export function RenderLabWorkbench({
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs text-[var(--text-2)]">
-            <span className="theme-chip rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${filteredRows.length} visible` : `当前显示 ${filteredRows.length} 条`}</span>
-            <span className="theme-chip-ok rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.references.length > 0).length} with refs` : `${rows.filter((row) => row.references.length > 0).length} 个有参考`}</span>
-            <span className="theme-chip rounded-full px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.visualPrompt?.trim()).length} prompt-ready` : `${rows.filter((row) => row.visualPrompt?.trim()).length} 个提示词已就绪`}</span>
+            <span className="theme-chip rounded-sm px-2.5 py-1 font-medium">{locale === "en" ? `${filteredRows.length} visible` : `当前显示 ${filteredRows.length} 条`}</span>
+            <span className="theme-chip-ok rounded-sm px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.references.length > 0).length} with refs` : `${rows.filter((row) => row.references.length > 0).length} 个有参考`}</span>
+            <span className="theme-chip rounded-sm px-2.5 py-1 font-medium">{locale === "en" ? `${rows.filter((row) => row.visualPrompt?.trim()).length} prompt-ready` : `${rows.filter((row) => row.visualPrompt?.trim()).length} 个提示词已就绪`}</span>
           </div>
 
           <div className="space-y-3">
@@ -655,28 +655,28 @@ export function RenderLabWorkbench({
                       setMessage(null);
                       setError(null);
                     }}
-                    className={`w-full rounded-[24px] border p-5 text-left transition ${
-                      selected ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
+                    className={`w-full rounded-md border p-5 text-left transition ${
+                      selected ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <div className={`text-lg font-semibold ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
+                      <div className={`text-lg font-semibold ${selected ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>
                         #{row.frameOrder} {row.frameTitle}
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${row.references.length > 0 ? "theme-chip-ok" : "theme-chip"}`}>{row.references.length} refs</span>
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${row.visualPrompt?.trim() ? "theme-chip-ok" : "theme-chip"}`}>
+                        <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${row.references.length > 0 ? "theme-chip-ok" : "theme-chip"}`}>{row.references.length} refs</span>
+                        <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${row.visualPrompt?.trim() ? "theme-chip-ok" : "theme-chip"}`}>
                           {row.visualPrompt?.trim() ? (locale === "en" ? "prompt ready" : "提示词就绪") : locale === "en" ? "prompt pending" : "待补提示词"}
                         </span>
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
+                        <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
                           {review.readiness === "READY" ? (locale === "en" ? `ready ${review.score}` : `可开工 ${review.score}`) : locale === "en" ? `revise ${review.score}` : `待补强 ${review.score}`}
                         </span>
                       </div>
                     </div>
-                    <p className={`mt-3 text-sm leading-6 ${selected ? "text-white/76" : "text-[var(--text-2)]"}`}>{row.shotGoal}</p>
+                    <p className={`mt-3 text-sm leading-6 ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{row.shotGoal}</p>
                     <div className="mt-4 grid gap-3 text-sm">
-                      <div className="theme-panel-muted rounded-[18px] p-3">
-                        <div className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Prompt Seed" : "提示词种子"}</div>
+                      <div className="theme-panel-muted rounded-md p-3">
+                        <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{locale === "en" ? "Prompt Seed" : "提示词种子"}</div>
                         <div className="mt-2 line-clamp-3 text-[var(--text-1)]">{row.visualPrompt || (locale === "en" ? "No visual prompt yet." : "当前还没有视觉提示词。")}</div>
                       </div>
                     </div>
@@ -684,7 +684,7 @@ export function RenderLabWorkbench({
                 );
               })
             ) : (
-              <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-6 text-[var(--text-2)]">
+              <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-6 text-[var(--text-2)]">
                 {locale === "en" ? "No image rows match the current search. Try a different keyword or filter." : "当前搜索条件下没有匹配配图条目，换个关键词或筛选条件试试。"}
               </div>
             )}
@@ -706,14 +706,14 @@ export function RenderLabWorkbench({
                 setMessage(null);
                 setError(null);
               }}
-              className={`rounded-[22px] border p-4 text-left transition ${
-                editorMode === "CREATE" ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
+              className={`rounded-md border p-4 text-left transition ${
+                editorMode === "CREATE" ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
               }`}
             >
-              <div className={`text-sm font-semibold ${editorMode === "CREATE" ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
+              <div className={`text-sm font-semibold ${editorMode === "CREATE" ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>
                 {locale === "en" ? "Create From Row" : "基于条目新建"}
               </div>
-              <div className={`mt-2 text-sm leading-6 ${editorMode === "CREATE" ? "text-white/72" : "text-[var(--text-2)]"}`}>
+              <div className={`mt-2 text-sm leading-6 ${editorMode === "CREATE" ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                 {locale === "en" ? "Use the currently selected image-brief row as the source of truth." : "直接以当前选中的配图条目为起点，快速起一个新任务。"}
               </div>
             </button>
@@ -727,22 +727,22 @@ export function RenderLabWorkbench({
                 setMessage(null);
                 setError(null);
               }}
-              className={`rounded-[22px] border p-4 text-left transition ${
-                editorMode === "REUSE" ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
+              className={`rounded-md border p-4 text-left transition ${
+                editorMode === "REUSE" ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
               }`}
             >
-              <div className={`text-sm font-semibold ${editorMode === "REUSE" ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
+              <div className={`text-sm font-semibold ${editorMode === "REUSE" ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>
                 {locale === "en" ? "Reuse Last Run" : "复用上一轮任务"}
               </div>
-              <div className={`mt-2 text-sm leading-6 ${editorMode === "REUSE" ? "text-white/72" : "text-[var(--text-2)]"}`}>
+              <div className={`mt-2 text-sm leading-6 ${editorMode === "REUSE" ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                 {locale === "en" ? "Pull prompt, notes, and routing from the selected job to keep iterating." : "从右侧选中的任务回填 prompt、notes 和路由配置，继续往下迭代。"}
               </div>
             </button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="theme-panel-muted rounded-[22px] p-4">
-              <div className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">
                 {editorMode === "CREATE" ? (locale === "en" ? "Current Row" : "当前条目") : locale === "en" ? "Reuse Source" : "复用来源"}
               </div>
               <p className="mt-2 text-sm font-medium text-[var(--text-1)]">
@@ -764,8 +764,8 @@ export function RenderLabWorkbench({
                       : "中间工作区会从右侧所选任务中回填设置。"}
               </p>
             </div>
-            <div className="theme-panel-muted rounded-[22px] p-4">
-              <div className="text-xs uppercase tracking-[0.16em] text-[var(--text-3)]">{locale === "en" ? "Working Mode" : "当前工作模式"}</div>
+            <div className="theme-panel-muted rounded-md p-4">
+              <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{locale === "en" ? "Working Mode" : "当前工作模式"}</div>
               <p className="mt-2 text-sm font-medium text-[var(--text-1)]">
                 {editorMode === "CREATE" ? (locale === "en" ? "Fresh generation pass" : "新一轮生成") : locale === "en" ? "Iterate on previous run" : "延续上一轮结果"}
               </p>
@@ -783,10 +783,10 @@ export function RenderLabWorkbench({
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             {selectedReview ? (
-              <div className="rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+              <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Image Brief Review" : "图片 brief 复核"}</div>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
+                  <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
                     {selectedReview.readiness === "READY" ? (locale === "en" ? "Ready to run" : "可直接开工") : locale === "en" ? "Revise first" : "建议先补强"}
                   </span>
                 </div>
@@ -795,7 +795,7 @@ export function RenderLabWorkbench({
                 </div>
                 <div className="mt-3 text-sm leading-6 text-[var(--text-2)]">{selectedReview.summary}</div>
                 {selectedReview.issues.length ? (
-                  <div className="mt-3 rounded-[18px] border border-[rgba(255,196,128,0.2)] bg-[rgba(255,196,128,0.08)] px-3 py-3 text-sm leading-6 text-[color:rgba(110,70,24,0.95)]">
+                  <div className="mt-3 rounded-md border border-[rgba(255,196,128,0.2)] bg-[rgba(255,196,128,0.08)] px-3 py-3 text-sm leading-6 text-[color:rgba(110,70,24,0.95)]">
                     {selectedReview.issues[0]}
                     {selectedReview.nextSteps[0] ? ` ${selectedReview.nextSteps[0]}` : ""}
                   </div>
@@ -807,7 +807,7 @@ export function RenderLabWorkbench({
               <label className="space-y-2 text-sm text-[var(--text-2)]">
                 <span>{locale === "en" ? "Job Type" : "任务类型"}</span>
                 <select
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                   value={jobType}
                   onChange={(event) => updateJobType(event.target.value as (typeof jobTypeOptions)[number])}
                 >
@@ -822,7 +822,7 @@ export function RenderLabWorkbench({
               <label className="space-y-2 text-sm text-[var(--text-2)]">
                 <span>{locale === "en" ? "Provider" : "提供方"}</span>
                 <select
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                   value={provider}
                   onChange={(event) => updateProvider(event.target.value as (typeof renderProviderSchema.options)[number])}
                 >
@@ -837,7 +837,7 @@ export function RenderLabWorkbench({
               <label className="space-y-2 text-sm text-[var(--text-2)]">
                 <span>{locale === "en" ? "Model" : "模型名"}</span>
                 <input
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                   value={providerModel}
                   onChange={(event) => setProviderModel(event.target.value)}
                   placeholder={getDefaultModel(jobType, provider)}
@@ -845,7 +845,7 @@ export function RenderLabWorkbench({
               </label>
             </div>
 
-            <div className="theme-panel-muted rounded-[22px] p-4 text-sm text-[var(--text-2)]">
+            <div className="theme-panel-muted rounded-md p-4 text-sm text-[var(--text-2)]">
               {locale === "en"
                 ? `Suggested combo: ${jobType} -> ${provider} / ${getDefaultModel(jobType, provider)}`
                 : `推荐组合：${jobType} -> ${provider} / ${getDefaultModel(jobType, provider)}`}
@@ -854,7 +854,7 @@ export function RenderLabWorkbench({
             <label className="block space-y-2 text-sm text-[var(--text-2)]">
               <span>{locale === "en" ? "Prompt" : "提示词"}</span>
               <textarea
-                className="min-h-44 w-full rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-4 text-sm leading-6 text-[var(--text-1)] outline-none"
+                className="min-h-44 w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-4 text-sm leading-6 text-[var(--text-1)] outline-none"
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
               />
@@ -863,14 +863,14 @@ export function RenderLabWorkbench({
             <label className="block space-y-2 text-sm text-[var(--text-2)]">
               <span>{locale === "en" ? "Notes" : "备注信息"}</span>
               <textarea
-                className="min-h-32 w-full rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-4 text-sm leading-6 text-[var(--text-1)] outline-none"
+                className="min-h-32 w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-4 text-sm leading-6 text-[var(--text-1)] outline-none"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
               />
             </label>
 
-            {message ? <div className="theme-chip-ok rounded-2xl px-3 py-2 text-sm">{message}</div> : null}
-            {error ? <div className="theme-chip-danger rounded-2xl px-3 py-2 text-sm">{error}</div> : null}
+            {message ? <div className="theme-chip-ok rounded-md px-3 py-2 text-sm">{message}</div> : null}
+            {error ? <div className="theme-chip-danger rounded-md px-3 py-2 text-sm">{error}</div> : null}
 
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm text-[var(--text-2)]">
@@ -903,7 +903,7 @@ export function RenderLabWorkbench({
                   value={jobSearch}
                   onChange={(event) => setJobSearch(event.target.value)}
                   placeholder={locale === "en" ? "Prompt, frame, provider..." : "按提示词、镜头、provider 搜索"}
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                 />
               </label>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -912,7 +912,7 @@ export function RenderLabWorkbench({
                     <select
                       value={jobStatusFilter}
                       onChange={(event) => setJobStatusFilter(event.target.value as "ALL" | RenderJobRow["job_status"])}
-                      className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                      className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                     >
                       <option value="ALL">{locale === "en" ? "All" : "全部"}</option>
                       <option value="QUEUED">QUEUED</option>
@@ -928,7 +928,7 @@ export function RenderLabWorkbench({
                     <select
                       value={jobScope}
                       onChange={(event) => setJobScope(event.target.value as "ALL" | "SELECTED_SCENE")}
-                      className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                      className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                     >
                       <option value="ALL">{locale === "en" ? "All jobs" : "全部任务"}</option>
                       <option value="SELECTED_SCENE">{locale === "en" ? "Selected scene" : "当前场景"}</option>
@@ -939,7 +939,7 @@ export function RenderLabWorkbench({
                     <select
                       value={jobSort}
                       onChange={(event) => setJobSort(event.target.value as "NEWEST" | "OLDEST")}
-                      className="w-full rounded-[18px] border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
+                      className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                     >
                       <option value="NEWEST">{locale === "en" ? "Newest first" : "最新优先"}</option>
                       <option value="OLDEST">{locale === "en" ? "Oldest first" : "最早优先"}</option>
@@ -949,13 +949,13 @@ export function RenderLabWorkbench({
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs text-[var(--text-2)]">
-              <span className="theme-chip rounded-full px-2.5 py-1 font-medium">
+              <span className="theme-chip rounded-sm px-2.5 py-1 font-medium">
                 {locale === "en" ? `${filteredJobs.length} in view` : `当前视图 ${filteredJobs.length} 条`}
               </span>
-              <span className="theme-chip-warn rounded-full px-2.5 py-1 font-medium">
+              <span className="theme-chip-warn rounded-sm px-2.5 py-1 font-medium">
                 {locale === "en" ? `${jobs.filter((job) => job.job_status === "RUNNING" || job.job_status === "QUEUED").length} active` : `${jobs.filter((job) => job.job_status === "RUNNING" || job.job_status === "QUEUED").length} 条进行中`}
               </span>
-              <span className="theme-chip-ok rounded-full px-2.5 py-1 font-medium">
+              <span className="theme-chip-ok rounded-sm px-2.5 py-1 font-medium">
                 {locale === "en" ? `${jobs.filter((job) => job.job_status === "SUCCEEDED").length} done` : `${jobs.filter((job) => job.job_status === "SUCCEEDED").length} 条成功`}
               </span>
             </div>
@@ -977,46 +977,46 @@ export function RenderLabWorkbench({
                       key={job.id}
                       type="button"
                       onClick={() => setSelectedJobId(job.id)}
-                      className={`grid w-full gap-3 rounded-[22px] border p-4 text-left transition ${
-                        selected ? "theme-panel-strong border-transparent" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
+                      className={`grid w-full gap-3 rounded-md border p-4 text-left transition ${
+                        selected ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
-                        <div className={`text-sm ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{formatDate(job.created_at, locale)}</div>
+                        <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                        <div className={`text-sm ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{formatDate(job.created_at, locale)}</div>
                       </div>
                       <div>
-                        <div className={`text-sm font-medium ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>
+                        <div className={`text-sm font-medium ${selected ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>
                           {(input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头"))}
                         </div>
-                        <div className={`mt-1 text-sm ${selected ? "text-white/74" : "text-[var(--text-2)]"}`}>
+                        <div className={`mt-1 text-sm ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                           {job.job_type} · {job.provider}
                           {job.provider_model ? ` / ${job.provider_model}` : ""}
                         </div>
                         {getJobFeedback(job) ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
+                          <div className={`mt-1 text-xs ${selected ? "text-[var(--text-3)]" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? "Feedback saved" : "已记录结果反馈"}
                           </div>
                         ) : null}
                         {linkedScene ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
+                          <div className={`mt-1 text-xs ${selected ? "text-[var(--text-3)]" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? "Scene" : "场景"} #{linkedScene.frameOrder}
                           </div>
                         ) : null}
                         {threadCount > 1 ? (
-                          <div className={`mt-1 text-xs ${selected ? "text-white/62" : "text-[var(--text-3)]"}`}>
+                          <div className={`mt-1 text-xs ${selected ? "text-[var(--text-3)]" : "text-[var(--text-3)]"}`}>
                             {locale === "en" ? `${threadCount} iterations in thread` : `同线程共 ${threadCount} 版`}
                           </div>
                         ) : null}
                       </div>
-                      <div className={`text-sm leading-6 ${selected ? "text-white/84" : "text-[var(--text-1)]"}`}>
+                      <div className={`text-sm leading-6 ${selected ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>
                         {trimPreview(input.prompt || input.shot_goal || linkedScene?.shotGoal, locale === "en" ? "No prompt summary yet." : "当前还没有任务摘要。")}
                       </div>
                     </button>
                   );
                 })
               ) : (
-                <div className="rounded-[22px] border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-6 text-[var(--text-2)]">
+                <div className="rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-solid)] p-5 text-sm leading-6 text-[var(--text-2)]">
                   {jobs.length
                     ? locale === "en"
                       ? "No jobs match the current filters. Try widening the scope or clearing the search."
@@ -1040,8 +1040,8 @@ export function RenderLabWorkbench({
               return (
                 <>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头")}</div>
-                    <div className="mt-2 text-xs uppercase tracking-[0.14em] text-white/60">
+                    <div className="text-sm font-medium text-[var(--text-1)]">{input.frame_title || linkedScene?.frameTitle || (locale === "en" ? "Untitled frame" : "未命名镜头")}</div>
+                    <div className="mt-2 text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
                       {selectedJob.job_type} · {selectedJob.provider}
                       {selectedJob.provider_model ? ` / ${selectedJob.provider_model}` : ""}
                     </div>
@@ -1052,29 +1052,29 @@ export function RenderLabWorkbench({
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Linked Scene" : "关联场景"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Linked Scene" : "关联场景"}</div>
                     <div className="mt-2">{linkedScene ? `#${linkedScene.frameOrder} ${linkedScene.frameTitle}` : locale === "en" ? "No linked scene found." : "当前未找到可匹配场景。"}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Prompt Summary" : "提示词摘要"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Prompt Summary" : "提示词摘要"}</div>
                     <div className="mt-2">{trimPreview(input.prompt || input.visual_prompt || linkedScene?.visualPrompt, locale === "en" ? "No prompt captured." : "当前没有记录提示词。", 240)}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Notes" : "备注"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Notes" : "备注"}</div>
                     <div className="mt-2 whitespace-pre-wrap">{trimPreview(input.notes, locale === "en" ? "No notes attached." : "当前没有附加备注。", 240)}</div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Job Status" : "任务状态"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Job Status" : "任务状态"}</div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusTone(selectedJob.job_status)}`}>{selectedJob.job_status}</span>
-                      <span className="rounded-full border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-xs font-medium">
+                      <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getStatusTone(selectedJob.job_status)}`}>{selectedJob.job_status}</span>
+                      <span className="rounded-sm border border-[var(--border)] px-2.5 py-1 text-xs font-medium">
                         {formatDate(selectedJob.created_at, locale)}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Version Thread" : "版本链路"}</div>
-                    <div className="mt-2 text-white/72">
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Version Thread" : "版本链路"}</div>
+                    <div className="mt-2 text-[var(--text-2)]">
                       {selectedJobThread.length > 1
                         ? locale === "en"
                           ? `This run is version ${selectedJobThreadIndex + 1} of ${selectedJobThread.length} for the same scene.`
@@ -1090,24 +1090,24 @@ export function RenderLabWorkbench({
                             key={job.id}
                             type="button"
                             onClick={() => setSelectedJobId(job.id)}
-                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                            className={`w-full rounded-md border px-3 py-3 text-left transition ${
                               job.id === selectedJob.id
-                                ? "theme-panel-muted border-[rgba(255,255,255,0.16)]"
-                                : "border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.04)]"
+                                ? "theme-panel-muted border-[var(--border)]"
+                                : "border-[var(--border)] hover:bg-transparent"
                             }`}
                           >
                             <div className="flex items-center justify-between gap-3">
-                              <div className="text-sm text-[var(--text-inverse)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
-                              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
+                              <div className="text-sm text-[var(--text-1)]">{locale === "en" ? `Version ${index + 1}` : `版本 ${index + 1}`}</div>
+                              <span className={`rounded-sm px-2 py-0.5 text-[11px] font-medium ${getStatusTone(job.job_status)}`}>{job.job_status}</span>
                             </div>
-                            <div className="mt-2 text-xs text-white/62">{formatDate(job.created_at, locale)}</div>
+                            <div className="mt-2 text-xs text-[var(--text-3)]">{formatDate(job.created_at, locale)}</div>
                           </button>
                         ))}
                       </div>
                     ) : null}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Outputs" : "任务输出"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Outputs" : "任务输出"}</div>
                     {selectedJob.render_assets?.length ? (
                       <div className="mt-3 space-y-3">
                         {selectedJob.render_assets.map((asset) => (
@@ -1127,14 +1127,14 @@ export function RenderLabWorkbench({
                     )}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Result Feedback" : "结果反馈"}</div>
-                    <div className="mt-3 space-y-4 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <label className="space-y-2 text-sm text-white/78">
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Result Feedback" : "结果反馈"}</div>
+                    <div className="mt-3 space-y-4 rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <label className="space-y-2 text-sm text-[var(--text-2)]">
                         <span>{locale === "en" ? "Verdict" : "结论"}</span>
                         <select
                           value={feedbackVerdict}
                           onChange={(event) => setFeedbackVerdict(event.target.value as RenderJobFeedbackVerdict)}
-                          className="w-full rounded-[18px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm text-[var(--text-inverse)] outline-none"
+                          className="w-full rounded-md border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[var(--text-1)] outline-none"
                         >
                           <option value="KEEP">{getFeedbackVerdictLabel("KEEP", locale)}</option>
                           <option value="RETRY">{getFeedbackVerdictLabel("RETRY", locale)}</option>
@@ -1142,7 +1142,7 @@ export function RenderLabWorkbench({
                         </select>
                       </label>
                       <div className="space-y-2">
-                        <div className="text-sm text-white/78">{locale === "en" ? "Issue tags" : "主要问题标签"}</div>
+                        <div className="text-sm text-[var(--text-2)]">{locale === "en" ? "Issue tags" : "主要问题标签"}</div>
                         <div className="flex flex-wrap gap-2">
                           {feedbackIssueOptions.map((issue) => {
                             const selected = feedbackIssues.includes(issue);
@@ -1151,10 +1151,10 @@ export function RenderLabWorkbench({
                                 key={issue}
                                 type="button"
                                 onClick={() => toggleFeedbackIssue(issue)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                                className={`rounded-sm border px-3 py-1.5 text-xs font-medium transition ${
                                   selected
                                     ? "theme-chip-warn border-transparent"
-                                    : "border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.03)] text-white/72"
+                                    : "border-[var(--border)] bg-transparent text-[var(--text-2)]"
                                 }`}
                               >
                                 {getFeedbackIssueLabel(issue, locale)}
@@ -1163,17 +1163,17 @@ export function RenderLabWorkbench({
                           })}
                         </div>
                       </div>
-                      <label className="space-y-2 text-sm text-white/78">
+                      <label className="space-y-2 text-sm text-[var(--text-2)]">
                         <span>{locale === "en" ? "Short note" : "补充说明"}</span>
                         <textarea
                           value={feedbackNote}
                           onChange={(event) => setFeedbackNote(event.target.value)}
-                          className="min-h-28 w-full rounded-[18px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-sm leading-6 text-[var(--text-inverse)] outline-none"
+                          className="min-h-28 w-full rounded-md border border-[var(--border)] bg-transparent px-4 py-3 text-sm leading-6 text-[var(--text-1)] outline-none"
                           placeholder={locale === "en" ? "What failed or worked in this run?" : "这一轮到底差在哪里，或者哪一点是能保留的？"}
                         />
                       </label>
                       {selectedJobFeedback ? (
-                        <div className="text-xs text-white/58">
+                        <div className="text-xs text-[var(--text-3)]">
                           {locale === "en" ? "Latest saved verdict:" : "最近一次保存："} {getFeedbackVerdictLabel(selectedJobFeedback.verdict, locale)}
                         </div>
                       ) : null}
@@ -1184,25 +1184,25 @@ export function RenderLabWorkbench({
                   </div>
                   {previousThreadJob ? (
                     <div>
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
+                      <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Previous Version Compare" : "与上一版本对比"}</div>
                       <div className="mt-3 grid gap-3">
-                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-white/58">{locale === "en" ? "Current" : "当前版本"}</div>
+                        <div className="rounded-md border border-[var(--border)] p-3">
+                          <div className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">{locale === "en" ? "Current" : "当前版本"}</div>
                           <div className="mt-3 space-y-3">
                             {selectedJob.render_assets?.length ? (
                               selectedJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
                             ) : (
-                              <div className="text-sm text-white/72">{locale === "en" ? "No preview asset on current version." : "当前版本还没有可对比预览素材。"}</div>
+                              <div className="text-sm text-[var(--text-2)]">{locale === "en" ? "No preview asset on current version." : "当前版本还没有可对比预览素材。"}</div>
                             )}
                           </div>
                         </div>
-                        <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] p-3">
-                          <div className="text-xs uppercase tracking-[0.14em] text-white/58">{locale === "en" ? "Previous" : "上一版本"}</div>
+                        <div className="rounded-md border border-[var(--border)] p-3">
+                          <div className="text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">{locale === "en" ? "Previous" : "上一版本"}</div>
                           <div className="mt-3 space-y-3">
                             {previousThreadJob.render_assets?.length ? (
                               previousThreadJob.render_assets.slice(0, 1).map((asset) => <AssetPreviewCard key={asset.id} asset={asset} locale={locale} />)
                             ) : (
-                              <div className="text-sm text-white/72">{locale === "en" ? "No preview asset on the previous version." : "上一版本还没有可对比预览素材。"}</div>
+                              <div className="text-sm text-[var(--text-2)]">{locale === "en" ? "No preview asset on the previous version." : "上一版本还没有可对比预览素材。"}</div>
                             )}
                           </div>
                         </div>
@@ -1210,7 +1210,7 @@ export function RenderLabWorkbench({
                     </div>
                   ) : null}
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Output Summary" : "输出摘要"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Output Summary" : "输出摘要"}</div>
                     <div className="mt-2 whitespace-pre-wrap">
                       {trimPreview(
                         typeof output.summary === "string"
@@ -1226,11 +1226,11 @@ export function RenderLabWorkbench({
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "References" : "参考素材"}</div>
+                    <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "References" : "参考素材"}</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(input.references?.length ? input.references : linkedScene?.references ?? []).length ? (
                         (input.references?.length ? input.references : linkedScene?.references ?? []).map((reference, index) => (
-                          <span key={`${reference.label ?? "reference"}-${index}`} className="rounded-full border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-xs font-medium">
+                          <span key={`${reference.label ?? "reference"}-${index}`} className="rounded-sm border border-[var(--border)] px-2.5 py-1 text-xs font-medium">
                             {reference.label || reference.type || (locale === "en" ? "Reference" : "参考")}
                           </span>
                         ))
@@ -1241,7 +1241,7 @@ export function RenderLabWorkbench({
                   </div>
                   {selectedJob.error_message ? (
                     <div>
-                      <div className="text-sm font-medium text-[var(--text-inverse)]">{locale === "en" ? "Error" : "错误信息"}</div>
+                      <div className="text-sm font-medium text-[var(--text-1)]">{locale === "en" ? "Error" : "错误信息"}</div>
                       <div className="mt-2 text-[var(--danger-text)]">{selectedJob.error_message}</div>
                     </div>
                   ) : null}

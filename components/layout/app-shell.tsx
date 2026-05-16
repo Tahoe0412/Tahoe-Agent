@@ -110,7 +110,7 @@ export function AppShell({
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="mb-3 inline-flex self-end rounded-full border border-white/10 bg-white/5 p-2 text-[var(--text-inverse)] transition hover:bg-white/12 xl:hidden"
+            className="mb-3 inline-flex self-end rounded-full border border-[var(--sidebar-border)] bg-[var(--surface-solid)] p-2 text-[var(--text-1)] transition hover:bg-[var(--sidebar-item-hover)] xl:hidden"
             aria-label={text.shell.closeSidebar}
           >
             <X className="size-5" />
@@ -131,12 +131,12 @@ export function AppShell({
           )}
         >
           {/* ── Global Top Header ── */}
-          <header className="theme-header sticky top-0 z-40 flex h-[64px] items-center justify-between px-4 lg:px-6 xl:px-7">
+          <header className="theme-header sticky top-0 z-40 flex h-[58px] items-center justify-between px-4 lg:px-6 xl:px-7">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={toggle}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-transparent px-3 text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-3 text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--text-1)]"
                 aria-label={text.shell.toggleSidebar}
               >
                 {sidebarVisible
@@ -151,18 +151,18 @@ export function AppShell({
 
               <Link
                 href="/"
-                className="group inline-flex min-w-0 items-center gap-3 rounded-md border border-transparent px-2 py-2 text-[var(--text-1)] transition hover:border-[var(--border)] sm:px-3"
+                className="group inline-flex min-w-0 items-center gap-3 rounded-full border border-transparent px-2 py-1.5 text-[var(--text-1)] transition hover:border-[var(--border)] sm:px-3"
               >
-                <span className="inline-flex size-8 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent-strong)]">
+                <span className="inline-flex size-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent-strong)]">
                   <GalleryVerticalEnd className="size-4" />
                 </span>
-                <span className="theme-kicker truncate text-sm font-semibold tracking-[0.22em] sm:tracking-[0.28em]">Tahoe</span>
+                <span className="theme-kicker truncate text-sm font-semibold">Tahoe</span>
               </Link>
             </div>
 
             <Link
               href="/settings"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-solid)] text-[var(--text-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
               aria-label={text.shell.openSettings}
             >
               <Settings className="size-4" />
@@ -170,7 +170,7 @@ export function AppShell({
           </header>
 
           {/* ── Main Content ── */}
-          <main className="theme-main flex-1 px-4 py-4 sm:px-5 lg:px-6 lg:py-6 xl:px-8 xl:py-7 2xl:px-10">
+          <main className="theme-main flex-1 px-4 py-4 sm:px-5 lg:px-6 lg:py-5 xl:px-8 xl:py-6 2xl:px-10">
             <div className="relative z-[1] mx-auto w-full max-w-[1680px] min-[1900px]:max-w-[1820px]">{children}</div>
           </main>
         </div>

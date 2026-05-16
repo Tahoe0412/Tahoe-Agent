@@ -272,10 +272,10 @@ export function TodayWorkbench({
   return (
     <div className="space-y-6">
       {/* ── Block 1: 热点发现 ── */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-solid)] p-6 shadow-sm">
-        <div className="mb-6 flex items-start justify-between gap-4">
+      <section className="border-y border-[var(--border)] py-5">
+        <div className="mb-5 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--accent-soft)]">
+            <div className="flex size-9 items-center justify-center rounded-md border border-[var(--border)] bg-transparent">
               <Flame className="size-5 text-[var(--accent-strong)]" />
             </div>
             <div>
@@ -294,7 +294,7 @@ export function TodayWorkbench({
         {/* ── Content line toggle + Platform selector ── */}
         <div className="mb-5 flex flex-wrap items-center gap-3">
           {/* Content line toggle */}
-          <div className="flex items-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-0.5">
+          <div className="flex items-center rounded-md border border-[var(--border)] bg-transparent p-0.5">
             {([
               { line: "MARS_CITIZEN" as ContentLine, icon: Rocket, label: t ? "火星公民" : "Mars Citizen" },
               { line: "MARKETING" as ContentLine, icon: Briefcase, label: t ? "商业线" : "Marketing" },
@@ -303,9 +303,9 @@ export function TodayWorkbench({
                 key={item.line}
                 onClick={() => switchContentLine(item.line)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition",
                   activeContentLine === item.line
-                    ? "bg-[var(--surface-solid)] text-[var(--text-1)] shadow-sm"
+                    ? "bg-[var(--accent-soft)] text-[var(--text-1)]"
                     : "text-[var(--text-3)] hover:text-[var(--text-2)]",
                 )}
               >
@@ -328,9 +328,9 @@ export function TodayWorkbench({
                 key={p}
                 onClick={() => togglePlatform(p)}
                 className={cn(
-                  "rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-all",
+                  "rounded-md border px-2.5 py-1 text-[11px] font-medium transition",
                   selectedPlatforms.has(p)
-                    ? "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--text-1)] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    ? "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--text-1)] "
                     : "border-[var(--border)] bg-transparent text-[var(--text-3)] hover:border-[var(--text-3)]/40",
                 )}
               >
@@ -341,13 +341,13 @@ export function TodayWorkbench({
         </div>
 
         {workspaceDataUnavailable ? (
-          <div className="mb-5 rounded-xl border border-[color:color-mix(in_srgb,var(--warn-text)_28%,transparent)] bg-[var(--warn-bg)] px-4 py-3 text-sm leading-6 text-[var(--warn-text)]">
+          <div className="mb-5 rounded-md border border-[color:color-mix(in_srgb,var(--warn-text)_28%,transparent)] bg-[var(--warn-bg)] px-4 py-3 text-sm leading-6 text-[var(--warn-text)]">
             {t
               ? "当前品牌关键词池和最近项目列表暂时没有从数据库成功读取，但你仍然可以手动输入关键词搜索热点。"
               : "Brand keyword pools and recent projects could not be loaded from the database right now, but you can still search with manual keywords."}
           </div>
         ) : brandProfiles.length === 0 ? (
-          <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+          <div className="mb-5 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
             {t
               ? "还没有可用的品牌关键词池。你可以先手动输入关键词搜索，或稍后去品牌档案里补充关键词池。"
               : "No brand keyword pool is available yet. You can search manually now, or add one later in Brand Profiles."}
@@ -355,7 +355,7 @@ export function TodayWorkbench({
         ) : null}
 
         {/* ── Command Center: 3-layer keyword pool ── */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] shadow-[0_2px_4px_rgba(15,23,32,0.02)]">
+        <div className="rounded-md border border-[var(--border)] bg-[var(--surface-solid)] ">
           {/* Layer 1: Pool control + count */}
           <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[var(--border)]">
             {brandProfiles.length > 0 ? (
@@ -369,7 +369,7 @@ export function TodayWorkbench({
                       setKeywords(brand.keywords.map((k) => ({ text: k, selected: true })));
                     }
                   }}
-                  className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--text-1)] outline-none cursor-pointer transition-colors hover:border-[var(--accent)]/40"
+                  className="appearance-none rounded-md border border-[var(--border)] bg-[var(--surface-muted)] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[var(--text-1)] outline-none cursor-pointer transition-colors hover:border-[var(--accent)]/40"
                 >
                   {brandProfiles.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -423,9 +423,9 @@ export function TodayWorkbench({
               <span
                 key={`${kw.text}-${i}`}
                 className={cn(
-                  "group inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-all cursor-pointer select-none",
+                  "group inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium transition cursor-pointer select-none",
                   kw.selected
-                    ? "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[var(--text-1)] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    ? "border-[var(--accent)]/25 bg-[var(--accent-soft)] text-[var(--text-1)] "
                     : "border-[var(--border)] bg-transparent text-[var(--text-3)]"
                 )}
                 onClick={() => {
@@ -444,7 +444,7 @@ export function TodayWorkbench({
                     e.stopPropagation();
                     setKeywords((prev) => prev.filter((_, j) => j !== i));
                   }}
-                  className="ml-1.5 opacity-0 group-hover:opacity-100 text-[var(--text-3)] hover:text-[var(--danger-text)] transition-all"
+                  className="ml-1.5 opacity-0 group-hover:opacity-100 text-[var(--text-3)] hover:text-[var(--danger-text)] transition"
                   aria-label={`Delete ${kw.text}`}
                 >
                   ×
@@ -503,7 +503,7 @@ export function TodayWorkbench({
                 void handleSearch(q, [...selectedPlatforms]);
               }}
               disabled={loading || selectedKeywords.length === 0}
-              className="flex items-center justify-center rounded-lg bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center justify-center rounded-md bg-[var(--text-1)] px-5 py-1.5 text-sm font-medium tracking-wide text-[var(--surface-solid)] transition-colors hover:bg-[var(--text-2)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading
                 ? (
@@ -521,7 +521,7 @@ export function TodayWorkbench({
 
         {/* Error */}
         {error && (
-          <div className="mt-4 rounded-xl bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
+          <div className="mt-4 rounded-md bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-text)]">
             {error}
           </div>
         )}
@@ -532,12 +532,12 @@ export function TodayWorkbench({
             {(mockPlatforms.length > 0 || failedPlatforms.length > 0) && (
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 {mockPlatforms.length > 0 && (
-                  <span className="rounded-full bg-[var(--warn-bg)] px-3 py-1 text-[var(--warn-text)]">
+                  <span className="rounded-sm bg-[var(--warn-bg)] px-3 py-1 text-[var(--warn-text)]">
                     {t ? `${mockPlatforms.join(" / ")} 返回 mock 数据` : `${mockPlatforms.join(" / ")} mock data`}
                   </span>
                 )}
                 {failedPlatforms.length > 0 && (
-                  <span className="rounded-full bg-[var(--danger-bg)] px-3 py-1 text-[var(--danger-text)]">
+                  <span className="rounded-sm bg-[var(--danger-bg)] px-3 py-1 text-[var(--danger-text)]">
                     {t ? `${failedPlatforms.map((p) => p.platform).join(" / ")} 请求失败` : `${failedPlatforms.map((p) => p.platform).join(" / ")} failed`}
                   </span>
                 )}
@@ -546,14 +546,14 @@ export function TodayWorkbench({
 
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {newsResult ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+              <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
                     {t ? "Google 新闻样本" : "Google News Samples"}
                   </span>
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      "rounded-sm px-2 py-0.5 text-[10px] font-medium",
                       newsResult.success && newsResult.mode === "live"
                         ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                         : newsResult.mode === "mock"
@@ -580,9 +580,9 @@ export function TodayWorkbench({
                       <div
                         key={item.id}
                         className={cn(
-                          "group flex items-start gap-3 rounded-xl border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
+                          "group flex items-start gap-3 rounded-md border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
                           isSelected
-                            ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5 "
                             : "border-[var(--border)] hover:border-[var(--accent)]/40",
                         )}
                         onClick={() => toggleNewsItem(selectable)}
@@ -590,9 +590,9 @@ export function TodayWorkbench({
                         {/* Checkbox */}
                         <div
                           className={cn(
-                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition",
                             isSelected
-                              ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                              ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--text-inverse)]"
                               : "border-[var(--text-3)]/30 group-hover:border-[var(--accent)]/50",
                           )}
                         >
@@ -618,7 +618,7 @@ export function TodayWorkbench({
             ) : null}
 
             {/* CN indexed evidence */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+            <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted)] p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-3)]">
                   {t ? "国内热点证据" : "China Indexed Evidence"}
@@ -626,7 +626,7 @@ export function TodayWorkbench({
                 {cnIndexed ? (
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      "rounded-sm px-2 py-0.5 text-[10px] font-medium",
                       cnIndexed.success && cnIndexed.mode === "live"
                         ? "bg-[var(--ok-bg)] text-[var(--ok-text)]"
                         : cnIndexed.mode === "mock"
@@ -655,9 +655,9 @@ export function TodayWorkbench({
                       <div
                         key={item.id}
                         className={cn(
-                          "group flex items-start gap-3 rounded-xl border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
+                          "group flex items-start gap-3 rounded-md border bg-[var(--surface-solid)] px-3 py-3 transition cursor-pointer",
                           isSelected
-                            ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm"
+                            ? "border-[var(--accent)] bg-[var(--accent)]/5 "
                             : "border-[var(--border)] hover:border-[var(--accent)]/40",
                         )}
                         onClick={() => toggleNewsItem(selectable)}
@@ -665,9 +665,9 @@ export function TodayWorkbench({
                         {/* Checkbox */}
                         <div
                           className={cn(
-                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-all",
+                            "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition",
                             isSelected
-                              ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                              ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--text-inverse)]"
                               : "border-[var(--text-3)]/30 group-hover:border-[var(--accent)]/50",
                           )}
                         >
@@ -723,7 +723,7 @@ export function TodayWorkbench({
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-32 animate-pulse rounded-2xl bg-[var(--surface-muted)]"
+                className="h-32 animate-pulse rounded-md bg-[var(--surface-muted)]"
               />
             ))}
           </div>
@@ -737,17 +737,17 @@ export function TodayWorkbench({
                 key={topic.topicKey}
                 onClick={() => setSelectedTopic(topic)}
                 className={cn(
-                  "group relative rounded-2xl border p-4 text-left transition-all hover:-translate-y-0.5",
+                  "group relative rounded-md border p-4 text-left transition ",
                   selectedTopic?.topicKey === topic.topicKey
-                    ? "border-[var(--accent)] bg-[var(--accent)]/8 shadow-lg"
+                    ? "border-[var(--accent)] bg-[var(--accent)]/8 "
                     : "border-[var(--border)] bg-[var(--surface-muted)] hover:border-[var(--accent)]/40"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
+                  <span className="flex size-7 items-center justify-center rounded-md bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
                     {index + 1}
                   </span>
-                  <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
+                  <span className="rounded-sm bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
                     {t ? "热度" : "Heat"} {topic.score}
                   </span>
                 </div>
@@ -778,7 +778,7 @@ export function TodayWorkbench({
                     });
                   }}
                   className={cn(
-                    "mt-3 w-full rounded-lg py-1.5 text-xs font-medium transition",
+                    "mt-3 w-full rounded-md py-1.5 text-xs font-medium transition",
                     selectedNews.has(`trend_${topic.topicKey}`)
                       ? "bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30"
                       : "bg-[var(--surface-solid)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]",
@@ -795,9 +795,9 @@ export function TodayWorkbench({
 
         {/* Empty state */}
         {emptyDueToSourceFailure ? (
-          <div className="mt-5 rounded-xl border border-[var(--warn-text)]/20 bg-[var(--warn-bg)] p-5 shadow-sm">
+          <div className="mt-5 rounded-md border border-[var(--warn-text)]/20 bg-[var(--warn-bg)] p-5 ">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--warn-text)]/15 text-[var(--warn-text)]">
+              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-md bg-[var(--warn-text)]/15 text-[var(--warn-text)]">
                 <AlertTriangle className="size-5" />
               </div>
               <div className="min-w-0">
@@ -814,12 +814,12 @@ export function TodayWorkbench({
                 </div>
                 <div className="mt-4 space-y-2 text-sm leading-6 text-[var(--text-2)]">
                   {sourceFailureMessages.map((message) => (
-                    <div key={message} className="rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.36)] px-3 py-2">
+                    <div key={message} className="rounded-md border border-[var(--border)] bg-transparent px-3 py-2">
                       {message}
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 rounded-xl border border-dashed border-[var(--border)] bg-[rgba(255,255,255,0.3)] px-4 py-3 text-xs leading-6 text-[var(--text-3)]">
+                <div className="mt-4 rounded-md border border-dashed border-[var(--border)] bg-transparent px-4 py-3 text-xs leading-6 text-[var(--text-3)]">
                   {t
                     ? "建议确认服务器外网可访问 Google News 和 X API，并适当放宽 YouTube 连接超时。"
                     : "Recommended next step: confirm the server can reach Google News and X API, and relax the YouTube connector timeout if needed."}
@@ -828,7 +828,7 @@ export function TodayWorkbench({
             </div>
           </div>
         ) : searched && !loading && !error && topics.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center text-sm text-[var(--text-3)]">
+          <div className="mt-5 rounded-md border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center text-sm text-[var(--text-3)]">
             {t
               ? "未找到相关热点话题，换个关键词试试"
               : "No trending topics found. Try different keywords."}
@@ -873,15 +873,15 @@ export function TodayWorkbench({
 
       {/* ── Material Basket ── */}
       {selectedNews.size > 0 && (
-        <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--surface-solid)] p-5 shadow-sm">
+        <section className="border-y border-[var(--accent)]/20 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--accent)]/10">
+              <div className="flex size-8 items-center justify-center rounded-md bg-[var(--accent)]/10">
                 <FileText className="size-4 text-[var(--accent)]" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-1)]">
-                  {t ? "🧰 本次素材" : "🧰 Materials"}
+                  {t ? "本次素材" : "Materials"}
                 </h3>
                 <p className="text-xs text-[var(--text-3)]">
                   {t
@@ -892,7 +892,7 @@ export function TodayWorkbench({
             </div>
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-[var(--text-3)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
+              className="flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-[var(--text-3)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)]"
             >
               <X className="size-3" />
               {t ? "清空" : "Clear"}
@@ -903,7 +903,7 @@ export function TodayWorkbench({
           {factItems.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-600">
+                <span className="inline-flex items-center gap-1 rounded-sm border border-[color:color-mix(in_srgb,var(--ok-text)_22%,transparent)] px-2 py-0.5 text-[var(--ok-text)]">
                   <FileText className="size-3" />
                   {t ? "事实素材" : "Facts"}
                 </span>
@@ -911,8 +911,8 @@ export function TodayWorkbench({
               </div>
               <div className="space-y-1.5">
                 {factItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 px-3 py-2">
-                    <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+                  <div key={item.id} className="flex items-center gap-2 rounded-md border border-[color:color-mix(in_srgb,var(--ok-text)_18%,transparent)] px-3 py-2">
+                    <span className="size-1.5 shrink-0 rounded-sm bg-[var(--ok-text)]" />
                     <span className="min-w-0 flex-1 truncate text-xs text-[var(--text-1)]">{item.title}</span>
                     <span className="shrink-0 rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">{item.source}</span>
                     <button
@@ -931,7 +931,7 @@ export function TodayWorkbench({
           {trendItems.length > 0 && (
             <div className="mt-3">
               <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-violet-600">
+                <span className="inline-flex items-center gap-1 rounded-sm border border-[color:color-mix(in_srgb,var(--plum)_22%,transparent)] px-2 py-0.5 text-[var(--plum)]">
                   <Radar className="size-3" />
                   {t ? "选题参考" : "Trends"}
                 </span>
@@ -939,8 +939,8 @@ export function TodayWorkbench({
               </div>
               <div className="space-y-1.5">
                 {trendItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 rounded-lg bg-violet-500/5 border border-violet-500/10 px-3 py-2">
-                    <span className="size-1.5 shrink-0 rounded-full bg-violet-500" />
+                  <div key={item.id} className="flex items-center gap-2 rounded-md border border-[color:color-mix(in_srgb,var(--plum)_18%,transparent)] px-3 py-2">
+                    <span className="size-1.5 shrink-0 rounded-sm bg-[var(--plum)]" />
                     <span className="min-w-0 flex-1 truncate text-xs text-[var(--text-1)]">{item.title}</span>
                     <span className="shrink-0 rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--text-3)]">{item.source}</span>
                     <button
@@ -971,12 +971,12 @@ export function TodayWorkbench({
                 onClick={handleGenerateScript}
                 disabled={generatingScript || !hasFactItems}
                 className={cn(
-                  "flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all",
+                  "flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-[var(--text-inverse)] transition",
                   generatingScript
                     ? "bg-[var(--accent)]/60 cursor-wait"
                     : !hasFactItems
                       ? "bg-[var(--text-3)]/30 cursor-not-allowed"
-                      : "bg-[var(--accent)] hover:bg-[var(--accent-strong)] shadow-md hover:shadow-lg",
+                      : "bg-[var(--accent)] hover:bg-[var(--accent-strong)]",
                 )}
               >
                 {generatingScript ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
@@ -994,7 +994,7 @@ export function TodayWorkbench({
                     }) as Route,
                   )
                 }
-                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                className="flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
               >
                 <Zap className="size-4" />
                 {t ? "发布包装" : "Publish Package"}
@@ -1003,7 +1003,7 @@ export function TodayWorkbench({
               <button
                 onClick={() => void createProjectAndGenerateOutput("PLATFORM_COPY", "marketing-ops", "marketing_copy")}
                 disabled={pendingQuickAction !== null}
-                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                className="flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
               >
                 {pendingQuickAction === "marketing_copy" ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
                 {pendingQuickAction === "marketing_copy"
@@ -1014,7 +1014,7 @@ export function TodayWorkbench({
               <button
                 onClick={() => void createProjectAndGenerateOutput("AD_STORYBOARD", "scene-planner", "marketing_storyboard")}
                 disabled={pendingQuickAction !== null}
-                className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                className="flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
               >
                 {pendingQuickAction === "marketing_storyboard" ? <Loader2 className="size-4 animate-spin" /> : <Radar className="size-4" />}
                 {pendingQuickAction === "marketing_storyboard"
@@ -1026,7 +1026,7 @@ export function TodayWorkbench({
 
           {/* Error toast */}
           {generateError || quickActionError ? (
-            <div className="mt-3 rounded-xl border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)]">
+            <div className="mt-3 rounded-md border border-[var(--danger-text)]/20 bg-[var(--danger-bg)] px-4 py-2 text-sm text-[var(--danger-text)]">
               {generateError || quickActionError}
             </div>
           ) : null}

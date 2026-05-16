@@ -1,5 +1,6 @@
 import type { ContentLine, OutputType } from "@/lib/content-line";
 import type { NewsItemForPrompt, TrendItemForPrompt } from "@/lib/news-script-prompt";
+import type { OwnedMediaEditorialDirection } from "@/lib/owned-media-directions";
 
 export type SupportedNewsScriptOutputType = Extract<OutputType, "NARRATIVE_SCRIPT" | "AD_SCRIPT">;
 
@@ -50,6 +51,8 @@ export interface NarrativeNewsScriptGenerationInput {
   trendPromptItems: TrendItemForPrompt[];
   contentLine: ContentLine;
   outputType: "NARRATIVE_SCRIPT";
+  editorialDirection?: OwnedMediaEditorialDirection;
+  strictModel?: boolean;
 }
 
 export interface AdNewsScriptGenerationInput {

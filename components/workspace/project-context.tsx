@@ -375,29 +375,29 @@ export function ProjectContext({
   const detailContent = (
     <div className="grid gap-3 md:grid-cols-2">
       {effectiveIntroduction ? (
-        <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
+        <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectIntro}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{effectiveIntroduction}</div>
         </div>
       ) : null}
       {effectiveCoreIdea ? (
-        <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
+        <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.coreIdea}</div>
           <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{effectiveCoreIdea}</div>
         </div>
       ) : null}
       {project?.originalScript ? (
-        <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.originalScript}</div>
+        <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.originalScript}</div>
           <div className="mt-2 line-clamp-5 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.originalScript}</div>
         </div>
       ) : null}
       {project?.styleReferenceInsight ? (
-        <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.learnedStyle}</div>
+        <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.learnedStyle}</div>
           <div className="mt-2 grid gap-2 md:grid-cols-2">
             {(project.styleReferenceInsight.summaryLines ?? []).slice(0, showExpandedDetails ? undefined : 4).map((line) => (
-              <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
+              <div key={line} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                 {line}
               </div>
             ))}
@@ -405,8 +405,8 @@ export function ProjectContext({
         </div>
       ) : null}
       {effectiveStyleReferenceSample ? (
-        <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
+        <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
           <div className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{effectiveStyleReferenceSample}</div>
         </div>
       ) : null}
@@ -415,25 +415,25 @@ export function ProjectContext({
 
   if (density === "compact") {
     return (
-      <div className="theme-panel overflow-hidden rounded-[24px] px-5 py-4 lg:px-6">
+      <div className="theme-panel px-5 py-4 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-3)]">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-3)]">
               <span>{ui.currentProject}</span>
-              {modeLabel ? <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] text-[var(--text-2)] normal-case tracking-normal">{modeLabel}</span> : null}
+              {modeLabel ? <span className="rounded-[14px] bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] text-[var(--text-2)] normal-case tracking-normal">{modeLabel}</span> : null}
               {project ? <span className="max-w-full truncate text-[10px] tracking-[0.12em] text-[var(--text-3)] sm:max-w-[220px]">{project.id}</span> : null}
             </div>
             {project ? (
               <>
                 <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-2">
-                  <h3 className="theme-font-display break-words text-[1.6rem] font-semibold tracking-tight text-[var(--text-1)] sm:text-[1.8rem]">{effectiveTitle}</h3>
+                  <h3 className="break-words text-[1.25rem] font-semibold leading-7 text-[var(--text-1)] sm:text-[1.4rem]">{effectiveTitle}</h3>
                 </div>
                 {effectiveTopic ? <div className="mt-1 break-words text-sm text-[var(--text-2)]">{effectiveTopic}</div> : null}
                 {summaryLine ? <div className="mt-2 max-w-5xl text-sm leading-7 text-[var(--text-2)] line-clamp-2">{summaryLine}</div> : null}
                 {compactMeta.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {compactMeta.map((item) => (
-                      <span key={item} className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
+                      <span key={item} className="rounded-[14px] border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
                         {item}
                       </span>
                     ))}
@@ -441,14 +441,14 @@ export function ProjectContext({
                 ) : null}
               </>
             ) : (
-              <div className="mt-3 rounded-[22px] border border-[var(--border-soft)] bg-[linear-gradient(135deg,rgba(183,186,162,0.10),rgba(255,255,255,0.42))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.58)]">
+              <div className="mt-3 border-y border-[var(--border-soft)] bg-transparent py-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)]">
+                    <div className="inline-flex items-center gap-2 rounded-[14px] bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
                       <Sparkles className="size-3.5" />
                       {ui.readyEyebrow}
                     </div>
-                    <h3 className="theme-font-display mt-4 text-[1.8rem] font-semibold tracking-tight text-[var(--text-1)] sm:text-[2rem]">{ui.noProjectTitle}</h3>
+                    <h3 className="mt-4 text-[1.35rem] font-semibold leading-8 text-[var(--text-1)] sm:text-[1.5rem]">{ui.noProjectTitle}</h3>
                     <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--text-2)]">
                       {ui.noProjectDescription}
                     </p>
@@ -456,7 +456,7 @@ export function ProjectContext({
                   <div className="grid gap-2 sm:min-w-[220px]">
                     <Link
                       href="/"
-                      className="inline-flex w-full items-center justify-between rounded-[20px] bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] shadow-[0_18px_38px_rgba(196,111,66,0.22)] transition hover:-translate-y-0.5"
+                      className="inline-flex w-full items-center justify-between rounded-[14px] bg-[var(--accent-strong)] px-4 py-3 text-sm font-medium text-[var(--text-inverse)] transition hover:bg-[var(--accent)]"
                     >
                       <span className="inline-flex items-center gap-2">
                         <Plus className="size-4" />
@@ -466,7 +466,7 @@ export function ProjectContext({
                     </Link>
                     <Link
                       href="/project-hub"
-                      className="inline-flex w-full items-center justify-between rounded-[20px] border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_92%,transparent)] px-4 py-3 text-sm font-medium text-[var(--text-1)] transition hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border))]"
+                      className="inline-flex w-full items-center justify-between rounded-[14px] border border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface-solid)_92%,transparent)] px-4 py-3 text-sm font-medium text-[var(--text-1)] transition  hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border))]"
                     >
                       <span className="inline-flex items-center gap-2">
                         <FolderKanban className="size-4 text-[var(--accent-strong)]" />
@@ -478,13 +478,13 @@ export function ProjectContext({
                 </div>
                 {recentProjects.length > 0 ? (
                   <div className="mt-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{text.recentProjects}</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{text.recentProjects}</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {recentProjects.slice(0, 3).map((item) => (
                         <Link
                           key={item.id}
                           href={`/brief-studio?projectId=${item.id}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border-soft))] hover:text-[var(--text-1)]"
+                          className="inline-flex items-center gap-2 rounded-[14px] border border-[var(--border-soft)] bg-[var(--surface-solid)] px-3 py-2 text-sm text-[var(--text-2)] transition hover:border-[color:color-mix(in_srgb,var(--accent)_30%,var(--border-soft))] hover:text-[var(--text-1)]"
                         >
                           <span className="font-medium">{normalizeProjectTopic(item.title || item.topic_query)}</span>
                           <ArrowRight className="size-3.5 text-[var(--text-3)]" />
@@ -505,7 +505,7 @@ export function ProjectContext({
                 <Disclosure
                   title={<span className="text-sm font-medium text-[var(--text-2)]">{ui.showBackground}</span>}
                   defaultOpen={false}
-                  className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-solid)] px-4 py-2"
+                  className="rounded-[14px] border border-[var(--border-soft)] bg-[var(--surface-solid)] px-4 py-2"
                 >
                   <div className="mt-4 border-t border-[var(--border-soft)] pt-4">{detailContent}</div>
                 </Disclosure>
@@ -516,8 +516,8 @@ export function ProjectContext({
           </div>
         </div>
         {project && isEditing ? (
-          <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3">
+          <div className="mt-4 border-y border-[var(--border)] bg-[var(--surface-solid)] py-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-y border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3">
               <div className="text-sm leading-6 text-[var(--text-2)]">{ui.smartFillHint}</div>
               <Button type="button" variant="secondary" onClick={applySmartProjectBrief} disabled={saving}>
                 {ui.smartFill}
@@ -525,29 +525,29 @@ export function ProjectContext({
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectName}</div>
-                <input value={title} onChange={(event) => setTitle(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectName}</div>
+                <input value={title} onChange={(event) => setTitle(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectTopic}</div>
-                <input value={topicQuery} onChange={(event) => setTopicQuery(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectTopic}</div>
+                <input value={topicQuery} onChange={(event) => setTopicQuery(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
-                <textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectIntro}</div>
+                <textarea value={introduction} onChange={(event) => setIntroduction(event.target.value)} rows={3} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
-                <textarea value={coreIdea} onChange={(event) => setCoreIdea(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.coreIdea}</div>
+                <textarea value={coreIdea} onChange={(event) => setCoreIdea(event.target.value)} rows={3} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
-                <textarea value={styleReferenceSample} onChange={(event) => setStyleReferenceSample(event.target.value)} rows={6} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
+                <textarea value={styleReferenceSample} onChange={(event) => setStyleReferenceSample(event.target.value)} rows={6} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                 <div className="text-xs leading-6 text-[var(--text-3)]">{ui.sampleHint}</div>
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.brandProfile}</div>
-                <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.brandProfile}</div>
+                <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   <option value="">{ui.clearBinding}</option>
                   {availableBrandProfiles.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -557,8 +557,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.industryTemplate}</div>
-                <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.industryTemplate}</div>
+                <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   <option value="">{ui.clearBinding}</option>
                   {availableIndustryTemplates.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -568,8 +568,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.writingMode}</div>
-                <select value={writingMode} onChange={(event) => setWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.writingMode}</div>
+                <select value={writingMode} onChange={(event) => setWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   {writingModeList.map((item) => (
                     <option key={item} value={item}>
                       {getWritingModeMeta(item, locale).label}
@@ -578,8 +578,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.outputStyle}</div>
-                <select value={styleTemplate} onChange={(event) => setStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.outputStyle}</div>
+                <select value={styleTemplate} onChange={(event) => setStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   {styleTemplateList.map((item) => (
                     <option key={item} value={item}>
                       {getStyleTemplateMeta(item, locale).label}
@@ -588,8 +588,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.copyLength}</div>
-                <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.copyLength}</div>
+                <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   {copyLengthList.map((item) => (
                     <option key={item} value={item}>
                       {getCopyLengthMeta(item, locale).label}
@@ -598,8 +598,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.usageScenario}</div>
-                <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.usageScenario}</div>
+                <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                   {usageScenarioList.map((item) => (
                     <option key={item} value={item}>
                       {getUsageScenarioMeta(item, locale).label}
@@ -608,8 +608,8 @@ export function ProjectContext({
                 </select>
               </label>
               <label className="space-y-2 xl:col-span-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.originalScript}</div>
-                <textarea value={originalScript} onChange={(event) => setOriginalScript(event.target.value)} rows={6} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" />
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.originalScript}</div>
+                <textarea value={originalScript} onChange={(event) => setOriginalScript(event.target.value)} rows={6} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
               </label>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
@@ -677,10 +677,10 @@ export function ProjectContext({
   }
 
   return (
-    <div className="theme-panel rounded-[28px] p-5">
+    <div className="theme-panel px-5 py-5 sm:px-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-3)]">{text.projectContext}</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{text.projectContext}</div>
         {project ? (
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
               <div>
@@ -690,13 +690,13 @@ export function ProjectContext({
                 <div className="mt-2 max-w-3xl break-words text-sm leading-7 text-[var(--text-2)]">{project.topic_query}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">{project.id}</div>
-                  {modeLabel ? <span className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">{modeLabel}</span> : null}
+                  {modeLabel ? <span className="rounded-[14px] border border-[var(--border)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">{modeLabel}</span> : null}
                 </div>
                 {summaryLine ? <div className="mt-3 max-w-5xl text-sm leading-7 text-[var(--text-2)]">{summaryLine}</div> : null}
                 {compactMeta.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {compactMeta.map((item) => (
-                      <span key={item} className="rounded-full border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
+                      <span key={item} className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] px-3 py-1.5 text-xs text-[var(--text-2)]">
                         {item}
                       </span>
                     ))}
@@ -710,42 +710,42 @@ export function ProjectContext({
                   {error ? <div className="text-sm text-[var(--danger-text)]">{error}</div> : null}
                 </div>
                 {isEditing ? (
-                  <div className="mt-4 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-4">
+                  <div className="mt-4 border-y border-[var(--border)] bg-[var(--surface-solid)] py-4">
                     <div className="grid gap-4 xl:grid-cols-2">
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectName}</div>
-                        <input value={title} onChange={(event) => setTitle(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm" />
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectName}</div>
+                        <input value={title} onChange={(event) => setTitle(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectTopic}</div>
-                        <input value={topicQuery} onChange={(event) => setTopicQuery(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm" />
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectTopic}</div>
+                        <input value={topicQuery} onChange={(event) => setTopicQuery(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm" />
                       </label>
                       <label className="space-y-2 xl:col-span-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectIntro}</div>
                         <textarea
                           value={introduction}
                           onChange={(event) => setIntroduction(event.target.value)}
                           rows={3}
-                          className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7"
+                          className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7"
                         />
                       </label>
                       <label className="space-y-2 xl:col-span-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
-                        <textarea value={coreIdea} onChange={(event) => setCoreIdea(event.target.value)} rows={3} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7" />
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.coreIdea}</div>
+                        <textarea value={coreIdea} onChange={(event) => setCoreIdea(event.target.value)} rows={3} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7" />
                       </label>
                       <label className="space-y-2 xl:col-span-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
                         <textarea
                           value={styleReferenceSample}
                           onChange={(event) => setStyleReferenceSample(event.target.value)}
                           rows={6}
-                          className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7"
+                          className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7"
                         />
                         <div className="text-xs leading-6 text-[var(--text-3)]">{ui.sampleHint}</div>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.brandProfile}</div>
-                        <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.brandProfile}</div>
+                        <select value={brandProfileId} onChange={(event) => setBrandProfileId(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           <option value="">{ui.clearBinding}</option>
                           {availableBrandProfiles.map((item) => (
                             <option key={item.id} value={item.id}>
@@ -755,8 +755,8 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.industryTemplate}</div>
-                        <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.industryTemplate}</div>
+                        <select value={industryTemplateId} onChange={(event) => setIndustryTemplateId(event.target.value)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           <option value="">{ui.clearBinding}</option>
                           {availableIndustryTemplates.map((item) => (
                             <option key={item.id} value={item.id}>
@@ -766,8 +766,8 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.writingMode}</div>
-                        <select value={writingMode} onChange={(event) => setWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.writingMode}</div>
+                        <select value={writingMode} onChange={(event) => setWritingMode(event.target.value as WritingMode)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           {writingModeList.map((item) => (
                             <option key={item} value={item}>
                               {getWritingModeMeta(item, locale).label}
@@ -776,8 +776,8 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.outputStyle}</div>
-                        <select value={styleTemplate} onChange={(event) => setStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.outputStyle}</div>
+                        <select value={styleTemplate} onChange={(event) => setStyleTemplate(event.target.value as StyleTemplate)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           {styleTemplateList.map((item) => (
                             <option key={item} value={item}>
                               {getStyleTemplateMeta(item, locale).label}
@@ -786,8 +786,8 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.copyLength}</div>
-                        <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.copyLength}</div>
+                        <select value={copyLength} onChange={(event) => setCopyLength(event.target.value as CopyLength)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           {copyLengthList.map((item) => (
                             <option key={item} value={item}>
                               {getCopyLengthMeta(item, locale).label}
@@ -796,8 +796,8 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.usageScenario}</div>
-                        <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-[18px] px-4 py-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.usageScenario}</div>
+                        <select value={usageScenario} onChange={(event) => setUsageScenario(event.target.value as UsageScenario)} className="theme-input w-full rounded-[14px] px-4 py-3 text-sm">
                           {usageScenarioList.map((item) => (
                             <option key={item} value={item}>
                               {getUsageScenarioMeta(item, locale).label}
@@ -806,12 +806,12 @@ export function ProjectContext({
                         </select>
                       </label>
                       <label className="space-y-2 xl:col-span-2">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.originalScript}</div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.originalScript}</div>
                         <textarea
                           value={originalScript}
                           onChange={(event) => setOriginalScript(event.target.value)}
                           rows={6}
-                          className="theme-input w-full rounded-[18px] px-4 py-3 text-sm leading-7"
+                          className="theme-input w-full rounded-[14px] px-4 py-3 text-sm leading-7"
                         />
                       </label>
                     </div>
@@ -847,53 +847,53 @@ export function ProjectContext({
                 {showExpandedDetails && (project.introduction || project.coreIdea || project.originalScript || project.styleReferenceSample) ? (
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
                     {project.introduction ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectIntro}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.introduction}</div>
                       </div>
                     ) : null}
                     {project.coreIdea ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.coreIdea}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.coreIdea}</div>
                       </div>
                     ) : null}
                     {project.writingModeLabel ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.writingMode}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.writingMode}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.writingModeLabel}</div>
                       </div>
                     ) : null}
                     {project.styleTemplateLabel ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.outputStyle}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.outputStyle}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.styleTemplateLabel}</div>
                       </div>
                     ) : null}
                     {project.copyLengthLabel ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.copyLength}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.copyLength}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.copyLengthLabel}</div>
                       </div>
                     ) : null}
                     {project.usageScenarioLabel ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.usageScenario}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.usageScenario}</div>
                         <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.usageScenarioLabel}</div>
                       </div>
                     ) : null}
                     {project.originalScript ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.originalScript}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.originalScript}</div>
                         <div className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.originalScript}</div>
                       </div>
                     ) : null}
                     {project.styleReferenceInsight ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.learnedStyle}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.learnedStyle}</div>
                         <div className="mt-2 grid gap-2 md:grid-cols-2">
                           {(project.styleReferenceInsight.summaryLines ?? []).map((line) => (
-                            <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
+                            <div key={line} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                               {line}
                             </div>
                           ))}
@@ -901,8 +901,8 @@ export function ProjectContext({
                       </div>
                     ) : null}
                     {project.styleReferenceSample ? (
-                      <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
+                      <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-3">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
                         <div className="mt-2 line-clamp-5 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.styleReferenceSample}</div>
                       </div>
                     ) : null}
@@ -913,34 +913,34 @@ export function ProjectContext({
                     <Disclosure
                       summary={ui.showBackground}
                       defaultOpen={false}
-                      className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-solid)] p-4"
+                      className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-solid)] p-4"
                       summaryClassName="text-sm font-medium text-[var(--text-1)]"
                     >
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {project.introduction ? (
-                          <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.projectIntro}</div>
+                          <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.projectIntro}</div>
                             <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.introduction}</div>
                           </div>
                         ) : null}
                         {project.coreIdea ? (
-                          <div className="rounded-2xl bg-[var(--surface-muted)] p-3">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.coreIdea}</div>
+                          <div className="rounded-[14px] bg-[var(--surface-muted)] p-3">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.coreIdea}</div>
                             <div className="mt-2 text-sm leading-7 text-[var(--text-2)]">{project.coreIdea}</div>
                           </div>
                         ) : null}
                         {project.originalScript ? (
-                          <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.originalScript}</div>
+                          <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.originalScript}</div>
                             <div className="mt-2 line-clamp-5 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.originalScript}</div>
                           </div>
                         ) : null}
                         {project.styleReferenceInsight ? (
-                          <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.learnedStyle}</div>
+                          <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.learnedStyle}</div>
                             <div className="mt-2 grid gap-2 md:grid-cols-2">
                               {(project.styleReferenceInsight.summaryLines ?? []).slice(0, 4).map((line) => (
-                                <div key={line} className="rounded-xl bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
+                                <div key={line} className="rounded-[14px] bg-[var(--surface-solid)] px-3 py-2 text-sm leading-7 text-[var(--text-2)]">
                                   {line}
                                 </div>
                               ))}
@@ -948,8 +948,8 @@ export function ProjectContext({
                           </div>
                         ) : null}
                         {project.styleReferenceSample ? (
-                          <div className="rounded-2xl bg-[var(--surface-muted)] p-3 md:col-span-2">
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{ui.styleReference}</div>
+                          <div className="rounded-[14px] bg-[var(--surface-muted)] p-3 md:col-span-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{ui.styleReference}</div>
                             <div className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--text-2)] whitespace-pre-wrap">{project.styleReferenceSample}</div>
                           </div>
                         ) : null}
@@ -958,7 +958,7 @@ export function ProjectContext({
                   </div>
                 ) : null}
               </div>
-              <div className="inline-flex items-center rounded-full border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)]">
+              <div className="inline-flex items-center rounded-[14px] border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-strong)]">
                 {text.activeProject}
               </div>
             </div>
@@ -967,16 +967,16 @@ export function ProjectContext({
         )}
       </div>
         <div className="min-w-0 xl:w-[360px]">
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-3)]">{text.recentProjects}</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{text.recentProjects}</div>
           <div className="mt-3 flex flex-wrap gap-2">
             {recentProjects.map((item) => (
               <Link
                 key={item.id}
                 href={`/?projectId=${item.id}`}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs transition",
+                  "rounded-[14px] border px-3 py-1.5 text-xs transition",
                   project?.id === item.id
-                    ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-inverse)]"
+                    ? "border-[var(--surface-strong)] bg-[var(--surface-strong)] text-[var(--text-1)]"
                     : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]",
                 )}
               >

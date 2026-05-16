@@ -79,8 +79,8 @@ function PlannerStat({
   caption: string;
 }) {
   return (
-    <div className="theme-panel-muted rounded-[22px] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">{label}</div>
+    <div className="theme-panel-muted rounded-md p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]">{label}</div>
       <div className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-1)]">{value}</div>
       <div className="mt-1 text-sm text-[var(--text-2)]">{caption}</div>
     </div>
@@ -345,33 +345,33 @@ export function ScenePlannerWorkbench({
                     setSelectedId(row.id);
                     syncEditFields(row);
                   }}
-                  className={`grid w-full gap-5 rounded-[26px] border p-5 text-left transition md:grid-cols-[88px_1fr_210px] ${
+                  className={`grid w-full gap-5 rounded-md border p-5 text-left transition md:grid-cols-[88px_1fr_210px] ${
                     selected
-                      ? "theme-panel-strong border-transparent"
+                      ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                       : "border-[var(--border)] bg-[var(--surface-solid)] hover:bg-[var(--surface-muted)]"
                   }`}
                 >
                   <div>
                     <div className="text-3xl font-semibold tracking-tight">#{row.frameOrder}</div>
-                    <div className={`mt-2 text-xs uppercase tracking-[0.14em] ${selected ? "text-white/66" : "text-[var(--text-3)]"}`}>
+                    <div className={`mt-2 text-xs uppercase tracking-[0.12em] ${selected ? "text-[var(--text-3)]" : "text-[var(--text-3)]"}`}>
                       {row.frameStatus}
                     </div>
-                    <div className={`mt-2 text-xs ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
+                    <div className={`mt-2 text-xs ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{row.continuityGroup}</div>
                   </div>
 
                   <div>
-                    <div className={`text-xl font-semibold leading-8 ${selected ? "text-[var(--text-inverse)]" : "text-[var(--text-1)]"}`}>{row.frameTitle}</div>
-                    <div className={`mt-2 text-sm leading-6 ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>{row.shotGoal}</div>
-                    <div className={`mt-3 line-clamp-3 text-base leading-7 ${selected ? "text-white/90" : "text-[var(--text-1)]"}`}>{row.rewritten}</div>
+                    <div className={`text-xl font-semibold leading-8 ${selected ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>{row.frameTitle}</div>
+                    <div className={`mt-2 text-sm leading-6 ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>{row.shotGoal}</div>
+                    <div className={`mt-3 line-clamp-3 text-base leading-7 ${selected ? "text-[var(--text-1)]" : "text-[var(--text-1)]"}`}>{row.rewritten}</div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Tag>{row.productionClass}</Tag>
                       <Tag>{row.durationSec}s</Tag>
                       <Tag tone={row.referenceCount > 0 ? "success" : "warning"}>{row.referenceCount} refs</Tag>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
+                      <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getReviewTone(review.readiness)}`}>
                         {review.readiness === "READY" ? `可开工 ${review.score}` : `待补强 ${review.score}`}
                       </span>
                       {feedbackSummary ? (
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${feedbackSummary.rewriteCount > 0 ? "theme-chip-danger" : "theme-chip-warn"}`}>
+                        <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${feedbackSummary.rewriteCount > 0 ? "theme-chip-danger" : "theme-chip-warn"}`}>
                           {feedbackSummary.rewriteCount > 0 ? `最近退回 ${feedbackSummary.rewriteCount}` : `已有反馈 ${feedbackSummary.totalFeedbacks}`}
                         </span>
                       ) : null}
@@ -387,7 +387,7 @@ export function ScenePlannerWorkbench({
                       <Tag tone={row.assetReady ? "success" : "danger"}>{row.assetReady ? "已齐备" : "待补素材"}</Tag>
                       <Tag tone={row.frameStatus === "READY" || row.frameStatus === "LOCKED" ? "success" : "warning"}>{row.frameStatus}</Tag>
                     </div>
-                    <div className={`text-xs ${selected ? "text-white/72" : "text-[var(--text-2)]"}`}>
+                    <div className={`text-xs ${selected ? "text-[var(--text-2)]" : "text-[var(--text-2)]"}`}>
                       {row.uploadedAssets.length} uploaded / {row.requiredAssets.length} required
                     </div>
                   </div>
@@ -399,9 +399,9 @@ export function ScenePlannerWorkbench({
 
         <DetailPanel title={`配图条目 ${selectedScene.frameOrder} 执行面板`}>
           <div>
-            <div className="text-sm font-medium text-[var(--text-inverse)]">当前配图条目</div>
-            <div className="mt-3 space-y-3 rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-              <div className="text-xl font-semibold text-[var(--text-inverse)]">{selectedScene.frameTitle}</div>
+            <div className="text-sm font-medium text-[var(--text-1)]">当前配图条目</div>
+            <div className="mt-3 space-y-3 rounded-md border border-[var(--border)] bg-transparent p-4">
+              <div className="text-xl font-semibold text-[var(--text-1)]">{selectedScene.frameTitle}</div>
               <div className="flex flex-wrap gap-2">
                 <Tag>{selectedScene.productionClass}</Tag>
                 <Tag>{selectedScene.frameStatus}</Tag>
@@ -412,32 +412,32 @@ export function ScenePlannerWorkbench({
           </div>
 
           {selectedReview ? (
-            <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+            <div className="space-y-3 rounded-md border border-[var(--border)] bg-transparent p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-medium text-[var(--text-inverse)]">图片 brief 复核</div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
+                <div className="text-sm font-medium text-[var(--text-1)]">图片 brief 复核</div>
+                <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${getReviewTone(selectedReview.readiness)}`}>
                   {selectedReview.readiness === "READY" ? "可开工" : "待补强"}
                 </span>
               </div>
               <ScoreBar label="readiness" value={selectedReview.score} />
-              <div className="text-sm leading-6 text-white/82">{selectedReview.summary}</div>
+              <div className="text-sm leading-6 text-[var(--text-1)]">{selectedReview.summary}</div>
               {selectedReview.issues.length ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">主要问题</div>
+                    <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">主要问题</div>
                     <div className="mt-2 space-y-2">
                       {selectedReview.issues.slice(0, 3).map((item) => (
-                        <div key={item} className="rounded-2xl border border-[rgba(255,196,128,0.18)] bg-[rgba(255,196,128,0.08)] px-3 py-2 text-sm leading-6 text-[color:rgba(255,236,214,0.92)]">
+                        <div key={item} className="rounded-md border border-[rgba(255,196,128,0.18)] bg-[rgba(255,196,128,0.08)] px-3 py-2 text-sm leading-6 text-[color:rgba(255,236,214,0.92)]">
                           {item}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">下一步</div>
+                    <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">下一步</div>
                     <div className="mt-2 space-y-2">
                       {selectedReview.nextSteps.slice(0, 3).map((item) => (
-                        <div key={item} className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm leading-6 text-white/84">
+                        <div key={item} className="rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm leading-6 text-[var(--text-1)]">
                           {item}
                         </div>
                       ))}
@@ -449,10 +449,10 @@ export function ScenePlannerWorkbench({
           ) : null}
 
           {selectedFeedbackSummary ? (
-            <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
+            <div className="space-y-3 rounded-md border border-[var(--border)] bg-transparent p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-medium text-[var(--text-inverse)]">最近出图反馈</div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                <div className="text-sm font-medium text-[var(--text-1)]">最近出图反馈</div>
+                <span className={`rounded-sm px-2.5 py-1 text-xs font-medium ${
                   selectedFeedbackSummary.latestVerdict === "KEEP"
                     ? "theme-chip-ok"
                     : selectedFeedbackSummary.latestVerdict === "REWRITE_BRIEF"
@@ -467,7 +467,7 @@ export function ScenePlannerWorkbench({
                       : "最近一版建议重试"}
                 </span>
               </div>
-              <div className="text-sm leading-6 text-white/82">{selectedFeedbackSummary.summary}</div>
+              <div className="text-sm leading-6 text-[var(--text-1)]">{selectedFeedbackSummary.summary}</div>
               <div className="flex flex-wrap gap-2">
                 <Tag>{selectedFeedbackSummary.totalFeedbacks} 条反馈</Tag>
                 {selectedFeedbackSummary.retryCount > 0 ? <Tag tone="warning">重试 {selectedFeedbackSummary.retryCount}</Tag> : null}
@@ -476,7 +476,7 @@ export function ScenePlannerWorkbench({
               </div>
               {selectedFeedbackSummary.topIssues.length ? (
                 <div>
-                  <div className="text-xs uppercase tracking-[0.16em] text-white/58">高频问题</div>
+                  <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">高频问题</div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {selectedFeedbackSummary.topIssues.map((issue) => (
                       <Tag key={issue} tone="warning">{getFeedbackIssueLabel(issue, "zh")}</Tag>
@@ -485,7 +485,7 @@ export function ScenePlannerWorkbench({
                 </div>
               ) : null}
               {selectedFeedbackSummary.latestNote ? (
-                <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-3 text-sm leading-6 text-white/84">
+                <div className="rounded-md border border-[var(--border)] bg-transparent px-3 py-3 text-sm leading-6 text-[var(--text-1)]">
                   {selectedFeedbackSummary.latestNote}
                 </div>
               ) : null}
@@ -494,48 +494,48 @@ export function ScenePlannerWorkbench({
 
           {/* ── Scene text editing (merged from Script Lab) ── */}
           <div className="space-y-3">
-            <div className="text-sm font-medium text-[var(--text-inverse)]">配图说明编辑</div>
+            <div className="text-sm font-medium text-[var(--text-1)]">配图说明编辑</div>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">画面目标</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">画面目标</span>
               <input
                 value={editShotGoal}
                 onChange={(e) => setEditShotGoal(e.target.value)}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                className="theme-input rounded-md px-4 py-3 text-sm"
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">配图说明</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">配图说明</span>
               <textarea
                 value={editRewritten}
                 onChange={(e) => setEditRewritten(e.target.value)}
                 rows={6}
-                className="theme-input rounded-[16px] px-4 py-3 text-sm leading-7"
+                className="theme-input rounded-md px-4 py-3 text-sm leading-7"
               />
             </label>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-white/58">视觉重点（逗号隔开）</span>
+                <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">视觉重点（逗号隔开）</span>
                 <input
                   value={editVisualPriority}
                   onChange={(e) => setEditVisualPriority(e.target.value)}
                   placeholder="如：火箭发射, 火焰尾迹"
-                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                  className="theme-input rounded-md px-4 py-3 text-sm"
                 />
               </label>
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-white/58">避免项（逗号隔开）</span>
+                <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">避免项（逗号隔开）</span>
                 <input
                   value={editAvoid}
                   onChange={(e) => setEditAvoid(e.target.value)}
                   placeholder="如：手部特写, 文字叠加"
-                  className="theme-input rounded-[16px] px-4 py-3 text-sm"
+                  className="theme-input rounded-md px-4 py-3 text-sm"
                 />
               </label>
             </div>
           </div>
 
           <div>
-            <div className="text-sm font-medium text-[var(--text-inverse)]">参考与素材</div>
+            <div className="text-sm font-medium text-[var(--text-1)]">参考与素材</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {selectedScene.references.length > 0 ? (
                 selectedScene.references.map((reference) => <Tag key={reference.id}>{reference.type}</Tag>)
@@ -568,19 +568,19 @@ export function ScenePlannerWorkbench({
             </Button>
           </div>
 
-          <div className="space-y-3 rounded-[24px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-            <div className="text-sm font-medium text-[var(--text-inverse)]">上传参考素材</div>
+          <div className="space-y-3 rounded-md border border-[var(--border)] bg-transparent p-4">
+            <div className="text-sm font-medium text-[var(--text-1)]">上传参考素材</div>
             {showLocalStorageNotice ? (
-              <div className="rounded-2xl border border-[rgba(255,196,128,0.28)] bg-[rgba(255,196,128,0.12)] px-4 py-3 text-xs leading-6 text-[color:rgba(255,236,214,0.92)]">
+              <div className="rounded-md border border-[rgba(255,196,128,0.28)] bg-[rgba(255,196,128,0.12)] px-4 py-3 text-xs leading-6 text-[color:rgba(255,236,214,0.92)]">
                 当前环境仍使用本地 `public/uploads` 作为素材存储。它适合当前自托管开发与轻量生产，但如果后续要扩大共享或做长期可靠存储，建议切到 S3、R2 或对象存储服务。
               </div>
             ) : null}
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">Asset Type</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Asset Type</span>
               <select
                 value={assetType}
                 onChange={(event) => setAssetType(event.target.value as (typeof assetTypeOptions)[number])}
-                className="theme-input rounded-[16px] px-3 py-3 text-sm"
+                className="theme-input rounded-md px-3 py-3 text-sm"
               >
                 {assetTypeOptions.map((option) => (
                   <option key={option} value={option}>
@@ -590,15 +590,15 @@ export function ScenePlannerWorkbench({
               </select>
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-white/58">File</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">File</span>
               <input
                 type="file"
                 onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
-                className="theme-input rounded-[16px] px-3 py-3 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-[var(--surface-solid)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--text-1)]"
+                className="theme-input rounded-md px-3 py-3 text-sm file:mr-3 file:rounded-sm file:border-0 file:bg-[var(--surface-solid)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--text-1)]"
               />
-              {selectedFile ? <div className="text-xs text-white/58">{selectedFile.name}</div> : null}
+              {selectedFile ? <div className="text-xs text-[var(--text-3)]">{selectedFile.name}</div> : null}
             </label>
-            <div className="text-xs text-white/58">
+            <div className="text-xs text-[var(--text-3)]">
               文件会先上传到当前配置的素材存储，再自动写入素材表并重跑当前条目的素材分析。
               {uploadStorageMode === "tencent_cos" ? " 当前已启用腾讯云对象存储，可用于后续跨实例共享与更稳定的素材沉淀。" : " 当前使用服务端上传和本地存储，建议先控制在 4.5MB 以内，后续再升级对象存储方案。"}
             </div>
@@ -608,21 +608,21 @@ export function ScenePlannerWorkbench({
           </div>
 
           <div>
-            <div className="text-sm font-medium text-[var(--text-inverse)]">已登记素材</div>
+            <div className="text-sm font-medium text-[var(--text-1)]">已登记素材</div>
             <div className="mt-3 space-y-2">
               {selectedScene.uploadedAssets.length ? (
                 selectedScene.uploadedAssets.map((asset) => (
-                  <div key={asset.id} className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
-                    <div className="text-sm text-[var(--text-inverse)]">
+                  <div key={asset.id} className="rounded-md border border-[var(--border)] bg-transparent px-3 py-2">
+                    <div className="text-sm text-[var(--text-1)]">
                       {asset.fileUrl ? (
-                        <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="underline decoration-[rgba(255,255,255,0.18)] underline-offset-4">
+                        <a href={asset.fileUrl} target="_blank" rel="noreferrer" className="underline decoration-[var(--border)] underline-offset-4">
                           {asset.fileName}
                         </a>
                       ) : (
                         asset.fileName
                       )}
                     </div>
-                    <div className="text-xs text-white/58">
+                    <div className="text-xs text-[var(--text-3)]">
                       {asset.type}
                       {asset.continuityGroup ? ` · ${asset.continuityGroup}` : ""}
                     </div>
@@ -637,47 +637,47 @@ export function ScenePlannerWorkbench({
           {showAdvanced ? (
             <>
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">画面计划</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">画面计划</div>
                 <div className="mt-3 grid gap-3">
-                  <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">Composition</div>
-                    <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.compositionNotes ?? "暂无构图说明。"}</div>
+                  <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                    <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Composition</div>
+                    <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.compositionNotes ?? "暂无构图说明。"}</div>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Camera</div>
-                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.cameraPlan ?? "未指定 camera plan。"}</div>
+                    <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Camera</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.cameraPlan ?? "未指定 camera plan。"}</div>
                     </div>
-                    <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Motion</div>
-                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.motionPlan ?? "未指定 motion plan。"}</div>
+                    <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Motion</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.motionPlan ?? "未指定 motion plan。"}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">Prompt 与文案</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">Prompt 与文案</div>
                 <div className="mt-3 grid gap-3">
-                  <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/58">Visual Prompt</div>
-                    <div className="mt-2 text-sm leading-7 text-white/90">{selectedScene.visualPrompt ?? selectedScene.rewritten}</div>
+                  <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                    <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Visual Prompt</div>
+                    <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.visualPrompt ?? selectedScene.rewritten}</div>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">Narration</div>
-                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.narrationText ?? "无旁白补充。"}</div>
+                    <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">Narration</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.narrationText ?? "无旁白补充。"}</div>
                     </div>
-                    <div className="rounded-[20px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-white/58">On-screen Text</div>
-                      <div className="mt-2 text-sm leading-7 text-white/88">{selectedScene.onScreenText ?? "无字幕/贴片要求。"}</div>
+                    <div className="rounded-md border border-[var(--border)] bg-transparent p-4">
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--text-3)]">On-screen Text</div>
+                      <div className="mt-2 text-sm leading-7 text-[var(--text-1)]">{selectedScene.onScreenText ?? "无字幕/贴片要求。"}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <div className="text-sm font-medium text-[var(--text-inverse)]">风险提示</div>
+                <div className="text-sm font-medium text-[var(--text-1)]">风险提示</div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedScene.riskFlags.length ? selectedScene.riskFlags.map((flag) => <Tag key={flag} tone="danger">{flag}</Tag>) : <Tag tone="success">暂无明显风险</Tag>}
                 </div>
@@ -685,7 +685,7 @@ export function ScenePlannerWorkbench({
             </>
           ) : null}
 
-          {message ? <div className="theme-chip-ok rounded-2xl px-3 py-2 text-sm">{message}</div> : null}
+          {message ? <div className="theme-chip-ok rounded-md px-3 py-2 text-sm">{message}</div> : null}
           {error ? (
             <ErrorNotice
               error={error}

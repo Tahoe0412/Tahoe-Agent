@@ -11,9 +11,9 @@ export function DetailPanel({
   className?: string;
 }) {
   return (
-    <aside className={cn("theme-panel-strong p-6", className)}>
-      <div className="text-sm font-medium uppercase tracking-[0.12em] text-white/88">{title}</div>
-      <div className="mt-5 space-y-5 text-sm leading-6 text-white/72">{children}</div>
+    <aside className={cn("theme-panel px-5 py-5 sm:px-6", className)}>
+      <div className="theme-kicker text-[10px] font-semibold text-[var(--text-3)]">{title}</div>
+      <div className="mt-4 space-y-4 text-sm leading-6 text-[var(--text-2)]">{children}</div>
     </aside>
   );
 }
