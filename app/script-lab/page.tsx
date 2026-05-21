@@ -153,6 +153,7 @@ export default async function ScriptLabPage({
             latestDraftPreview={workspace.latestScriptPreview}
             isOwnedMediaPackage={isOwnedMediaPackage}
             fastPackageStatus={workspace.fastPackage?.packagingStatus}
+            editorialDirection={workspace.fastPackage?.editorialDirection}
             locale={locale}
           />
         )}

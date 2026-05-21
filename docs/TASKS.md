@@ -166,6 +166,70 @@
 
 ## Done
 
+### T-022 发布管线与导出 ✅
+- **Completed**: 2026-05-21
+- **Goal**: 让文章从生成到发布变成一键操作
+- **Files**:
+  - `services/publish-export.service.ts` — 新建，导出 Toutiao 格式（标题+正文+摘要+配图说明+标签）和 Markdown 格式
+  - `app/api/projects/[id]/export/route.ts` — 新建，GET ?format=toutiao|markdown
+- **Verification**: lint 0 errors, build 通过, 84 个测试全部通过
+
+### T-021 写作记忆与样本库 ✅
+- **Completed**: 2026-05-21
+- **Goal**: 让优秀文章沉淀为可复用写作知识，AI 越用越好
+- **Schema**: 新增 `ArticleSample` 模型（account_direction, title, content, style_insight, quality_score, tags, is_external）
+- **Files**:
+  - `prisma/schema.prisma` — 新增 `ArticleSample` 模型
+  - `services/article-sample.service.ts` — 新建，样本管理 + 风格洞察 + prompt 注入式风格参考
+  - `app/api/article-samples/route.ts` — 新建，GET（列表/摘要）+ POST（新增样本）
+  - `app/api/article-samples/[id]/route.ts` — 新建，GET + DELETE
+- **外部文章导入可行性调研**:
+  - 头条号：无个人开发者 API，通过 URL 粘贴导入最可靠
+  - 微信公众号：自有号可用官方素材管理 API，非自有号通过 URL 抓取
+  - 方案：先支持 URL 粘贴导入（用户提供文章链接 → 前端提取正文 → POST 到样本 API）
+- **Verification**: lint 0 errors, build 通过
+
+### T-020 文章质量与账号人格差异化 ✅
+- **Completed**: 2026-05-21
+- **Goal**: 让三个账号的文章在语气、结构、深度上有显著差异
+- **Files**:
+  - `lib/editorial-direction-presets.ts` — 每个方向新增 writingPersona（角色设定）、qualityChecklist（方向专属质量项）、forbiddenPatterns（禁用表达）、targetWordCount（目标字数范围）、exampleTitles（标杆标题）
+  - `lib/quality-gate.ts` — 新建，规则型文章质量检查器（字数/禁用词/信息密度/标题质量/开头吸引力/段落结构）
+  - `app/api/articles/quality-check/route.ts` — 新建，POST 质量检查 API
+  - `tests/quality-gate.test.ts` — 17 个新测试
+- **Verification**: lint 0 errors, build 通过, 17 个质量检查测试全部通过
+
+### T-019 Daily Run 生产队列 ✅
+- **Completed**: 2026-05-21
+- **Goal**: 把 Daily Run 从 session-only 升级为持久化生产队列
+- **Schema**: 新增 `DailyRunItemStatus` 枚举（8 个状态）+ `DailyRunItem` 模型（支持多候选、最佳选择标记、质量评分、失败重试）
+- **Files**:
+  - `prisma/schema.prisma` — 新增 `DailyRunItemStatus` 枚举 + `DailyRunItem` 模型 + Project 关联
+  - `services/daily-run/daily-run-queue.service.ts` — 新建，9 个方法（createItem/getRunItems/getRunHistory/updateStatus/markBestPick/retryItem/markPublished/getItem/getDailyStats）
+  - `app/api/daily-run/queue/route.ts` — 新建，GET（按日期查询）+ POST（创建队列项）
+  - `app/api/daily-run/queue/[itemId]/route.ts` — 新建，GET（单条详情）+ PATCH（retry/mark_published/mark_best_pick/update_status）
+  - `app/api/daily-run/history/route.ts` — 新建，GET（运行历史，支持 ?days= 参数）
+  - `app/api/daily-run/stats/route.ts` — 新建，GET（每日统计，支持 ?date= 参数）
+  - `services/daily-run/owned-media-package.service.ts` — FastPackageRequest 新增 dailyRunItemId，生成成功/失败后自动回写队列状态
+  - `tests/daily-run-queue.service.test.ts` — 14 个新测试
+- **Verification**: lint 0 errors, build 通过, 84 个测试全部通过（含 14 个新测试）
+
+### T-018 云端模型与 Daily Run 稳定性校准 (Solution B) ✅
+- **Completed**: 2026-05-21
+- **Goal**: 确保云端 Daily Run 不再因旧模型配置（如 `gemini-2.5-pro`）而失败。
+- **Solution**: 方案 B — credential-aware per-route model fallback
+  - 新增 `resolveModelRoute()` 函数：per-route config → 检查 credential → 如果不可用自动 fallback 到有 credential 的 provider
+  - fallback 优先级：`OPENAI → QWEN → DEEPSEEK → GEMINI`
+  - 当发生 fallback 时打印 `console.warn` 日志，便于排查
+  - `owned-media-package.service.ts` 的前置检查也改为 credential-aware，不再仅检查原始配置的 provider
+- **Files**:
+  - `lib/model-routing.ts` — 新增 `resolveModelRoute()`、`findAvailableFallback()`、`CredentialSettings`、`ResolvedRoute` 类型
+  - `lib/openai-json.ts` — `generateStructuredJson()` 改用 `resolveModelRoute()` 替代手动 fallback
+  - `services/daily-run/owned-media-package.service.ts` — 前置检查改为 credential-aware
+  - `scripts/fix-cloud-model-settings.ts` — 一次性脚本，规范化云端 `app_settings` 记录
+  - `tests/model-routing.test.ts` — 14 个新测试覆盖所有 fallback 场景
+- **Verification**: lint 0 errors, build 通过, 53 个测试全部通过（含 14 个新测试）
+
 ### T-017 Daily Run 90-Minute Quick Package Mode ✅
 - **Completed**: 2026-04-26
 - **Result**: Daily Run now leads with a 90-minute / three-article operating surface for AI快讯、全球股市、消费时尚. Signal selection creates the draft, then runs a sequential quick-package pass for image brief, title pack, and publish copy before sending the user to Script Lab for one final edit. The sidebar now makes Daily Run the primary daily entry and moves Today / Trend Explorer / Brief Studio into the deeper management area. The current frontend pass also gives the Daily Run / Script Lab path an iOS 18-inspired grouped workspace treatment: system fonts, light gray canvas, translucent material panels, system-blue primary actions, pill controls, and clearer grouped editing surfaces.

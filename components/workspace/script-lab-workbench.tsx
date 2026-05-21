@@ -19,6 +19,8 @@ import { normalizeAudiencePanelReview } from "@/lib/copy-review-panel";
 import { getOutputKnowledgePack, reviewOutputArtifact } from "@/lib/output-artifact-guidance";
 import { apiRequest } from "@/lib/client-api";
 import { normalizeStringList, normalizeString, normalizeArtifactReview, copyToClipboard } from "@/lib/utils";
+import { ScriptLabExportDialog } from "@/components/workspace/script-lab-export-dialog";
+import { ScriptLabQualityCheck } from "@/components/workspace/script-lab-quality-check";
 
 export function ScriptLabWorkbench({
   projectId,
@@ -27,6 +29,7 @@ export function ScriptLabWorkbench({
   latestDraftPreview,
   isOwnedMediaPackage = false,
   fastPackageStatus = null,
+  editorialDirection = null,
   locale = "zh",
 }: {
   projectId: string;
@@ -35,10 +38,12 @@ export function ScriptLabWorkbench({
   latestDraftPreview?: ScriptDraftPreview | null;
   isOwnedMediaPackage?: boolean;
   fastPackageStatus?: string | null;
+  editorialDirection?: string | null;
   locale?: "zh" | "en";
 }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? "");
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [rewritten, setRewritten] = useState(rows[0]?.rewritten ?? "");
   const [shotGoal, setShotGoal] = useState(rows[0]?.shotGoal ?? "");
   const [visualPriority, setVisualPriority] = useState(rows[0]?.visualPriority.join(", ") ?? "");
@@ -481,6 +486,18 @@ export function ScriptLabWorkbench({
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center bg-[var(--surface-solid)] border border-[var(--border-soft)] rounded-[14px] p-4">
+        <div>
+          <h3 className="font-semibold text-sm text-[var(--text-1)]">发布准备工作区</h3>
+          <p className="text-xs text-[var(--text-3)]">运行质量网关校验，生成符合分发平台的排版文案包</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" onClick={() => setShowExportDialog(true)}>
+            导出发布包
+          </Button>
+        </div>
+      </div>
+
       <DailyRunPackagingNotice
         isOwnedMediaPackage={isOwnedMediaPackage}
         packagingIncomplete={!hasTitlePack || !hasPublishCopy || rows.length === 0 || fastPackageStatus === "RUNNING" || fastPackageStatus === "FAILED"}
@@ -656,6 +673,13 @@ export function ScriptLabWorkbench({
                     </div>
                   ) : null}
                 </div>
+              </div>
+              <div className="mt-6 border-t border-[var(--border-soft)] pt-6">
+                <ScriptLabQualityCheck
+                  title={publishPrimaryTitle}
+                  content={publishDescription}
+                  direction={editorialDirection || "AI快讯"}
+                />
               </div>
             </div>
           ) : (
@@ -892,6 +916,12 @@ export function ScriptLabWorkbench({
           </div>
         )}
       </div>
+      {showExportDialog && (
+        <ScriptLabExportDialog
+          projectId={projectId}
+          onClose={() => setShowExportDialog(false)}
+        />
+      )}
     </div>
   );
 }

@@ -500,3 +500,18 @@
   - avoid reintroducing large rounded cards, gradients, glows, hover-lift shadows, translucent white UI, circular score widgets, or hard-coded alert color palettes
   - keep future UI changes inside the current frontend stack and do not change backend contracts for style-only work
 - **Files**: `app/globals.css`, `components/ui/*`, `components/today/*`, `components/trend-discovery/*`, `components/workspace/*`, `app/*/page.tsx`
+
+## D-043 Model Routing Should Be Credential-Aware With Automatic Fallback
+- **Date**: 2026-05-21
+- **Reason**: Cloud environments frequently lack credentials for certain providers (e.g., Gemini API key unavailable in Chinese cloud regions). When the configured per-route provider lacked credentials, `generateStructuredJson()` would throw a cryptic missing-key error instead of trying an available alternative. This caused cloud Daily Run to fail silently whenever `SCRIPT_REWRITE` defaulted to Gemini or when the global `llm_provider` in `app_settings` was stale.
+- **Impact**:
+  - New `resolveModelRoute()` function in `lib/model-routing.ts` resolves provider + model for a given route key, then checks credentials before returning. If the configured provider lacks credentials, it automatically falls back to the best available provider in priority order: `OPENAI → QWEN → DEEPSEEK → GEMINI`.
+  - `generateStructuredJson()` in `lib/openai-json.ts` now uses `resolveModelRoute()` instead of manually reading `settings.llmRouting` + `settings.llmProvider`.
+  - When fallback occurs, a `console.warn` log is emitted with the original and fallback provider/model, making it easy to diagnose in server logs.
+  - `owned-media-package.service.ts` pre-flight check now considers fallback availability, so cloud Daily Run can proceed even when the configured `PROMOTIONAL_COPY` provider (QWEN) lacks credentials as long as OPENAI is available.
+- **Rule**:
+  - model routing must never throw a "missing API key" error if another provider with credentials is available
+  - fallback logging must be visible in server logs so that operators can fix the root cause (add the missing credentials) rather than silently degrading forever
+  - do not change the configured per-route defaults; fallback is a runtime safety net, not a replacement for proper credential setup
+  - local Qwen readiness check (`assertPromotionalCopyRouteReady`) should only run when the resolved route actually targets local Qwen, not when a fallback redirected to a cloud provider
+- **Files**: `lib/model-routing.ts`, `lib/openai-json.ts`, `services/daily-run/owned-media-package.service.ts`, `scripts/fix-cloud-model-settings.ts`, `tests/model-routing.test.ts`

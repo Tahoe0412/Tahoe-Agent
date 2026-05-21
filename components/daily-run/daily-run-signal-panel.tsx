@@ -95,7 +95,13 @@ function buildSourceItems(topic: TopicRankingItem, newsItems: NewsSearchItem[]):
   return [...fallbackFacts, ...trendSignals];
 }
 
-export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" }) {
+export function DailyRunSignalPanel({
+  locale = "zh",
+  onQueueUpdated,
+}: {
+  locale?: "zh" | "en";
+  onQueueUpdated?: () => void;
+}) {
   const router = useRouter();
   const presets = useMemo(() => getEditorialDirectionPresets(locale), [locale]);
   const [query, setQuery] = useState("");
@@ -168,6 +174,26 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
     try {
       const direction = directionFromPresetId(ownedMediaPreset);
       const worthiness = scoreTopicForLongForm(topic, news?.items ?? [], direction);
+
+      // Create queue item first
+      const queueItemResult = await apiRequest<{ id: string }>("/api/daily-run/queue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accountDirection: direction,
+          topic: topic.label,
+          topicSource: { source: "trend_discovery", key: topic.topicKey },
+          metadata: {
+            materials: sourceItems,
+            worthiness,
+          },
+        }),
+      });
+
+      onQueueUpdated?.();
+
       const result = await apiRequest<FastPackageResult>("/api/daily-run/fast-package", {
         method: "POST",
         headers: {
@@ -182,8 +208,11 @@ export function DailyRunSignalPanel({ locale = "zh" }: { locale?: "zh" | "en" })
           generateStoryboard: true,
           deferPackaging: true,
           worthiness,
+          dailyRunItemId: queueItemResult.id,
         }),
       });
+
+      onQueueUpdated?.();
 
       if (result.failed > 0 || result.packagingDeferred) {
         window.sessionStorage.setItem("daily-run-last-warning", result.readiness.message);

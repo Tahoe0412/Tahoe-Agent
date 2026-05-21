@@ -1,7 +1,7 @@
 import type { ZodSchema } from "zod";
-import type { LlmProvider } from "@prisma/client";
+
 import { AppSettingsService } from "@/services/app-settings.service";
-import type { ModelRouteKey } from "@/lib/model-routing";
+import { resolveModelRoute, type ModelRouteKey } from "@/lib/model-routing";
 
 interface StructuredJsonParams<T> {
   schemaName: string;
@@ -380,10 +380,18 @@ async function requestGemini<T>({
 
 export async function generateStructuredJson<T>(params: StructuredJsonParams<T>): Promise<T> {
   const settings = await appSettingsService.getEffectiveSettings();
-  const configuredRoute = params.routeKey ? settings.llmRouting[params.routeKey] : null;
-  const provider = (configuredRoute?.provider ?? settings.llmProvider) as LlmProvider;
-  const configuredModel = params.model || configuredRoute?.model || settings.llmModel;
-  const model = provider === "GEMINI" ? normalizeGeminiModel(configuredModel) : configuredModel;
+  const resolved = resolveModelRoute(params.routeKey, settings, params.model);
+
+  if (resolved.didFallback) {
+    console.warn(
+      `[model-routing] Route "${params.routeKey ?? "default"}" fallback: ` +
+      `${resolved.originalProvider}/${resolved.originalModel} → ${resolved.provider}/${resolved.model} ` +
+      `(original provider lacks credentials)`,
+    );
+  }
+
+  const provider = resolved.provider;
+  const model = provider === "GEMINI" ? normalizeGeminiModel(resolved.model) : resolved.model;
 
   switch (provider) {
     case "OPENAI":

@@ -19,6 +19,7 @@ import {
   Waypoints,
   GalleryVerticalEnd,
   Rows3,
+  FileText,
 } from "lucide-react";
 import { copy, type Locale } from "@/lib/locale-copy";
 import { cn } from "@/lib/utils";
@@ -112,6 +113,7 @@ export function DashboardSidebar({ locale }: { locale: Locale }) {
 
   /* ── Group 3: 资产与配置 (Manage) ── */
   const manageItems: NavItem[] = [
+    { href: "/article-samples" as Route, label: locale === "en" ? "Sample Bank" : "文章样本库", hint: locale === "en" ? "Writing style memory" : "风格记忆与账号样本", icon: FileText, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
     { href: "/today" as Route, label: text.nav.todayWorkbench, hint: text.nav.todayHint || "看热点、选题、快速产出", icon: CalendarDays, accentBg: "var(--terracotta-soft)", accentColor: "var(--terracotta)" },
     { href: "/trend-explorer" as Route, label: text.nav.trendExplorer, hint: "趋势研究与证据", icon: Compass, accentBg: "var(--plum-soft)", accentColor: "var(--plum)" },
     { href: "/brief-studio" as Route, label: text.nav.briefStudio, hint: "目标与边界", icon: FileStack, accentBg: "var(--slate-blue-soft)", accentColor: "var(--slate-blue)" },

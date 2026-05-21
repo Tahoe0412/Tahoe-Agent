@@ -527,6 +527,7 @@ model Project {
   required_assets         RequiredAsset[]
   uploaded_assets         UploadedAsset[]
   research_reports        ResearchReport[]
+  daily_run_items         DailyRunItem[]
   brand_profile           BrandProfile?         @relation(fields: [brand_profile_id], references: [id], onDelete: SetNull)
   industry_template       IndustryTemplate?     @relation(fields: [industry_template_id], references: [id], onDelete: SetNull)
 
@@ -1385,4 +1386,57 @@ model RenderAsset {
   @@index([render_job_id])
   @@index([storyboard_frame_id])
   @@map("render_assets")
+}
+
+enum DailyRunItemStatus {
+  TOPIC_SELECTED
+  DRAFTING
+  DRAFT_READY
+  PACKAGING
+  PACKAGE_READY
+  REVIEW_PASS
+  PUBLISHED
+  FAILED
+}
+
+model DailyRunItem {
+  id                String             @id @default(cuid())
+  run_date          DateTime           @db.Date
+  account_direction String
+  topic             String
+  topic_source      Json?
+  status            DailyRunItemStatus @default(TOPIC_SELECTED)
+  project_id        String?
+  error_message     String?            @db.Text
+  retry_count       Int                @default(0)
+  quality_score     Float?
+  is_best_pick      Boolean            @default(false)
+  metadata          Json?
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  project           Project?           @relation(fields: [project_id], references: [id], onDelete: SetNull)
+
+  @@index([run_date, account_direction])
+  @@index([run_date, status])
+  @@index([project_id])
+  @@map("daily_run_items")
+}
+
+model ArticleSample {
+  id                  String   @id @default(cuid())
+  account_direction   String
+  title               String
+  content             String   @db.Text
+  source_project_id   String?
+  source_url          String?
+  style_insight       Json?
+  quality_score       Float?
+  tags                String[]
+  is_external         Boolean  @default(false)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@index([account_direction, quality_score])
+  @@index([account_direction, created_at])
+  @@map("article_samples")
 }

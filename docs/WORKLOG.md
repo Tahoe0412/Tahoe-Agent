@@ -2150,3 +2150,101 @@
 **Remaining**:
 - After real use, decide whether quick-package failures should show as a visible banner in Script Lab instead of only a session warning.
 - If local Qwen becomes the daily default, keep generation calls sequential and avoid loading multiple local models at the same time.
+
+---
+
+## 2026-05-21 20:00 — Agent: Antigravity
+
+### Task: T-018 云端模型与 Daily Run 稳定性校准 (Solution B)
+
+**问题诊断**：
+- 云端 `app_settings` 记录的 `llm_provider = GEMINI` / `llm_model = gemini-2.5-pro` 是旧值
+- `generateStructuredJson()` 的 fallback 链：per-route config → 全局 `llmProvider` → 全局 `llmModel`
+- 当 per-route 或全局 provider 没有 credentials（如 Gemini 在中国云区域无 API key），直接抛 missing key error
+- `SCRIPT_REWRITE` 默认路由是 GEMINI，云端没有 Gemini 密钥时所有长文生成失败
+
+**实施方案 B — Credential-Aware Per-Route Fallback**：
+
+**代码改动**：
+1. `lib/model-routing.ts`：
+   - 新增 `resolveModelRoute(routeKey, settings, overrideModel?)` — 核心解析函数
+   - 新增 `findAvailableFallback(settings)` — 按优先级 OPENAI → QWEN → DEEPSEEK → GEMINI 查找可用 provider
+   - 新增 `CredentialSettings`、`ResolvedRoute` 类型导出
+   - 保留 `canUseModelRoute()` 向后兼容
+
+2. `lib/openai-json.ts`：
+   - `generateStructuredJson()` 改用 `resolveModelRoute()` 替代手动 `configuredRoute?.provider ?? settings.llmProvider` 逻辑
+   - 发生 fallback 时打印 `[model-routing] Route "XXX" fallback: GEMINI/gemini-3.1-pro → OPENAI/gpt-5.4-mini`
+   - 移除未使用的 `LlmProvider` import
+
+3. `services/daily-run/owned-media-package.service.ts`：
+   - 前置检查改为同时考虑 `canUseModelRoute()` 和 `resolveModelRoute().didFallback`
+   - 只在 resolved route 实际使用 local Qwen 时才执行 `assertPromotionalCopyRouteReady()` 本地连通性检查
+
+4. `scripts/fix-cloud-model-settings.ts`：
+   - 一次性脚本，更新云端 `app_settings` 记录
+   - 规范化 `llm_routing_json` 为当前代码默认值
+   - 如果全局 provider 无 credentials 则更新为 OPENAI
+   - 关闭 mock mode
+   - 幂等，可重复运行
+
+5. `tests/model-routing.test.ts`：
+   - 14 个新测试：configured provider available、Gemini fallback to OpenAI、OpenAI+Gemini unavailable fallback to Qwen、global provider fallback、override model、no credentials at all、PROMOTIONAL_COPY fallback、findAvailableFallback、normalizeModelRoutes
+
+**验证结果**：
+- `npm run lint`：0 errors (10 pre-existing warnings, 比之前减少 1 个)
+- `npm run build`：通过
+- `npx vitest run`：53 tests passed (15 test files), 含 14 个新测试
+- 无 Prisma schema 改动，无需 migration
+
+**文档更新**：
+- `docs/TASKS.md`：T-018 标记 DONE
+- `docs/DECISIONS.md`：新增 D-043 credential-aware fallback 决策记录
+- `docs/WORKLOG.md`：本条目
+- `docs/PROJECT_STATE.md`：更新已知问题和模型路由说明
+
+**云端部署注意事项**：
+1. 部署新代码后，运行 `npx tsx scripts/fix-cloud-model-settings.ts` 规范化云端设置
+2. 或者直接在云端设置页面更新 LLM 路由配置
+3. 即使不运行脚本，新代码也会自动 fallback 到有 credentials 的 provider（有 console.warn 日志）
+
+---
+
+## 2026-05-21 20:45 — Agent: Antigravity
+
+### Task: T-019 ~ T-022 从开发原型到用户可用的生产系统
+
+**Phase 2 — T-019 Daily Run 生产队列**：
+- 新增 `DailyRunItemStatus` 枚举（8 个状态：TOPIC_SELECTED → DRAFTING → DRAFT_READY → PACKAGING → PACKAGE_READY → REVIEW_PASS → PUBLISHED / FAILED）
+- 新增 `DailyRunItem` Prisma 模型，支持多候选（每个方向每天可生成多篇，用 `is_best_pick` 标记最佳）
+- 新增 `DailyRunQueueService`（9 个方法）和 4 个 API route（queue CRUD、history、stats）
+- `owned-media-package.service.ts` 支持 `dailyRunItemId` 参数，生成成功/失败自动回写队列状态
+- 14 个新测试
+
+**Phase 3 — T-020 文章质量与账号人格差异化**：
+- 扩展 `EditorialDirectionPreset` 类型，新增 writingPersona、qualityChecklist、forbiddenPatterns、targetWordCount、exampleTitles
+- 三个方向数据完整定义：AI 快讯（科技评论人）、全球股市（宏观分析师）、消费时尚（品牌观察家）
+- 新增 `lib/quality-gate.ts` 规则型质量检查器（6 个检查维度）
+- 新增 `app/api/articles/quality-check/route.ts`
+- 17 个新测试
+
+**Phase 4 — T-021 写作记忆与样本库**：
+- 新增 `ArticleSample` Prisma 模型
+- 新增 `ArticleSampleService`（样本管理 + 风格洞察 + prompt 注入式风格参考）
+- 新增 2 个 API route（article-samples CRUD）
+- 外部文章导入可行性调研完成（头条/微信公众号均可通过 URL 粘贴导入）
+
+**Phase 5 — T-022 发布管线与导出**：
+- 新增 `PublishExportService`（Toutiao 格式 + Markdown 格式导出，含批量导出）
+- 新增 `app/api/projects/[id]/export/route.ts`
+
+**验证结果**：
+- `npm run lint`：0 errors (10 pre-existing warnings)
+- `npm run build`：通过
+- `npx vitest run`：17 test files, 84 tests passed (含 31 个新测试)
+- `npx prisma generate`：通过
+
+**数据库部署注意事项**：
+- 新增 2 个表：`daily_run_items`、`article_samples`
+- 部署时需运行 `npx prisma migrate dev` 或 `npx prisma db push`
+- 所有新 API 路由在表创建前会返回 500/DB_NOT_READY 错误

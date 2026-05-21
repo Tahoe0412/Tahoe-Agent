@@ -42,6 +42,7 @@ const requestSchema = z.object({
   generateStoryboard: z.boolean().optional(),
   deferPackaging: z.boolean().optional(),
   worthiness: worthinessSchema,
+  dailyRunItemId: z.string().optional(),
 });
 
 const service = new OwnedMediaPackageService();

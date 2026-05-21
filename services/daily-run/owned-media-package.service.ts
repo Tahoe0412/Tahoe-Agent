@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { DailyRunQueueService } from "@/services/daily-run/daily-run-queue.service";
 import { prisma } from "@/lib/db";
 import { getEditorialDirectionPresets } from "@/lib/editorial-direction-presets";
 import {
@@ -6,7 +7,7 @@ import {
   type OwnedMediaEditorialDirection,
 } from "@/lib/owned-media-directions";
 import type { LongFormWorthiness } from "@/lib/long-form-worthiness";
-import { canUseModelRoute } from "@/lib/model-routing";
+import { canUseModelRoute, resolveModelRoute } from "@/lib/model-routing";
 import { NewsScriptService, type NewsItemInput } from "@/services/news-script.service";
 import { AppSettingsService } from "@/services/app-settings.service";
 import { ProjectOutputGeneratorService } from "@/services/project-output-generator.service";
@@ -44,6 +45,7 @@ export type FastPackageRequest = {
   generateStoryboard?: boolean;
   deferPackaging?: boolean;
   worthiness?: LongFormWorthiness | null;
+  dailyRunItemId?: string;
 };
 
 export type FastPackageResponse = {
@@ -124,6 +126,7 @@ export class OwnedMediaPackageService {
   private readonly newsScriptService = new NewsScriptService();
   private readonly storyboardGeneratorService = new StoryboardGeneratorService();
   private readonly projectOutputGeneratorService = new ProjectOutputGeneratorService();
+  private readonly dailyRunQueueService = new DailyRunQueueService();
 
   async generateFastPackage(input: FastPackageRequest): Promise<FastPackageResponse> {
     if (input.materials.length === 0) {
@@ -135,12 +138,16 @@ export class OwnedMediaPackageService {
     }
 
     const settings = await this.appSettingsService.getEffectiveSettings();
-    if (!canUseModelRoute("PROMOTIONAL_COPY", settings)) {
+    const resolved = resolveModelRoute("PROMOTIONAL_COPY", settings);
+    if (!canUseModelRoute("PROMOTIONAL_COPY", settings) && !resolved.didFallback) {
       throw new Error(
         "本地 Qwen / PROMOTIONAL_COPY 路由不可用。请先配置 QWEN_BASE_URL、LOCAL_QWEN_BASE_URL 或 Qwen API key，并关闭 LLM mock mode。",
       );
     }
-    await this.assertPromotionalCopyRouteReady(settings);
+    // Only check local Qwen readiness if the resolved route actually uses local Qwen
+    if (!resolved.didFallback) {
+      await this.assertPromotionalCopyRouteReady(settings);
+    }
 
     const direction = getOwnedMediaDirectionConfig(input.editorialDirection);
     const steps: FastPackageStep[] = [];
@@ -160,6 +167,14 @@ export class OwnedMediaPackageService {
       title: draftResult.title,
       durationMs: Date.now() - draftStartedAt,
     });
+
+    if (input.dailyRunItemId) {
+      await this.dailyRunQueueService.updateStatus(input.dailyRunItemId, "DRAFTING", {
+        projectId: draftResult.projectId,
+      }).catch((error) => {
+        console.warn("[daily-run] Failed to update DailyRunItem status to DRAFTING:", error);
+      });
+    }
 
     await this.patchOwnedMediaProject({
       projectId: draftResult.projectId,
@@ -188,6 +203,15 @@ export class OwnedMediaPackageService {
         ).catch((error) => {
           console.warn("[daily-run] Failed to record deferred owned-media packaging status:", error);
         });
+        if (input.dailyRunItemId) {
+          void this.dailyRunQueueService.updateStatus(
+            input.dailyRunItemId,
+            failed.length > 0 ? "FAILED" : "PACKAGE_READY",
+            failed.length > 0 ? { errorMessage: "部分产物生成失败" } : undefined,
+          ).catch((err) => {
+            console.warn("[daily-run] Failed to update DailyRunItem status after deferred packaging:", err);
+          });
+        }
         if (failed.length > 0) {
           console.warn("[daily-run] Deferred owned-media packaging partially failed:", failed);
         }
@@ -213,6 +237,17 @@ export class OwnedMediaPackageService {
       generateStoryboard: input.generateStoryboard,
       parallel: true,
     })));
+
+    if (input.dailyRunItemId) {
+      const syncFailed = steps.some((step) => !step.ok);
+      await this.dailyRunQueueService.updateStatus(
+        input.dailyRunItemId,
+        syncFailed ? "FAILED" : "PACKAGE_READY",
+        syncFailed ? { errorMessage: "部分产物生成失败" } : undefined,
+      ).catch((err) => {
+        console.warn("[daily-run] Failed to update DailyRunItem status after sync packaging:", err);
+      });
+    }
 
     return this.buildResponse({
       projectId: draftResult.projectId,

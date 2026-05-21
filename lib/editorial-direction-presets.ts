@@ -11,6 +11,16 @@ export type EditorialDirectionPreset = {
   introduction: string;
   coreIdea: string;
   styleReferenceSample: string;
+  /** Detailed character description defining WHO writes for this direction (200-300 chars). */
+  writingPersona: string;
+  /** Quality criteria specific to this direction. */
+  qualityChecklist: string[];
+  /** Patterns/phrases that MUST NOT appear in this direction's articles. */
+  forbiddenPatterns: string[];
+  /** Target article word count range. */
+  targetWordCount: { min: number; max: number };
+  /** Benchmark title examples for this direction. */
+  exampleTitles: string[];
   brand: {
     name: string;
     positioning: string;
@@ -64,6 +74,28 @@ const zhPresets: EditorialDirectionPreset[] = [
     coreIdea: "先交代今天最值得关注的 AI 变化，再补一句这件事为什么重要，帮助读者快速完成信息更新。",
     styleReferenceSample:
       "参考中文头部科技资讯博主的快讯写法：标题先给出变化点，正文先讲发生了什么，再补一句行业意义；语言要快、准、清楚，避免空泛赞叹和发布会复述。",
+    writingPersona:
+      "你是一名资深科技评论人，长期跟踪 AI 行业一线动态。你的写作风格：信息密度高、节奏快、善用数据和引用。你不写长篇大论，每段都有新信息。你的读者是忙碌的科技从业者，他们需要在 3 分钟内了解今天最重要的 AI 变化。",
+    qualityChecklist: [
+      "每段是否包含至少一个新事实或数据点",
+      "标题是否直接点明变化（不是泛泛的'AI又有新进展'）",
+      "是否在前 100 字内交代清楚发生了什么",
+      "是否避免了空洞的感叹句和价值判断",
+      "引用的数据是否有来源（公司、机构、论文）",
+      "是否避免了发布会原文复述",
+    ],
+    forbiddenPatterns: [
+      "让我们一起", "不得不说", "细思极恐", "颠覆一切", "万能 AI",
+      "绝对领先", "划时代", "令人震惊", "重磅", "劲爆",
+    ],
+    targetWordCount: { min: 1500, max: 3000 },
+    exampleTitles: [
+      "OpenAI 发布 GPT-6：多模态推理能力提升 3 倍，API 价格下调 40%",
+      "谷歌 DeepMind 论文揭示：大模型训练效率仍有 10 倍优化空间",
+      "Anthropic Claude 4 内测数据曝光：代码生成准确率首次超过人类基线",
+      "国产大模型出海第一站：Qwen 3.6 在东南亚拿下 200 万日活",
+      "Agent 框架之争：LangChain vs CrewAI vs AutoGen，开发者怎么选",
+    ],
     brand: {
       name: "AI快讯",
       positioning: "面向想快速跟进 AI 圈动态的中文读者，提供高频、清楚、可转述的 AI 快讯内容。",
@@ -119,7 +151,30 @@ const zhPresets: EditorialDirectionPreset[] = [
     introduction: "围绕全球市场、指数波动、公司财报和资金情绪，做一条面向头条号的全球股市观察账号。",
     coreIdea: "先交代市场发生了什么，再指出最值得盯的变量，让读者更快抓住盘面重点。",
     styleReferenceSample:
-      "参考中文头部财经快评稿：开头先给市场焦点，再用指数、个股、财报或宏观变量支撑判断，最后落到‘接下来该看什么’；避免空泛评论和投资承诺。",
+      "参考中文头部财经快评稿：开头先给市场焦点，再用指数、个股、财报或宏观变量支撑判断，最后落到'接下来该看什么'；避免空泛评论和投资承诺。",
+    writingPersona:
+      "你是一名全球宏观分析师，穿梭于纽约、伦敦、东京、上海的金融圈。你的写作风格：逻辑严密、数据驱动、善用类比解释复杂概念。每篇文章都有明确的判断和论据。你的读者既有专业投资者也有关注市场的普通人，你需要把专业内容写得清楚但不降低深度。",
+    qualityChecklist: [
+      "核心判断是否有数据或事实支撑",
+      "是否清楚交代了时间线（发生在什么时候、下一个关键节点是什么）",
+      "是否提供了风险提示或相反观点",
+      "是否避免了无依据的预测性语言",
+      "类比和解释是否帮助非专业读者理解",
+      "是否在结尾指出接下来该关注什么变量",
+      "引用的指数/数据是否标注了具体数字和时间",
+    ],
+    forbiddenPatterns: [
+      "暴涨", "暴跌", "必涨", "抄底", "稳赚", "内幕消息",
+      "保本", "一定会", "不可能", "错过就没了", "最后的机会",
+    ],
+    targetWordCount: { min: 2000, max: 4000 },
+    exampleTitles: [
+      "美联储暂停加息背后：三个被忽略的经济信号",
+      "日经指数创新高的逻辑与风险：一位亚洲基金经理的复盘",
+      "英伟达财报超预期之后，AI 算力股还能买吗？",
+      "人民币汇率破 7.3 的三层含义：贸易、利差、情绪",
+      "港股为什么持续跑输 A 股：资金结构的答案",
+    ],
     brand: {
       name: "全球股市",
       positioning: "面向关注全球市场与公司动态的中文读者，提供快节奏、高信息密度的股市观察内容。",
@@ -176,6 +231,28 @@ const zhPresets: EditorialDirectionPreset[] = [
     coreIdea: "先说这一轮消费时尚圈发生了什么，再讲它为什么会影响品牌、审美和购买判断。",
     styleReferenceSample:
       "参考中文头部消费时尚博主和商业观察稿：先抛出品牌或趋势变化，再补消费人群、产品细节和行业信号；语言要有审美感，但不要空话和大词。",
+    writingPersona:
+      "你是一名品牌观察家与生活方式编辑，善于从细节发现趋势。你的写作风格：审美叙事、场景描写丰富、克制推荐。你不做硬广，让读者自己得出结论。你的文字有质感但不矫情，有判断但不武断。你的读者是有品味的城市消费者，他们厌倦了直播间的吆喝，想看到真正懂品牌的内容。",
+    qualityChecklist: [
+      "是否有具体的场景描写（空间、光线、材质、气味）",
+      "品牌是否自然融入叙事而非硬性植入",
+      "是否有明确的审美判断（而非空泛的'高级'）",
+      "情绪是否克制（不过度煽情，不强行推荐）",
+      "是否有具体的产品细节或数据支撑观点",
+      "标题是否引发好奇而非直接卖点",
+    ],
+    forbiddenPatterns: [
+      "性价比超高", "买它买它", "强烈推荐", "良心好物", "闭眼入",
+      "绝对高级", "人人必买", "断货王", "yyds", "绝绝子",
+    ],
+    targetWordCount: { min: 1800, max: 3500 },
+    exampleTitles: [
+      "一家上海咖啡店如何用 12 平米做出米其林级审美",
+      "优衣库的反时尚哲学：当所有品牌在做加法，它在做减法",
+      "为什么 Aesop 的店永远不像护肤品店",
+      "消费降级的另一面：年轻人开始买更贵的基础款",
+      "一支口红的定价逻辑：从 50 元到 500 元之间发生了什么",
+    ],
     brand: {
       name: "消费时尚",
       positioning: "面向关注品牌、美妆、服饰和消费趋势的读者，提供既懂产品又懂审美的图文内容。",
