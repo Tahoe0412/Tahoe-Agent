@@ -64,6 +64,15 @@ export function ScriptLabExportDialog({
     void fetchExportData(activeTab);
   }, [activeTab, fetchExportData]);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const triggerCopy = async (text: string, sectionKey: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -86,8 +95,17 @@ export function ScriptLabExportDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs">
-      <div className="w-full max-w-2xl bg-[var(--surface-solid)] rounded-[var(--ios-radius-lg)] shadow-2xl flex flex-col max-h-[85vh] animate-scale-in border border-[var(--border-soft)]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="导出发布包"
+    >
+      <div
+        className="w-full max-w-2xl bg-[var(--surface-solid)] rounded-[var(--ios-radius-lg)] shadow-2xl flex flex-col max-h-[85vh] animate-scale-in border border-[var(--border-soft)]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-6 py-4">
           <div className="flex items-center gap-2">

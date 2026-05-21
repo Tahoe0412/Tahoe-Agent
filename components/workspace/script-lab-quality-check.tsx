@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { CheckCircle2, AlertTriangle, XCircle, RotateCcw, ShieldAlert, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -30,10 +30,16 @@ export function ScriptLabQualityCheck({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QualityCheckResult | null>(null);
+  const [isStale, setIsStale] = useState(false);
+
+  // Track the content snapshot that was last checked
+  const lastCheckedRef = useRef<string>("");
+  const hasRunOnceRef = useRef(false);
 
   const runCheck = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setIsStale(false);
     try {
       const res = await fetch("/api/articles/quality-check", {
         method: "POST",
@@ -50,6 +56,7 @@ export function ScriptLabQualityCheck({
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+        lastCheckedRef.current = `${title}||${content}||${direction}`;
       } else {
         throw new Error(data.error?.message || "Quality check request failed");
       }
@@ -62,11 +69,22 @@ export function ScriptLabQualityCheck({
     }
   }, [title, content, direction]);
 
+  // Auto-run once on mount when content is available
   useEffect(() => {
-    if (title && content && direction) {
+    if (!hasRunOnceRef.current && title && content && direction) {
+      hasRunOnceRef.current = true;
       void runCheck();
     }
   }, [title, content, direction, runCheck]);
+
+  // Detect content changes after a check has been run
+  useEffect(() => {
+    if (!lastCheckedRef.current) return;
+    const currentSnapshot = `${title}||${content}||${direction}`;
+    if (currentSnapshot !== lastCheckedRef.current) {
+      setIsStale(true);
+    }
+  }, [title, content, direction]);
 
   const getScoreColorClass = (score: number) => {
     if (score >= 70) return "text-[var(--ok-text)]";
@@ -98,6 +116,20 @@ export function ScriptLabQualityCheck({
         </button>
       </div>
 
+      {isStale && !loading && (
+        <div className="flex items-center justify-between rounded-lg border border-[color:color-mix(in_srgb,var(--warn-text)_22%,transparent)] bg-[var(--terracotta-soft)] px-3 py-2">
+          <span className="text-xs text-[var(--warn-text)]">
+            文章内容已更新，当前检查结果可能已过时。
+          </span>
+          <button
+            onClick={runCheck}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--warn-text)] hover:underline"
+          >
+            <RotateCcw className="size-3" />
+            重新检查
+          </button>
+        </div>
+      )}
       {loading ? (
         <div className="py-8 text-center text-sm text-[var(--text-2)] flex flex-col items-center justify-center gap-2">
           <div className="size-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Trash2, ExternalLink, FileText, X, Info, HelpCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Trash2, ExternalLink, FileText, X, Info, HelpCircle, Check, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { PanelCard } from "@/components/ui/panel-card";
 import { Tag } from "@/components/ui/tag";
@@ -55,6 +55,16 @@ export default function ArticleSamplesPage() {
   const [formQualityScore, setFormQualityScore] = useState(80);
   const [formDirection, setFormDirection] = useState("AI快讯");
   const [submitting, setSubmitting] = useState(false);
+
+  // Inline delete confirmation state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2000);
+  }, []);
   const [formError, setFormError] = useState("");
 
   const fetchData = async () => {
@@ -142,10 +152,7 @@ export default function ArticleSamplesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("确定要删除这个样本文章吗？此操作不可逆。")) {
-      return;
-    }
-
+    setDeleteConfirmId(null);
     try {
       const res = await fetch(`/api/article-samples/${id}`, {
         method: "DELETE",
@@ -154,12 +161,30 @@ export default function ArticleSamplesPage() {
       if (!res.ok || !result.success) {
         throw new Error(result.error?.message || "删除失败");
       }
+      showToast("样本已删除");
       await fetchData();
     } catch (err) {
       const error = err as Error;
-      alert(error.message || "网络请求失败，请稍后重试");
+      showToast(error.message || "网络请求失败，请稍后重试");
     }
   };
+
+  // Close drawers on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (deleteConfirmId) {
+          setDeleteConfirmId(null);
+        } else if (isImportOpen) {
+          setIsImportOpen(false);
+        } else if (selectedSampleForView) {
+          setSelectedSampleForView(null);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [deleteConfirmId, isImportOpen, selectedSampleForView]);
 
   // Find the currently active group details
   const activeGroup = groups.find((g) => g.direction === selectedDirection) || {
@@ -394,16 +419,39 @@ export default function ArticleSamplesPage() {
                             })}
                           </td>
                           <td className="px-4 py-3.5 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(sample.id);
-                              }}
-                              className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)] transition"
-                              title="删除"
-                            >
-                              <Trash2 className="size-4" />
-                            </button>
+                            {deleteConfirmId === sample.id ? (
+                              <div className="inline-flex items-center gap-1.5">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    void handleDelete(sample.id);
+                                  }}
+                                  className="rounded-lg px-2 py-1 text-xs font-semibold text-[var(--danger-text)] bg-[var(--danger-bg)] hover:brightness-95 transition"
+                                >
+                                  确认
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteConfirmId(null);
+                                  }}
+                                  className="rounded-lg px-2 py-1 text-xs text-[var(--text-2)] hover:bg-[var(--surface-muted)] transition"
+                                >
+                                  取消
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirmId(sample.id);
+                                }}
+                                className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-text)] transition"
+                                title="删除"
+                              >
+                                <Trash2 className="size-4" />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -418,8 +466,8 @@ export default function ArticleSamplesPage() {
 
       {/* Drawer overlay for Full Text viewing */}
       {selectedSampleForView && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-2xl bg-[var(--surface-solid)] h-full shadow-xl flex flex-col animate-slide-in">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs" onClick={() => setSelectedSampleForView(null)}>
+          <div className="w-full max-w-2xl bg-[var(--surface-solid)] h-full shadow-xl flex flex-col animate-slide-in" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-6 py-4">
               <div className="flex items-center gap-2">
@@ -482,7 +530,7 @@ export default function ArticleSamplesPage() {
                 variant="secondary"
                 onClick={() => {
                   navigator.clipboard.writeText(selectedSampleForView.content);
-                  alert("正文已复制到剪切板");
+                  showToast("正文已复制到剪切板");
                 }}
               >
                 复制正文
@@ -493,7 +541,7 @@ export default function ArticleSamplesPage() {
                 onClick={() => {
                   const id = selectedSampleForView.id;
                   setSelectedSampleForView(null);
-                  handleDelete(id);
+                  setDeleteConfirmId(id);
                 }}
               >
                 删除样本
@@ -505,10 +553,11 @@ export default function ArticleSamplesPage() {
 
       {/* Drawer overlay for Importing Sample */}
       {isImportOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs" onClick={() => setIsImportOpen(false)}>
           <form
             onSubmit={handleImportSubmit}
             className="w-full max-w-xl bg-[var(--surface-solid)] h-full shadow-xl flex flex-col animate-slide-in"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-6 py-4">
@@ -617,6 +666,52 @@ export default function ArticleSamplesPage() {
               </Button>
             </div>
           </form>
+        </div>
+      )}
+      {/* Floating toast notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-scale-in">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-solid)] px-4 py-2.5 shadow-lg text-sm text-[var(--text-1)]">
+            <Check className="size-4 text-[var(--ok-text)]" />
+            {toastMessage}
+          </div>
+        </div>
+      )}
+
+      {/* Standalone delete confirmation overlay (triggered from drawer) */}
+      {deleteConfirmId && !selectedSampleForView && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-xs"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-[var(--surface-solid)] rounded-[var(--ios-radius-lg)] shadow-2xl p-6 animate-scale-in border border-[var(--border-soft)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--danger-bg)]">
+                <AlertTriangle className="size-5 text-[var(--danger-text)]" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--text-1)]">确认删除样本</h3>
+                <p className="mt-1 text-xs text-[var(--text-2)] leading-5">
+                  删除后无法恢复，对应写作风格分析将重新计算。
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setDeleteConfirmId(null)}>
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                className="bg-[var(--danger-text)] hover:brightness-90"
+                onClick={() => void handleDelete(deleteConfirmId)}
+              >
+                确认删除
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </WorkspaceLayout>
