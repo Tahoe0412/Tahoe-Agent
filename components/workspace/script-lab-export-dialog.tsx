@@ -42,14 +42,14 @@ export function ScriptLabExportDialog({
     try {
       const res = await fetch(`/api/projects/${projectId}/export?format=${format}`);
       const data = await res.json();
-      if (data.status === "ok") {
+      if (data.success) {
         if (format === "toutiao") {
           setToutiaoData(data.data);
         } else {
           setMarkdownData(data.data);
         }
       } else {
-        throw new Error(data.message || "Failed to load export data");
+        throw new Error(data.error?.message || "Failed to load export data");
       }
     } catch (err) {
       const error = err as Error;

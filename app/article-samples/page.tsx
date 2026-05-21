@@ -66,10 +66,10 @@ export default function ArticleSamplesPage() {
         throw new Error(`Failed to fetch article samples: ${res.statusText}`);
       }
       const data = await res.json();
-      if (data.status === "ok" && Array.isArray(data.data)) {
+      if (data.success && Array.isArray(data.data)) {
         setGroups(data.data);
       } else {
-        throw new Error(data.message || "Unknown error occurred");
+        throw new Error(data.error?.message || "Unknown error occurred");
       }
     } catch (err) {
       console.error(err);
@@ -119,8 +119,8 @@ export default function ArticleSamplesPage() {
       });
 
       const result = await res.json();
-      if (!res.ok || result.status !== "ok") {
-        throw new Error(result.message || "导入失败，请检查参数");
+      if (!res.ok || !result.success) {
+        throw new Error(result.error?.message || "导入失败，请检查参数");
       }
 
       // Reset form and close
@@ -151,8 +151,8 @@ export default function ArticleSamplesPage() {
         method: "DELETE",
       });
       const result = await res.json();
-      if (!res.ok || result.status !== "ok") {
-        throw new Error(result.message || "删除失败");
+      if (!res.ok || !result.success) {
+        throw new Error(result.error?.message || "删除失败");
       }
       await fetchData();
     } catch (err) {

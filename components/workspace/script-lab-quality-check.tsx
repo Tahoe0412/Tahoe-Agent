@@ -48,10 +48,10 @@ export function ScriptLabQualityCheck({
       });
 
       const data = await res.json();
-      if (data.status === "ok") {
+      if (data.success) {
         setResult(data.data);
       } else {
-        throw new Error(data.message || "Quality check request failed");
+        throw new Error(data.error?.message || "Quality check request failed");
       }
     } catch (err) {
       const error = err as Error;

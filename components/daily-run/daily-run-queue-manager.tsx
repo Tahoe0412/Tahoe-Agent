@@ -76,10 +76,10 @@ export function DailyRunQueueManager({
       if (queueRes.ok && statsRes.ok) {
         const queueData = await queueRes.json();
         const statsData = await statsRes.json();
-        if (queueData.status === "ok" && Array.isArray(queueData.data)) {
+        if (queueData.success && Array.isArray(queueData.data)) {
           setItems(queueData.data);
         }
-        if (statsData.status === "ok") {
+        if (statsData.success) {
           setStats(statsData.data);
         }
       }
@@ -126,10 +126,10 @@ export function DailyRunQueueManager({
         body: JSON.stringify({ action: "mark_best_pick" }),
       });
       const data = await res.json();
-      if (res.ok && data.status === "ok") {
+      if (res.ok && data.success) {
         await fetchQueueAndStats();
       } else {
-        throw new Error(data.message || "Failed to mark best pick");
+        throw new Error(data.error?.message || "Failed to mark best pick");
       }
     } catch (err) {
       const error = err as Error;
@@ -179,10 +179,10 @@ export function DailyRunQueueManager({
       });
 
       const data = await res.json();
-      if (res.ok && data.status === "ok") {
+      if (res.ok && data.success) {
         await fetchQueueAndStats();
       } else {
-        throw new Error(data.message || "启动生成失败");
+        throw new Error(data.error?.message || "启动生成失败");
       }
     } catch (err) {
       const error = err as Error;
@@ -213,12 +213,12 @@ export function DailyRunQueueManager({
         body: JSON.stringify({ action: "retry" }),
       });
       const data = await res.json();
-      if (res.ok && data.status === "ok") {
+      if (res.ok && data.success) {
         const updatedItem = data.data;
         // Trigger generation immediately on retry
         await handleStartGeneration(updatedItem);
       } else {
-        throw new Error(data.message || "重试请求失败");
+        throw new Error(data.error?.message || "重试请求失败");
       }
     } catch (err) {
       const error = err as Error;
