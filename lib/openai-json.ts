@@ -141,7 +141,9 @@ async function requestOpenAI<T>({
     ? envNumber("QWEN_TEMPERATURE", temperature, 0, 1.5)
     : temperature;
   const qwenTopP = localEndpoint ? envNumber("QWEN_TOP_P", 0.85, 0.05, 1) : null;
-  const qwenMaxTokens = localEndpoint ? Math.round(envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768)) : null;
+  const qwenMaxTokens = localEndpoint
+    ? Math.round(envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768))
+    : 8192;
   const userContent = promptOnlyJson
     ? [
         ...(localEndpoint ? ["/no_think"] : []),
@@ -158,7 +160,7 @@ async function requestOpenAI<T>({
     model,
     temperature: effectiveTemperature,
     ...(qwenTopP ? { top_p: qwenTopP } : {}),
-    ...(qwenMaxTokens ? { max_tokens: qwenMaxTokens } : {}),
+    max_tokens: qwenMaxTokens,
     messages: [
       {
         role: "system",
@@ -345,6 +347,7 @@ async function requestGemini<T>({
         generationConfig: {
           temperature,
           responseMimeType: "application/json",
+          maxOutputTokens: 65536,
         },
       }),
     });
