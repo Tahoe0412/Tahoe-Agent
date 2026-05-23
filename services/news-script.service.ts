@@ -261,7 +261,14 @@ export class NewsScriptService {
         script_status: "ACTIVE",
         version_number: scriptCount + 1,
         title: generatedScript.title,
-        original_text: generatedScript.full_text,
+        original_text: (() => {
+          const concat = [generatedScript.opening, generatedScript.body, generatedScript.closing]
+            .filter(Boolean).join("\n\n");
+          // Use whichever is longer: the LLM's full_text or the opening+body+closing concat
+          return (generatedScript.full_text?.length ?? 0) >= concat.length
+            ? generatedScript.full_text
+            : concat;
+        })(),
         rewritten_text: null,
         model_name: "mars-citizen-narrative",
         structured_output: toJson({

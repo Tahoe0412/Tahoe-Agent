@@ -49,10 +49,9 @@ export class PublishExportService {
     const titles = titlePack?.titles as string[] | undefined;
     const bestTitle = titles?.[0] ?? project.title;
 
-    // Extract content
-    const content = this.cleanContentForToutiao(
-      (structured?.masterDraft as string) ?? script.original_text ?? "",
-    );
+    // Extract content — try several sources in priority order
+    const rawContent = this.resolveArticleContent(structured, script.original_text);
+    const content = this.cleanContentForToutiao(rawContent);
 
     // Extract summary from publish copy
     const publishCopy = structured?.publishCopy as Record<string, unknown> | undefined;
@@ -133,6 +132,37 @@ export class PublishExportService {
   }
 
   // ── Private helpers ──
+
+  /**
+   * Resolve the best available article content from structured output.
+   * Priority: masterDraft > full_text > original_text > opening+body+closing concat.
+   */
+  private resolveArticleContent(
+    structured: Record<string, unknown> | null,
+    originalText: string | null,
+  ): string {
+    // 1. masterDraft — set by some generators
+    const masterDraft = structured?.masterDraft as string | undefined;
+    if (masterDraft && masterDraft.length > 200) return masterDraft;
+
+    // 2. full_text from structured output — set by narrative generator
+    const fullText = structured?.full_text as string | undefined;
+    if (fullText && fullText.length > 200) return fullText;
+
+    // 3. original_text from script record — stores full_text at creation
+    if (originalText && originalText.length > 200) return originalText;
+
+    // 4. Concatenate opening + body + closing (narrative articles)
+    const opening = (structured?.opening as string) ?? "";
+    const body = (structured?.body as string) ?? "";
+    const closing = (structured?.closing as string) ?? "";
+    const concat = [opening, body, closing].filter(Boolean).join("\n\n");
+    if (concat.length > 100) return concat;
+
+    // 5. Last resort — return whatever we have
+    return originalText ?? masterDraft ?? fullText ?? concat ?? "";
+  }
+
 
   /** Clean content for Toutiao: remove markdown, normalize whitespace. */
   private cleanContentForToutiao(content: string): string {
