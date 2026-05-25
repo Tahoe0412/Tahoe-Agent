@@ -216,6 +216,7 @@ export class NewsScriptService {
         systemPrompt,
         userPrompt,
         routeKey: params.strictModel ? "PROMOTIONAL_COPY" : "SCRIPT_REWRITE",
+        longForm: true,
         preprocess: (raw: unknown) => {
           if (typeof raw === "string") {
             return {

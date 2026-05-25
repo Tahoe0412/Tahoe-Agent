@@ -15,6 +15,8 @@ interface StructuredJsonParams<T> {
   temperature?: number;
   /** Per-call timeout in milliseconds. Defaults to 120 000 (2 minutes), or a longer local Qwen timeout for localhost endpoints. */
   timeoutMs?: number;
+  /** Set true for long-form content generation (e.g. article drafts). On local Qwen this enables thinking, removes brevity instructions, and increases max_tokens. */
+  longForm?: boolean;
 }
 
 interface OpenAIChatCompletionResponse {
@@ -133,6 +135,7 @@ async function requestOpenAI<T>({
   temperature = 0.2,
   timeoutMs,
   strictJsonSchema,
+  longForm,
 }: StructuredJsonParams<T> & { apiKey: string; model: string; baseUrl?: string; strictJsonSchema?: boolean }) {
   const localEndpoint = isLocalUrl(baseUrl);
   const effectiveTimeout = timeoutMs ?? (localEndpoint ? localQwenTimeoutMs() : 120_000);
@@ -141,12 +144,13 @@ async function requestOpenAI<T>({
     ? envNumber("QWEN_TEMPERATURE", temperature, 0, 1.5)
     : temperature;
   const qwenTopP = localEndpoint ? envNumber("QWEN_TOP_P", 0.85, 0.05, 1) : null;
+  const defaultLocalMax = longForm ? 16384 : 8192;
   const qwenMaxTokens = localEndpoint
-    ? Math.round(envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768))
+    ? Math.round(envNumber("QWEN_MAX_TOKENS", defaultLocalMax, 256, 32768))
     : 8192;
   const userContent = promptOnlyJson
     ? [
-        ...(localEndpoint ? ["/no_think"] : []),
+        ...(localEndpoint && !longForm ? ["/no_think"] : []),
         userPrompt,
         "",
         `Return valid JSON only for schema "${schemaName}".`,
@@ -165,18 +169,25 @@ async function requestOpenAI<T>({
       {
         role: "system",
         content: localEndpoint
-          ? [
-              "/no_think",
-              "不要输出思考过程。",
-              "不要解释。",
-              "直接输出满足要求的 JSON。",
-              systemPrompt,
-            ].join("\n")
+          ? (longForm
+            ? [
+                "你是一个长文写作助手。",
+                "输出必须是一个满足 schema 要求的 JSON 对象。",
+                "JSON 中的文章字段（opening、body、closing、full_text）必须写足要求的字数，不要偷懒缩短。",
+                systemPrompt,
+              ].join("\n")
+            : [
+                "/no_think",
+                "不要输出思考过程。",
+                "不要解释。",
+                "直接输出满足要求的 JSON。",
+                systemPrompt,
+              ].join("\n"))
           : systemPrompt,
       },
       { role: "user", content: userContent },
     ],
-    ...(localEndpoint
+    ...(localEndpoint && !longForm
       ? {
           reasoning_effort: "none",
           enable_thinking: false,
