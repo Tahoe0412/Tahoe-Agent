@@ -12,6 +12,7 @@ import { NewsScriptService, type NewsItemInput } from "@/services/news-script.se
 import { AppSettingsService } from "@/services/app-settings.service";
 import { ProjectOutputGeneratorService } from "@/services/project-output-generator.service";
 import { StoryboardGeneratorService } from "@/services/storyboard-generator.service";
+import { ArticleImageBriefService } from "@/services/article-image-brief.service";
 import type { ProjectOutputGenerationResult } from "@/services/project-output-generator-registry";
 
 export type FastPackageContentLine = "OWNED_MEDIA" | "MARKETING";
@@ -125,6 +126,7 @@ export class OwnedMediaPackageService {
   private readonly appSettingsService = new AppSettingsService();
   private readonly newsScriptService = new NewsScriptService();
   private readonly storyboardGeneratorService = new StoryboardGeneratorService();
+  private readonly articleImageBriefService = new ArticleImageBriefService();
   private readonly projectOutputGeneratorService = new ProjectOutputGeneratorService();
   private readonly dailyRunQueueService = new DailyRunQueueService();
 
@@ -267,7 +269,7 @@ export class OwnedMediaPackageService {
       ...(params.generateStoryboard !== false
         ? [
             () => runStep("IMAGE_BRIEF", () =>
-              this.storyboardGeneratorService.generate({
+              this.articleImageBriefService.generate({
                 projectId: params.projectId,
                 scriptId: params.scriptId,
               }),

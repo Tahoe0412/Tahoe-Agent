@@ -33,6 +33,17 @@ export class PublishExportService {
           orderBy: { updated_at: "desc" },
           take: 1,
         },
+        storyboards: {
+          where: { storyboard_status: "ACTIVE" },
+          orderBy: { updated_at: "desc" },
+          take: 1,
+          include: {
+            frames: {
+              orderBy: { frame_order: "asc" },
+              select: { frame_title: true, visual_prompt: true, composition_notes: true },
+            },
+          },
+        },
       },
     });
 
@@ -57,10 +68,18 @@ export class PublishExportService {
     const publishCopy = structured?.publishCopy as Record<string, unknown> | undefined;
     const summary = (publishCopy?.abstract as string) ?? this.generateSummary(content);
 
-    // Extract image briefs
-    const imageBrief = structured?.imageBrief as Record<string, unknown> | undefined;
-    const imageBriefs = (imageBrief?.scenes as Array<{ description: string }> | undefined)
+    // Extract image briefs — prefer storyboard frames (new ArticleImageBriefService), then structured_output
+    const storyboard = project.storyboards?.[0];
+    const storyboardBriefs = storyboard?.frames
+      ?.map((f) => {
+        const prefix = f.frame_title ? `[${f.frame_title}] ` : "";
+        return `${prefix}${f.visual_prompt ?? ""}${f.composition_notes ? `（${f.composition_notes}）` : ""}`.trim();
+      })
+      .filter(Boolean) ?? [];
+    const legacyImageBrief = structured?.imageBrief as Record<string, unknown> | undefined;
+    const legacyBriefs = (legacyImageBrief?.scenes as Array<{ description: string }> | undefined)
       ?.map((s) => s.description) ?? [];
+    const imageBriefs = storyboardBriefs.length > 0 ? storyboardBriefs : legacyBriefs;
 
     // Extract tags from metadata or topic
     const tags = this.extractTags(metadata, project.topic_query);
