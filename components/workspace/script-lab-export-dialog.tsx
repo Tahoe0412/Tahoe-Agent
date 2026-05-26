@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Copy, X, Check, FileDown, CheckCircle2 } from "lucide-react";
+import { Copy, X, Check, FileDown, CheckCircle2, Download } from "lucide-react";
+import { downloadAsTxt, downloadAsPdf, downloadAsDocx } from "@/lib/file-download";
 import { Button } from "@/components/ui/button";
 
 interface ToutiaoData {
@@ -35,6 +36,7 @@ export function ScriptLabExportDialog({
 
   // Copy success indicator states
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   const fetchExportData = useCallback(async (format: "toutiao" | "markdown") => {
     setLoading(true);
@@ -80,6 +82,49 @@ export function ScriptLabExportDialog({
       setTimeout(() => setCopiedSection(null), 1800);
     } catch (err) {
       console.error("Clipboard copy failed", err);
+    }
+  };
+
+  const safeFilename = (title: string) =>
+    title.replace(/[/\\:*?"<>|]/g, "_").slice(0, 80) || "article";
+
+  const handleDownload = async (format: "txt" | "docx" | "pdf") => {
+    const data = toutiaoData;
+    if (!data) return;
+    setDownloading(format);
+    try {
+      const name = safeFilename(data.title);
+      if (format === "txt") {
+        const text = [
+          data.title,
+          "",
+          data.summary,
+          "",
+          data.content,
+          "",
+          data.tags.length > 0 ? `标签: ${data.tags.map((t) => `#${t}`).join(" ")}` : "",
+        ].filter(Boolean).join("\n");
+        downloadAsTxt(text, name);
+      } else if (format === "docx") {
+        await downloadAsDocx({
+          title: data.title,
+          content: data.content,
+          summary: data.summary,
+          tags: data.tags,
+          filename: name,
+        });
+      } else {
+        await downloadAsPdf({
+          title: data.title,
+          content: data.content,
+          summary: data.summary,
+          filename: name,
+        });
+      }
+    } catch (err) {
+      console.error(`Download ${format} failed:`, err);
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -339,10 +384,31 @@ export function ScriptLabExportDialog({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[var(--border-soft)] px-6 py-4 flex justify-between bg-[var(--surface-muted)] rounded-b-[var(--ios-radius-lg)]">
-          <div className="flex items-center gap-1.5 text-xs text-[var(--text-3)] font-medium">
-            <CheckCircle2 className="size-4 text-[var(--sage)]" />
-            所有稿件格式已过质量屏障 (Quality Gate)
+        <div className="border-t border-[var(--border-soft)] px-6 py-4 flex justify-between items-center bg-[var(--surface-muted)] rounded-b-[var(--ios-radius-lg)]">
+          <div className="flex items-center gap-2">
+            <Download className="size-4 text-[var(--text-3)]" />
+            <span className="text-xs text-[var(--text-3)] font-medium mr-1">保存为</span>
+            <button
+              onClick={() => handleDownload("txt")}
+              disabled={!toutiaoData || downloading === "txt"}
+              className="h-7 px-2.5 text-xs font-medium rounded-md border border-[var(--border-soft)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)] transition disabled:opacity-40"
+            >
+              {downloading === "txt" ? "导出中..." : ".txt"}
+            </button>
+            <button
+              onClick={() => handleDownload("docx")}
+              disabled={!toutiaoData || downloading === "docx"}
+              className="h-7 px-2.5 text-xs font-medium rounded-md border border-[var(--border-soft)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)] transition disabled:opacity-40"
+            >
+              {downloading === "docx" ? "导出中..." : ".docx"}
+            </button>
+            <button
+              onClick={() => handleDownload("pdf")}
+              disabled={!toutiaoData || downloading === "pdf"}
+              className="h-7 px-2.5 text-xs font-medium rounded-md border border-[var(--border-soft)] bg-[var(--surface-solid)] text-[var(--text-2)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-1)] transition disabled:opacity-40"
+            >
+              {downloading === "pdf" ? "导出中..." : ".pdf"}
+            </button>
           </div>
           <Button variant="secondary" onClick={onClose}>
             关闭
