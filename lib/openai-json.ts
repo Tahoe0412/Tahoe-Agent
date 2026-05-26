@@ -90,6 +90,9 @@ function normalizeChatCompletionsUrl(value: string) {
 function parseJsonContent(content: string, label: string) {
   const cleaned = content
     .trim()
+    // Strip <think>...</think> tags from thinking models (qwen3, etc.)
+    .replace(/<think>[\s\S]*?<\/think>/g, "")
+    .trim()
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
@@ -104,6 +107,32 @@ function parseJsonContent(content: string, label: string) {
     const objectCandidate = objectStart >= 0 && objectEnd > objectStart ? cleaned.slice(objectStart, objectEnd + 1) : "";
     const arrayCandidate = arrayStart >= 0 && arrayEnd > arrayStart ? cleaned.slice(arrayStart, arrayEnd + 1) : "";
     const candidate = objectCandidate || arrayCandidate;
+    if (candidate) {
+      try {
+        return JSON.parse(candidate);
+      } catch {
+        // fall through to truncation repair
+      }
+    }
+
+    // Attempt to repair truncated JSON (e.g. max_tokens hit mid-output)
+    if (objectStart >= 0 && objectEnd <= objectStart) {
+      const truncated = cleaned.slice(objectStart);
+      // Close any open JSON string value, then close the object
+      const repaired = truncated.replace(/,?\s*$/, "") + '"}';
+      try {
+        return JSON.parse(repaired);
+      } catch {
+        // Try harder: close with empty remaining fields
+        const repaired2 = truncated.replace(/,?\s*"?[^"]*$/, '') + '"}';
+        try {
+          return JSON.parse(repaired2);
+        } catch {
+          console.warn(`[openai-json] ${label} JSON truncated and repair failed. Preview:`, truncated.slice(0, 500));
+        }
+      }
+    }
+
     if (!candidate) {
       console.warn(`[openai-json] ${label} returned non-JSON preview:`, cleaned.slice(0, 1000));
       throw new Error(`${label} returned non-JSON content.`);
@@ -144,9 +173,11 @@ async function requestOpenAI<T>({
     ? envNumber("QWEN_TEMPERATURE", temperature, 0, 1.5)
     : temperature;
   const qwenTopP = localEndpoint ? envNumber("QWEN_TOP_P", 0.85, 0.05, 1) : null;
-  const defaultLocalMax = longForm ? 16384 : 8192;
+  const defaultLocalMax = longForm
+    ? envNumber("QWEN_LONG_FORM_MAX_TOKENS", 32768, 4096, 65536)
+    : envNumber("QWEN_MAX_TOKENS", 8192, 256, 32768);
   const qwenMaxTokens = localEndpoint
-    ? Math.round(envNumber("QWEN_MAX_TOKENS", defaultLocalMax, 256, 32768))
+    ? Math.round(defaultLocalMax)
     : 8192;
   const userContent = promptOnlyJson
     ? [
